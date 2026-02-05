@@ -1,0 +1,174 @@
+<resources>
+    <!-- General -->
+    <string name="app_name">किसान मित्र</string>
+    <string name="continue_">जारी रखें</string>
+    <string name="profile">प्रोफ़ाइल</string>
+    <string name="name">नाम</string>
+    <string name="back">पीछे</string>
+    <string name="confirm">पुष्टि करें</string>
+    <string name="cancel">रद्द करें</string>
+    <string name="description">विवरण</string>
+    <string name="retry">पुनः प्रयास करें</string>
+
+    <!-- Onboarding and Authentication -->
+    <string name="select_language">भाषा चुनें</string>
+    <string name="phone_number">फ़ोन नंबर</string>
+    <string name="login">लॉग इन करें</string>
+    <string name="no_account">खाता नहीं है? साइन अप करें</string>
+    <string name="otp_sent_to">%1$s पर भेजे गए ओटीपी को दर्ज करें</string>
+    <string name="otp">ओटीपी</string>
+    <string name="verify_otp">ओटीपी सत्यापित करें</string>
+    <string name="sign_up">साइन अप करें</string>
+    <string name="have_account">पहले से ही खाता है? लॉग इन करें</string>
+
+    <!-- API Error Messages -->
+    <string name="internal_server_error">आंतरिक सर्वर त्रुटि, कृपया बाद में पुनः प्रयास करें।</string>
+    <string name="no_internet">कोई इंटरनेट कनेक्शन नहीं।</string>
+    <string name="unknown_error">अज्ञात त्रुटि, कृपया बाद में पुनः प्रयास करें।</string>
+
+    <!-- Auth API Errors -->
+    <string name="invalid_phone_number">अमान्य फ़ोन नंबर</string>
+    <string name="invalid_otp">अमान्य ओटीपी</string>
+    <string name="user_not_found">उपयोगकर्ता नहीं मिला</string>
+    <string name="user_already_exists">उपयोगकर्ता पहले से मौजूद है</string>
+    <string name="name_required">नाम आवश्यक है</string>
+
+    <!-- Navigation -->
+    <string name="home">होम</string>
+    <string name="farms">खेत</string>
+    <string name="pesticides">कीटनाशक</string>
+    <string name="chats">चैट</string>
+    <string name="cultivating_crop">फसल की खेती</string>
+    <string name="alerts">अलर्ट</string>
+    <string name="settings">सेटिंग्स</string>
+    <string name="language">भाषा</string>
+    <string name="more">अधिक</string>
+
+    <!-- Settings Screen -->
+    <string name="user_name">नाम: %1$s</string>
+    <string name="user_phone">फ़ोन: %1$s</string>
+    <string name="error_with_message">त्रुटि: %1$s</string>
+    <string name="logout">लॉग आउट</string>
+    <string name="logout_confirmation_title">लॉग आउट की पुष्टि करें</string>
+    <string name="logout_confirmation_message">क्या आप वाकई लॉग आउट करना चाहते हैं?</string>
+
+    <!-- Farm -->
+    <string name="add_farm_profile">खेत प्रोफ़ाइल जोड़ें</string>
+    <string name="recommended_crop_details">अनुशंसित फसल विवरण</string>
+    <string name="select_for_cultivation">खेती के लिए चुनें</string>
+    <string name="crop_recommendation">फसल अनुशंसा</string>
+    <string name="discover_best_crops_desc">अपने खेत के लिए सर्वोत्तम फसलें खोजें</string>
+    <string name="farm_tab">खेत</string>
+    <string name="crops_tab">फसलें</string>
+    <string name="crop_history">फसल इतिहास</string>
+    <string name="no_cultivating_crops_found">कोई खेती वाली फसल नहीं मिली।</string>
+    <string name="view_details">विवरण देखें</string>
+    <string name="acres_label">%1$s एकड़</string>
+    <string name="soil_type_label">%1$s मिट्टी</string>
+
+    <!-- Recommendations -->
+    <string name="crop_recommendations">फसल अनुशंसाएं</string>
+    <string name="mono_crop">एकल फसल</string>
+    <string name="intercrop">अंतःफसल</string>
+    <string name="rank_label">रैंक: %1$d</string>
+
+    <!-- Audio -->
+    <string name="play">चलाएं</string>
+    <string name="pause">रोकें</string>
+    <string name="start_recording">रिकॉर्डिंग शुरू करें</string>
+    <string name="stop_recording">रिकॉर्डिंग बंद करें</string>
+    <string name="cancel_recording">रिकॉर्डिंग रद्द करें</string>
+    <string name="clear_recording">रिकॉर्डिंग साफ़ करें</string>
+
+    <!-- Crop States -->
+    <string name="state_selected">चयनित</string>
+    <string name="state_planted">रोपित</string>
+    <string name="state_growing">बढ़ रहा है</string>
+    <string name="state_harvested">कटाई की गई</string>
+    <string name="state_completed">पूरा हुआ</string>
+    <string name="intercropped">अंतःफसल लगाई गई</string>
+
+    <!-- Management Tools -->
+    <string name="management_tools">प्रबंधन उपकरण</string>
+    <string name="intercropping_guide">अंतःफसल गाइड</string>
+    <string name="intercropping_guide_desc">मिश्रित फसल व्यवस्था देखें</string>
+    <string name="cultivation_calendar">खेती कैलेंडर</string>
+    <string name="cultivation_calendar_desc">विकास और कार्यों को ट्रैक करें</string>
+    <string name="investment_analysis">निवेश विश्लेषण</string>
+    <string name="investment_analysis_desc">लागत और लाभ का अनुमान</string>
+    <string name="soil_health_advice">मिट्टी स्वास्थ्य सलाह</string>
+    <string name="soil_health_advice_desc">मिट्टी की उर्वरता बनाए रखें</string>
+
+    <!-- Intercropping Details -->
+    <string name="arrangement_plan">व्यवस्था योजना</string>
+    <string name="key_benefits">प्रमुख लाभ</string>
+    <string name="intercropping_type">अंतःफसल का प्रकार</string>
+    <string name="total_crops_label">कुल फसलें: %1$d</string>
+    <string name="planting_pattern">रोपण पैटर्न</string>
+    <string name="variety_label">किस्म: %1$s</string>
+    <string name="intercrop_details">अंतःफसल विवरण</string>
+    <string name="type_label">प्रकार: %1$s</string>
+    <string name="arrangement_label">व्यवस्था: %1$s</string>
+    <string name="crop_details_title">%1$s फसल विवरण</string>
+
+    <!-- Cultivation Calendar -->
+    <string name="no_tasks_found">इस कैलेंडर के लिए कोई कार्य नहीं मिला।</string>
+    <string name="status_label">स्थिति: %1$s</string>
+    <string name="priority_low">कम</string>
+    <string name="priority_medium">मध्यम</string>
+    <string name="priority_high">उच्च</string>
+    <string name="priority_critical">महत्वपूर्ण</string>
+
+    <!-- Financial Analysis / Investment -->
+    <string name="financial_analysis">वित्तीय विश्लेषण</string>
+    <string name="expense_details">व्यय विवरण</string>
+    <string name="sustainability_insight">स्थिरता अंतर्दृष्टि</string>
+    <string name="break_even_desc">बराबरी पर आने के लिए, आपकी न्यूनतम उपज %1$s होनी चाहिए। इससे अधिक कोई भी उपज सीधे आपके शुद्ध लाभ में योगदान देगी।</string>
+    <string name="estimated_net_profit">अनुमानित शुद्ध लाभ</string>
+    <string name="total_cost">कुल लागत</string>
+    <string name="roi_label">आरओआई</string>
+
+    <!-- Gallery -->
+    <string name="max_images_reached">आप 5 से अधिक चित्र नहीं जोड़ सकते।</string>
+    <string name="image_limit_reached">आप केवल %1$d और चित्र जोड़ सकते हैं। पहले %1$d चित्र जोड़े जाएंगे।</string>
+
+    <!-- Language -->
+    <string name="selected">चयनित</string>
+
+    <!-- Chat -->
+    <string name="new_chat">नई चैट</string>
+    <string name="delete_chat">चैट हटाएं</string>
+    <string name="delete_chat_confirmation">क्या आप वाकई इस चैट सत्र को हटाना चाहते हैं?</string>
+    <string name="delete">हटाएं</string>
+    <string name="type_a_message">संदेश टाइप करें...</string>
+    <string name="add_attachment">अनुलग्नक जोड़ें</string>
+    <string name="remove_image">छवि हटाएं</string>
+    <string name="share_location">स्थान साझा करें</string>
+    <string name="location_permission_denied">स्थान की अनुमति अस्वीकार कर दी गई</string>
+    <string name="getting_location">स्थान प्राप्त किया जा रहा है...</string>
+    <string name="opening_camera">कैमरा खोला जा रहा है...</string>
+    <string name="farm_profile_received">खेत प्रोफ़ाइल प्राप्त हुई: %1$s</string>
+    <string name="location_not_found">स्थान नहीं मिला</string>
+    <string name="captured_location">कैप्चर किया गया स्थान: (%1$.4f, %2$.4f)</string>
+    <string name="navigate">नेविगेट करें</string>
+
+    <!-- Pesticides -->
+    <string name="select_farm">खेत चुनें</string>
+    <string name="select_crop">फसल चुनें</string>
+    <string name="upload_crop_issues">फसल की समस्याएं अपलोड करें</string>
+    <string name="upload_media_desc">चित्र या वॉयस नोट जोड़ने के लिए टैप करें</string>
+    <string name="previous_pesticides">पिछले कीटनाशक</string>
+    <string name="recommendations">अनुशंसाएं</string>
+    <string name="detected_problem">पता चली समस्या</string>
+    <string name="recommended_pesticides">अनुशंसित कीटनाशक</string>
+    <string name="general_advice_title">सामान्य सलाह</string>
+    <string name="dosage">खुराक</string>
+    <string name="application_method">विधि</string>
+    <string name="explanation">स्पष्टीकरण</string>
+    <string name="precautions">सावधानियां</string>
+
+    <!-- Soil Health Advice -->
+    <string name="no_soil_health_recommendations">मिट्टी के स्वास्थ्य के बारे में कोई अनुशंसा उपलब्ध नहीं है।</string>
+    <string name="immediate_actions">तत्काल कार्रवाई</string>
+    <string name="long_term_improvements">दीर्घकालिक सुधार</string>
+</resources>

@@ -1,0 +1,174 @@
+<resources>
+    <!-- General -->
+    <string name="app_name">കിസാൻ മിത്ര</string>
+    <string name="continue_">തുടരുക</string>
+    <string name="profile">പ്രൊഫൈൽ</string>
+    <string name="name">പേര്</string>
+    <string name="back">പിന്നിലേക്ക്</string>
+    <string name="confirm">സ്ഥിരീകരിക്കുക</string>
+    <string name="cancel">റദ്ദാക്കുക</string>
+    <string name="description">വിവരണം</string>
+    <string name="retry">വീണ്ടും ശ്രമിക്കുക</string>
+
+    <!-- Onboarding and Authentication -->
+    <string name="select_language">ഭാഷ തിരഞ്ഞെടുക്കുക</string>
+    <string name="phone_number">ഫോൺ നമ്പർ</string>
+    <string name="login">ലോഗിൻ</string>
+    <string name="no_account">അക്കൗണ്ട് ഇല്ലേ? സൈൻ അപ്പ് ചെയ്യുക</string>
+    <string name="otp_sent_to">%1$s ലേക്ക് അയച്ച ഒടിപി നൽകുക</string>
+    <string name="otp">ഒടിപി</string>
+    <string name="verify_otp">ഒടിപി പരിശോധിക്കുക</string>
+    <string name="sign_up">സൈൻ അപ്പ്</string>
+    <string name="have_account">ഇപ്പോൾ തന്നെ അക്കൗണ്ട് ഉണ്ടോ? ലോഗിൻ ചെയ്യുക</string>
+
+    <!-- API Error Messages -->
+    <string name="internal_server_error">ഇന്റേണൽ സെർവർ തകരാർ, ദയവായി പിന്നീട് ശ്രമിക്കുക.</string>
+    <string name="no_internet">ഇന്റർനെറ്റ് കണക്ഷൻ ഇല്ല.</string>
+    <string name="unknown_error">അജ്ഞാതമായ തകരാർ, ദയവായി പിന്നീട് ശ്രമിക്കുക.</string>
+
+    <!-- Auth API Errors -->
+    <string name="invalid_phone_number">അസാധുവായ ഫോൺ നമ്പർ</string>
+    <string name="invalid_otp">അസാധുവായ ഒടിപി</string>
+    <string name="user_not_found">ഉപയോക്താവിനെ കണ്ടെത്താനായില്ല</string>
+    <string name="user_already_exists">ഉപയോക്താവ് നിലവിലുണ്ട്</string>
+    <string name="name_required">പേര് ആവശ്യമാണ്</string>
+
+    <!-- Navigation -->
+    <string name="home">ഹോം</string>
+    <string name="farms">ഫാമുകൾ</string>
+    <string name="pesticides">കീടനാശിനികൾ</string>
+    <string name="chats">ചാറ്റുകൾ</string>
+    <string name="cultivating_crop">കൃഷി ചെയ്യുന്ന വിള</string>
+    <string name="alerts">അലേർട്ടുകൾ</string>
+    <string name="settings">സെറ്റിംഗ്സ്</string>
+    <string name="language">ഭാഷ</string>
+    <string name="more">കൂടുതൽ</string>
+
+    <!-- Settings Screen -->
+    <string name="user_name">പേര്: %1$s</string>
+    <string name="user_phone">ഫോൺ: %1$s</string>
+    <string name="error_with_message">തകരാർ: %1$s</string>
+    <string name="logout">ലോഗൗട്ട്</string>
+    <string name="logout_confirmation_title">ലോഗൗട്ട് സ്ഥിരീകരിക്കുക</string>
+    <string name="logout_confirmation_message">നിങ്ങൾക്ക് ലോഗൗട്ട് ചെയ്യണമെന്ന് ഉറപ്പാണോ?</string>
+
+    <!-- Farm -->
+    <string name="add_farm_profile">ഫാം പ്രൊഫൈൽ ചേർക്കുക</string>
+    <string name="recommended_crop_details">ശുപാർശ ചെയ്യുന്ന വിള വിവരങ്ങൾ</string>
+    <string name="select_for_cultivation">കൃഷിക്കായി തിരഞ്ഞെടുക്കുക</string>
+    <string name="crop_recommendation">വിള ശുപാർശ</string>
+    <string name="discover_best_crops_desc">നിങ്ങളുടെ ഫാമിന് അനുയോജ്യമായ വിളകൾ കണ്ടെത്തുക</string>
+    <string name="farm_tab">ഫാം</string>
+    <string name="crops_tab">വിളകൾ</string>
+    <string name="crop_history">വിള ചരിത്രം</string>
+    <string name="no_cultivating_crops_found">കൃഷി ചെയ്യുന്ന വിളകളൊന്നും കണ്ടെത്തിയില്ല.</string>
+    <string name="view_details">വിവരങ്ങൾ കാണുക</string>
+    <string name="acres_label">%1$s ഏക്കർ</string>
+    <string name="soil_type_label">%1$s മണ്ണ്</string>
+
+    <!-- Recommendations -->
+    <string name="crop_recommendations">വിള ശുപാർശകൾ</string>
+    <string name="mono_crop">ഏകവിള</string>
+    <string name="intercrop">ഇടവിള</string>
+    <string name="rank_label">റാങ്ക്: %1$d</string>
+
+    <!-- Audio -->
+    <string name="play">പ്ലേ ചെയ്യുക</string>
+    <string name="pause">താൽക്കാലികമായി നിർത്തുക</string>
+    <string name="start_recording">റെക്കോർഡിംഗ് തുടങ്ങുക</string>
+    <string name="stop_recording">റെക്കോർഡിംഗ് നിർത്തുക</string>
+    <string name="cancel_recording">റെക്കോർഡിംഗ് റദ്ദാക്കുക</string>
+    <string name="clear_recording">റെക്കോർഡിംഗ് മായ്ക്കുക</string>
+
+    <!-- Crop States -->
+    <string name="state_selected">തിരഞ്ഞെടുത്തു</string>
+    <string name="state_planted">നട്ടുപിടിപ്പിച്ചു</string>
+    <string name="state_growing">വളരുന്നു</string>
+    <string name="state_harvested">വിളവെടുത്തു</string>
+    <string name="state_completed">പൂർത്തിയായി</string>
+    <string name="intercropped">ഇടവിള കൃഷി ചെയ്തു</string>
+
+    <!-- Management Tools -->
+    <string name="management_tools">മാനേജ്‌മെന്റ് ടൂളുകൾ</string>
+    <string name="intercropping_guide">ഇടവിള കൃഷി സഹായി</string>
+    <string name="intercropping_guide_desc">മിശ്രിത വിള ക്രമീകരണം കാണുക</string>
+    <string name="cultivation_calendar">കൃഷി കലണ്ടർ</string>
+    <string name="cultivation_calendar_desc">വളർച്ചയും ജോലികളും ട്രാക്ക് ചെയ്യുക</string>
+    <string name="investment_analysis">നിക്ഷേപ വിശകലനം</string>
+    <string name="investment_analysis_desc">ചെലവും ലാഭവും കണക്കാക്കുക</string>
+    <string name="soil_health_advice">മണ്ണ് ആരോഗ്യ ഉപദേശം</string>
+    <string name="soil_health_advice_desc">മണ്ണിന്റെ ഫലഭൂയിഷ്ഠത നിലനിർത്തുക</string>
+
+    <!-- Intercropping Details -->
+    <string name="arrangement_plan">ക്രമീകരണ പ്ലാൻ</string>
+    <string name="key_benefits">പ്രധാന നേട്ടങ്ങൾ</string>
+    <string name="intercropping_type">ഇടവിള കൃഷി രീതി</string>
+    <string name="total_crops_label">ആകെ വിളകൾ: %1$d</string>
+    <string name="planting_pattern">നടുന്ന രീതി</string>
+    <string name="variety_label">ഇനം: %1$s</string>
+    <string name="intercrop_details">ഇടവിള വിവരങ്ങൾ</string>
+    <string name="type_label">രീതി: %1$s</string>
+    <string name="arrangement_label">ക്രമീകരണം: %1$s</string>
+    <string name="crop_details_title">%1$s വിള വിവരങ്ങൾ</string>
+
+    <!-- Cultivation Calendar -->
+    <string name="no_tasks_found">ഈ കലണ്ടറിൽ ജോലികളൊന്നും കണ്ടെത്തിയില്ല.</string>
+    <string name="status_label">നില: %1$s</string>
+    <string name="priority_low">കുറഞ്ഞത്</string>
+    <string name="priority_medium">ഇടത്തരം</string>
+    <string name="priority_high">കൂടിയത്</string>
+    <string name="priority_critical">അതിപ്രധാനം</string>
+
+    <!-- Financial Analysis / Investment -->
+    <string name="financial_analysis">സാമ്പത്തിക വിശകലനം</string>
+    <string name="expense_details">ചെലവ് വിവരങ്ങൾ</string>
+    <string name="sustainability_insight">സുസ്ഥിരതാ ഉൾക്കാഴ്ച</string>
+    <string name="break_even_desc">ലാഭനഷ്ടമില്ലാത്ത അവസ്ഥയിലെത്താൻ, നിങ്ങളുടെ കുറഞ്ഞ വിളവ് %1$s ആയിരിക്കണം. ഇതിന് മുകളിലുള്ള ഏതൊരു വിളവും നിങ്ങളുടെ അറ്റാദായത്തിലേക്ക് നേരിട്ട് സംഭാവന ചെയ്യും.</string>
+    <string name="estimated_net_profit">പ്രതീക്ഷിക്കുന്ന അറ്റാദായം</string>
+    <string name="total_cost">ആകെ ചെലവ്</string>
+    <string name="roi_label">ROI</string>
+
+    <!-- Gallery -->
+    <string name="max_images_reached">നിങ്ങൾക്ക് 5 ചിത്രങ്ങളിൽ കൂടുതൽ ചേർക്കാൻ കഴിയില്ല.</string>
+    <string name="image_limit_reached">നിങ്ങൾക്ക് %1$d ചിത്രങ്ങൾ കൂടി മാത്രമേ ചേർക്കാൻ കഴിയൂ. ആദ്യത്തെ %1$d ചിത്രങ്ങൾ ചേർക്കും.</string>
+
+    <!-- Language -->
+    <string name="selected">തിരഞ്ഞെടുത്തു</string>
+
+    <!-- Chat -->
+    <string name="new_chat">പുതിയ ചാറ്റ്</string>
+    <string name="delete_chat">ചാറ്റ് ഇല്ലാതാക്കുക</string>
+    <string name="delete_chat_confirmation">ഈ ചാറ്റ് സെഷൻ ഇല്ലാതാക്കണമെന്ന് നിങ്ങൾക്ക് ഉറപ്പാണോ?</string>
+    <string name="delete">ഇല്ലാതാക്കുക</string>
+    <string name="type_a_message">സന്ദേശം ടൈപ്പ് ചെയ്യുക...</string>
+    <string name="add_attachment">അറ്റാച്ച്‌മെന്റ് ചേർക്കുക</string>
+    <string name="remove_image">ചിത്രം നീക്കം ചെയ്യുക</string>
+    <string name="share_location">ലൊക്കേഷൻ പങ്കിടുക</string>
+    <string name="location_permission_denied">ലൊക്കേഷൻ അനുമതി നിഷേധിച്ചു</string>
+    <string name="getting_location">ലൊക്കേഷൻ കണ്ടെത്തുന്നു...</string>
+    <string name="opening_camera">ക്യാമറ തുറക്കുന്നു...</string>
+    <string name="farm_profile_received">ഫാം പ്രൊഫൈൽ ലഭിച്ചു: %1$s</string>
+    <string name="location_not_found">ലൊക്കേഷൻ കണ്ടെത്താനായില്ല</string>
+    <string name="captured_location">കണ്ടെത്തിയ ലൊക്കേഷൻ: (%1$.4f, %2$.4f)</string>
+    <string name="navigate">നാവിഗേറ്റ് ചെയ്യുക</string>
+
+    <!-- Pesticides -->
+    <string name="select_farm">ഫാം തിരഞ്ഞെടുക്കുക</string>
+    <string name="select_crop">വിള തിരഞ്ഞെടുക്കുക</string>
+    <string name="upload_crop_issues">വിള പ്രശ്നങ്ങൾ അപ്‌ലോഡ് ചെയ്യുക</string>
+    <string name="upload_media_desc">ചിത്രങ്ങളോ വോയ്‌സ് നോട്ടോ ചേർക്കാൻ ടാപ്പ് ചെയ്യുക</string>
+    <string name="previous_pesticides">മുമ്പത്തെ കീടനാശിനികൾ</string>
+    <string name="recommendations">ശുപാർശകൾ</string>
+    <string name="detected_problem">കണ്ടെത്തിയ പ്രശ്നം</string>
+    <string name="recommended_pesticides">ശുപാർശ ചെയ്യുന്ന കീടനാശിനികൾ</string>
+    <string name="general_advice_title">പൊതുവായ ഉപദേശം</string>
+    <string name="dosage">അളവ്</string>
+    <string name="application_method">രീതി</string>
+    <string name="explanation">വിശദീകരണം</string>
+    <string name="precautions">മുൻകരുതലുകൾ</string>
+
+    <!-- Soil Health Advice -->
+    <string name="no_soil_health_recommendations">മണ്ണ് ആരോഗ്യ ശുപാർശകൾ ലഭ്യമല്ല.</string>
+    <string name="immediate_actions">അടിയന്തര നടപടികൾ</string>
+    <string name="long_term_improvements">ദീർഘകാല മെച്ചപ്പെടുത്തലുകൾ</string>
+</resources>
