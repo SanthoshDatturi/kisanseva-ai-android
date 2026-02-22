@@ -1,39 +1,29 @@
 package com.kisanseva.ai.ui.presentation.main.farm.cropRecommendation.cropDetails
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.filled.Agriculture
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.kisanseva.ai.domain.model.InterCropRecommendation
 import kotlinx.coroutines.flow.collectLatest
@@ -46,6 +36,53 @@ fun RecommendedInterCropScreen(
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val listState = rememberLazyListState()
+
+    // Enhanced scroll physics logic
+    var isScrollingUp by remember { mutableStateOf(true) }
+    var previousOffset by remember { mutableStateOf(0) }
+    var previousIndex by remember { mutableStateOf(0) }
+
+    val isFabVisible by remember {
+        derivedStateOf {
+            val layoutInfo = listState.layoutInfo
+            val visibleItemsInfo = layoutInfo.visibleItemsInfo
+            if (visibleItemsInfo.isEmpty()) return@derivedStateOf true
+
+            val lastVisibleItem = visibleItemsInfo.last()
+            val totalItemsCount = layoutInfo.totalItemsCount
+            
+            // Reappear logic:
+            // 1. If we are near the top
+            // 2. If we are scrolling up (immediate response)
+            
+            val isAtVeryBottom = lastVisibleItem.index == totalItemsCount - 1 && 
+                                (lastVisibleItem.offset + lastVisibleItem.size <= layoutInfo.viewportEndOffset + 10)
+            
+            if (isAtVeryBottom) return@derivedStateOf false
+            
+            val isNearTop = listState.firstVisibleItemIndex < 1
+            isNearTop || isScrollingUp
+        }
+    }
+
+    // Scroll listener for "1cm" immediate feedback
+    LaunchedEffect(listState.firstVisibleItemScrollOffset, listState.firstVisibleItemIndex) {
+        val currentIndex = listState.firstVisibleItemIndex
+        val currentOffset = listState.firstVisibleItemScrollOffset
+        
+        isScrollingUp = if (currentIndex < previousIndex) {
+            true
+        } else if (currentIndex > previousIndex) {
+            false
+        } else {
+            // Detect even small upward movements (1cm feel)
+            currentOffset < previousOffset - 3
+        }
+        
+        previousIndex = currentIndex
+        previousOffset = currentOffset
+    }
 
     LaunchedEffect(Unit) {
         viewModel.event.collectLatest { event ->
@@ -58,52 +95,60 @@ fun RecommendedInterCropScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Recommended Crop Details") },
+                title = { Text("Intercropping Plan", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                     }
                 }
             )
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = {
-                    viewModel.selectCropForCultivation()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                icon = {
-                    Icon(
-                        imageVector = Icons.Filled.Done,
-                        contentDescription = null
+            AnimatedVisibility(
+                visible = isFabVisible && uiState.interCrop != null,
+                enter = fadeIn(tween(200)) + scaleIn(initialScale = 0.8f) + slideInVertically(initialOffsetY = { it / 2 }),
+                exit = fadeOut(tween(200)) + scaleOut(targetScale = 0.8f) + slideOutVertically(targetOffsetY = { it / 2 })
+            ) {
+                Button(
+                    onClick = { viewModel.selectCropForCultivation() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .height(60.dp)
+                        .navigationBarsPadding(),
+                    shape = RoundedCornerShape(30.dp), // Pill shape for modern look
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 10.dp,
+                        pressedElevation = 2.dp
                     )
-                },
-                text = { Text(text = "Select for Cultivation") }
-            )
+                ) {
+                    Icon(Icons.Filled.Agriculture, null, modifier = Modifier.size(24.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        "Start Cultivating This Plan", 
+                        style = MaterialTheme.typography.titleMedium, 
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 0.sp
+                    )
+                }
+            }
         },
         floatingActionButtonPosition = FabPosition.Center
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             if (uiState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             } else if (uiState.error != null) {
-                Text(
-                    text = uiState.error!!,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.Center)
-                )
+                Text(uiState.error!!, color = MaterialTheme.colorScheme.error, modifier = Modifier.align(Alignment.Center))
             } else {
                 uiState.interCrop?.let { interCrop ->
-                    InterCropDetails(interCrop = interCrop)
+                    InterCropContent(interCrop = interCrop, listState = listState)
                 }
             }
             if (uiState.isSelectingCrop) {
@@ -114,39 +159,37 @@ fun RecommendedInterCropScreen(
 }
 
 @Composable
-fun InterCropDetails(interCrop: InterCropRecommendation) {
+fun InterCropContent(interCrop: InterCropRecommendation, listState: androidx.compose.foundation.lazy.LazyListState) {
     LazyColumn(
+        state = listState,
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
+        item { InterCropHeader(interCrop = interCrop) }
+        item { InterCropArrangementCard(interCrop.arrangement, interCrop.specificArrangement) }
+        if (interCrop.benefits.isNotEmpty()) item { BenefitsCard(benefits = interCrop.benefits) }
+        
         item {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = "Intercrop Details", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Type: ${interCrop.intercropType}", style = MaterialTheme.typography.bodyLarge)
-                    Text(text = "Arrangement: ${interCrop.arrangement}", style = MaterialTheme.typography.bodyLarge)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = interCrop.description, style = MaterialTheme.typography.bodyMedium)
-                }
-            }
+            Text(
+                "Detailed Individual Crop Info", 
+                style = MaterialTheme.typography.titleLarge, 
+                fontWeight = FontWeight.Black, 
+                color = MaterialTheme.colorScheme.primary, 
+                modifier = Modifier.padding(top = 16.dp)
+            )
         }
 
         items(interCrop.crops) { monoCrop ->
-            Column {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-                Text(text = "${monoCrop.cropName} Crop Details", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(16.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
                 MonoCropHeader(monoCrop = monoCrop)
-                Spacer(modifier = Modifier.height(16.dp))
                 SowingWindowCard(sowingWindow = monoCrop.sowingWindow)
-                Spacer(modifier = Modifier.height(16.dp))
                 FinancialForecastingCard(financialForecasting = monoCrop.financialForecasting)
-                Spacer(modifier = Modifier.height(16.dp))
                 ReasonsCard(reasons = monoCrop.reasons)
-                Spacer(modifier = Modifier.height(16.dp))
                 RiskFactorsCard(riskFactors = monoCrop.riskFactors)
+                Spacer(Modifier.height(16.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             }
         }
+        item { Spacer(Modifier.height(120.dp)) }
     }
 }
