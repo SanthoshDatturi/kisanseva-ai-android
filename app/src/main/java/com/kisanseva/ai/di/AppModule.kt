@@ -78,7 +78,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    private const val BASE_URL = BuildConfig.BASE_URL
+    private const val HTTP_BASE_URL = "https://${BuildConfig.BASE_URL}"
 
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -165,61 +165,61 @@ object AppModule {
     @Provides
     @Singleton
     fun provideAuthApi(@UnauthenticatedClient client: OkHttpClient): AuthApi =
-        AuthApi(client, BASE_URL, json)
+        AuthApi(client, HTTP_BASE_URL, json)
 
     @Provides
     @Singleton
     fun provideUserApi(@AuthenticatedClient client: OkHttpClient): UserApi =
-        UserApi(client, BASE_URL, json)
+        UserApi(client, HTTP_BASE_URL, json)
 
     @Provides
     @Singleton
     fun provideChatApi(@AuthenticatedClient client: OkHttpClient): ChatApi =
-        ChatApi(client, BASE_URL, json)
+        ChatApi(client, HTTP_BASE_URL, json)
 
     @Provides
     @Singleton
     fun provideFarmApi(@AuthenticatedClient client: OkHttpClient): FarmApi =
-        FarmApi(client, BASE_URL, json)
+        FarmApi(client, HTTP_BASE_URL, json)
 
     @Provides
     @Singleton
     fun provideFilesApi(@AuthenticatedClient client: OkHttpClient): FilesApi =
-        FilesApi(client, BASE_URL, json)
+        FilesApi(client, HTTP_BASE_URL, json)
 
     @Provides
     @Singleton
     fun provideCropRecommendationApi(@AuthenticatedClient client: OkHttpClient): CropRecommendationApi =
-        CropRecommendationApi(client, BASE_URL, json)
+        CropRecommendationApi(client, HTTP_BASE_URL, json)
 
     @Provides
     @Singleton
     fun provideCultivatingCropApi(@AuthenticatedClient client: OkHttpClient): CultivatingCropApi =
-        CultivatingCropApi(client, BASE_URL, json)
+        CultivatingCropApi(client, HTTP_BASE_URL, json)
 
     @Provides
     @Singleton
-    fun provideCultivatingCalendarApi(@AuthenticatedClient client: OkHttpClient): CultivatingCalendarApi = CultivatingCalendarApi(client, BASE_URL, json)
+    fun provideCultivatingCalendarApi(@AuthenticatedClient client: OkHttpClient): CultivatingCalendarApi = CultivatingCalendarApi(client, HTTP_BASE_URL, json)
 
     @Provides
     @Singleton
     fun provideSoilHealthRecommendationApi(@AuthenticatedClient client: OkHttpClient): SoilHealthRecommendationApi =
-        SoilHealthRecommendationApi(client, BASE_URL, json)
+        SoilHealthRecommendationApi(client, HTTP_BASE_URL, json)
 
     @Provides
     @Singleton
     fun provideInvestmentBreakdownApi(@AuthenticatedClient client: OkHttpClient): InvestmentBreakdownApi =
-        InvestmentBreakdownApi(client, BASE_URL, json)
+        InvestmentBreakdownApi(client, HTTP_BASE_URL, json)
 
     @Provides
     @Singleton
     fun provideWeatherApi(@AuthenticatedClient client: OkHttpClient): WeatherApi =
-        WeatherApi(client, BASE_URL, json)
+        WeatherApi(client, HTTP_BASE_URL, json)
 
     @Provides
     @Singleton
     fun providePesticideRecommendationApi(@AuthenticatedClient client: OkHttpClient): PesticideRecommendationApi =
-        PesticideRecommendationApi(client, BASE_URL, json)
+        PesticideRecommendationApi(client, HTTP_BASE_URL, json)
 
     @Provides
     @Singleton

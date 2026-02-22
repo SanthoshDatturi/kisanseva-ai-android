@@ -1,6 +1,7 @@
 package com.kisanseva.ai.data.remote.websocket
 
 import android.util.Log
+import com.kisanseva.ai.BuildConfig
 import com.kisanseva.ai.data.local.DataStoreManager
 import com.kisanseva.ai.domain.model.CropRecommendationResponse
 import com.kisanseva.ai.domain.model.PesticideRecommendationResponse
@@ -222,7 +223,7 @@ class WebSocketController @Inject constructor(
 
     companion object {
         const val TAG = "WebSocketController"
-        private const val WEB_SOCKET_URL = "wss://kisanthra-bthnbgfjfka4dcam.centralindia-01.azurewebsites.net/ws"
+        private const val WEB_SOCKET_URL = "wss://${BuildConfig.BASE_URL}/ws"
         private const val NORMAL_CLOSURE_STATUS = 1000
         private const val RECONNECT_DELAY = 5000L
     }
