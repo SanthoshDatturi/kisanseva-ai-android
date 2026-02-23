@@ -153,7 +153,6 @@ fun RecommendedMonoCropDetailsScreen(
                     item { FinancialForecastingCard(financialForecasting = uiState.monoCrop!!.financialForecasting) }
                     item { ReasonsCard(reasons = uiState.monoCrop!!.reasons) }
                     item { RiskFactorsCard(riskFactors = uiState.monoCrop!!.riskFactors) }
-                    item { Spacer(Modifier.height(100.dp)) }
                 }
             }
             if (uiState.isSelectingCrop) {

@@ -10,7 +10,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -170,26 +170,20 @@ fun InterCropContent(interCrop: InterCropRecommendation, listState: androidx.com
         if (interCrop.benefits.isNotEmpty()) item { BenefitsCard(benefits = interCrop.benefits) }
         
         item {
-            Text(
-                "Detailed Individual Crop Info", 
-                style = MaterialTheme.typography.titleLarge, 
-                fontWeight = FontWeight.Black, 
-                color = MaterialTheme.colorScheme.primary, 
-                modifier = Modifier.padding(top = 16.dp)
-            )
+            HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
         }
 
-        items(interCrop.crops) { monoCrop ->
+        itemsIndexed(interCrop.crops) { index, monoCrop ->
             Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
                 MonoCropHeader(monoCrop = monoCrop)
                 SowingWindowCard(sowingWindow = monoCrop.sowingWindow)
                 FinancialForecastingCard(financialForecasting = monoCrop.financialForecasting)
                 ReasonsCard(reasons = monoCrop.reasons)
                 RiskFactorsCard(riskFactors = monoCrop.riskFactors)
-                Spacer(Modifier.height(16.dp))
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                if (index < interCrop.crops.size - 1) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
+                }
             }
         }
-        item { Spacer(Modifier.height(120.dp)) }
     }
 }
