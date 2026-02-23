@@ -1,13 +1,11 @@
 package com.kisanseva.ai.ui.presentation.main.farm.cropRecommendation.cropDetails
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -38,52 +36,6 @@ fun RecommendedInterCropScreen(
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
 
-    // Enhanced scroll physics logic
-    var isScrollingUp by remember { mutableStateOf(true) }
-    var previousOffset by remember { mutableStateOf(0) }
-    var previousIndex by remember { mutableStateOf(0) }
-
-    val isFabVisible by remember {
-        derivedStateOf {
-            val layoutInfo = listState.layoutInfo
-            val visibleItemsInfo = layoutInfo.visibleItemsInfo
-            if (visibleItemsInfo.isEmpty()) return@derivedStateOf true
-
-            val lastVisibleItem = visibleItemsInfo.last()
-            val totalItemsCount = layoutInfo.totalItemsCount
-            
-            // Reappear logic:
-            // 1. If we are near the top
-            // 2. If we are scrolling up (immediate response)
-            
-            val isAtVeryBottom = lastVisibleItem.index == totalItemsCount - 1 && 
-                                (lastVisibleItem.offset + lastVisibleItem.size <= layoutInfo.viewportEndOffset + 10)
-            
-            if (isAtVeryBottom) return@derivedStateOf false
-            
-            val isNearTop = listState.firstVisibleItemIndex < 1
-            isNearTop || isScrollingUp
-        }
-    }
-
-    // Scroll listener for "1cm" immediate feedback
-    LaunchedEffect(listState.firstVisibleItemScrollOffset, listState.firstVisibleItemIndex) {
-        val currentIndex = listState.firstVisibleItemIndex
-        val currentOffset = listState.firstVisibleItemScrollOffset
-        
-        isScrollingUp = if (currentIndex < previousIndex) {
-            true
-        } else if (currentIndex > previousIndex) {
-            false
-        } else {
-            // Detect even small upward movements (1cm feel)
-            currentOffset < previousOffset - 3
-        }
-        
-        previousIndex = currentIndex
-        previousOffset = currentOffset
-    }
-
     LaunchedEffect(Unit) {
         viewModel.event.collectLatest { event ->
             when (event) {
@@ -103,41 +55,53 @@ fun RecommendedInterCropScreen(
                 }
             )
         },
-        floatingActionButton = {
+        bottomBar = {
             AnimatedVisibility(
-                visible = isFabVisible && uiState.interCrop != null,
-                enter = fadeIn(tween(200)) + scaleIn(initialScale = 0.8f) + slideInVertically(initialOffsetY = { it / 2 }),
-                exit = fadeOut(tween(200)) + scaleOut(targetScale = 0.8f) + slideOutVertically(targetOffsetY = { it / 2 })
+                visible = uiState.interCrop != null,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
             ) {
-                Button(
-                    onClick = { viewModel.selectCropForCultivation() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .height(60.dp)
-                        .navigationBarsPadding(),
-                    shape = RoundedCornerShape(30.dp), // Pill shape for modern look
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    ),
-                    elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = 10.dp,
-                        pressedElevation = 2.dp
-                    )
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 8.dp,
+                    shadowElevation = 24.dp
                 ) {
-                    Icon(Icons.Filled.Agriculture, null, modifier = Modifier.size(24.dp))
-                    Spacer(Modifier.width(12.dp))
-                    Text(
-                        "Start Cultivating This Plan", 
-                        style = MaterialTheme.typography.titleMedium, 
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 0.sp
-                    )
+                    Column {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .navigationBarsPadding()
+                                .padding(16.dp)
+                        ) {
+                            Button(
+                                onClick = { viewModel.selectCropForCultivation() },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                ),
+                                elevation = ButtonDefaults.buttonElevation(
+                                    defaultElevation = 2.dp,
+                                    pressedElevation = 0.dp
+                                )
+                            ) {
+                                Icon(Icons.Filled.Agriculture, null, modifier = Modifier.size(24.dp))
+                                Spacer(Modifier.width(12.dp))
+                                Text(
+                                    text = "Start Cultivating This Plan",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
                 }
             }
-        },
-        floatingActionButtonPosition = FabPosition.Center
+        }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             if (uiState.isLoading) {
