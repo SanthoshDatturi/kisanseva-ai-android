@@ -5,28 +5,16 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Agriculture
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -45,7 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -65,6 +52,7 @@ fun RecommendedMonoCropDetailsScreen(
     val listState = rememberLazyListState()
 
     var isBottomBarVisible by remember { mutableStateOf(true) }
+
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
@@ -96,6 +84,11 @@ fun RecommendedMonoCropDetailsScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                     }
+                },
+                actions = {
+                    uiState.monoCrop?.rank?.let {
+                        RankDisplay(rank = it, modifier = Modifier.padding(end = 16.dp))
+                    }
                 }
             )
         }
@@ -107,21 +100,20 @@ fun RecommendedMonoCropDetailsScreen(
                 }
             } else if (uiState.error != null) {
                 Text(uiState.error!!, color = MaterialTheme.colorScheme.error, modifier = Modifier.align(Alignment.Center))
-            } else if (uiState.monoCrop != null) {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 100.dp),
-                    verticalArrangement = Arrangement.spacedBy(24.dp)
-                ) {
-                    item { MonoCropHeader(monoCrop = uiState.monoCrop!!) }
-                    item { SowingWindowCard(sowingWindow = uiState.monoCrop!!.sowingWindow) }
-                    item { FinancialForecastingCard(financialForecasting = uiState.monoCrop!!.financialForecasting) }
-                    item { ReasonsCard(reasons = uiState.monoCrop!!.reasons) }
-                    item { RiskFactorsCard(riskFactors = uiState.monoCrop!!.riskFactors) }
+            } else {
+                uiState.monoCrop?.let { monoCrop ->
+                    LazyColumn(
+                        state = listState,
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(24.dp)
+                    ) {
+                        item { MonoCropHeader(monoCrop = monoCrop) }
+                        item { SowingWindowCard(sowingWindow = monoCrop.sowingWindow) }
+                        item { FinancialForecastingCard(financialForecasting = monoCrop.financialForecasting) }
+                        item { ReasonsCard(reasons = monoCrop.reasons) }
+                        item { RiskFactorsCard(riskFactors = monoCrop.riskFactors) }
+                    }
                 }
-
-                // Custom Floating Bottom Bar
                 AnimatedVisibility(
                     visible = isBottomBarVisible,
                     enter = fadeIn() + slideInVertically(initialOffsetY = { it }),

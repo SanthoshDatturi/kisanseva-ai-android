@@ -2,12 +2,43 @@ package com.kisanseva.ai.ui.presentation.main.farm.cropRecommendation.cropDetail
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.automirrored.rounded.TrendingDown
+import androidx.compose.material.icons.automirrored.rounded.TrendingUp
+import androidx.compose.material.icons.rounded.AccountBalanceWallet
+import androidx.compose.material.icons.rounded.Agriculture
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Payments
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.Storefront
+import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material.icons.rounded.Verified
+import androidx.compose.material.icons.rounded.Warning
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,7 +50,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -49,18 +79,6 @@ fun MonoCropHeader(monoCrop: MonoCrop) {
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
-            
-            Surface(
-                modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),
-                color = Color.Black.copy(alpha = 0.6f),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Star, null, tint = Color(0xFFFFD700), modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("${(monoCrop.suitabilityScore * 100).toInt()}% Match", color = Color.White, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-                }
-            }
         }
 
         Spacer(Modifier.height(20.dp))
@@ -68,9 +86,10 @@ fun MonoCropHeader(monoCrop: MonoCrop) {
         Text(monoCrop.variety, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
 
         Spacer(Modifier.height(24.dp))
-        // Stats Row - Using IntrinsicSize.Min to ensure equal height and handle wrapping
         Row(
-            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min), 
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min), 
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             InfoBlock(Icons.Rounded.Timer, "${monoCrop.growingPeriodDays}", "Days", Modifier.weight(1f).fillMaxHeight())
@@ -172,7 +191,7 @@ fun FinancialForecastingCard(financialForecasting: FinancialForecasting) {
             FinancialRow(Icons.Rounded.Storefront, "Market Price Now", financialForecasting.marketPriceCurrent, MaterialTheme.colorScheme.secondary)
             
             val isUp = financialForecasting.priceTrend.contains("up", ignoreCase = true)
-            FinancialRow(if (isUp) Icons.Rounded.TrendingUp else Icons.Rounded.TrendingDown, "Price Trend", financialForecasting.priceTrend, if (isUp) Color(0xFF2E7D32) else Color(0xFFC62828))
+            FinancialRow(if (isUp) Icons.AutoMirrored.Rounded.TrendingUp else Icons.AutoMirrored.Rounded.TrendingDown, "Price Trend", financialForecasting.priceTrend, if (isUp) Color(0xFF2E7D32) else Color(0xFFC62828))
             
             Spacer(Modifier.height(24.dp))
             
@@ -220,7 +239,7 @@ fun ReasonsCard(reasons: List<String>) {
             reasons.forEach { reason ->
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp), 
-                    verticalAlignment = Alignment.CenterVertically // Centered icon and text
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
                         modifier = Modifier
@@ -291,24 +310,22 @@ fun RiskItem(risk: RiskFactor) {
             color = MaterialTheme.colorScheme.surface, 
             shape = RoundedCornerShape(16.dp), 
             modifier = Modifier.fillMaxWidth(),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("How to manage:", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                Text("How to Mitigate", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.outline, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(4.dp))
-                Text(risk.mitigation, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 20.sp)
+                Text(risk.mitigation, style = MaterialTheme.typography.bodyMedium, lineHeight = 22.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
 }
 
 @Composable
-fun SectionHeader(icon: ImageVector, title: String, iconColor: Color = MaterialTheme.colorScheme.primary) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        Surface(color = iconColor.copy(alpha = 0.1f), shape = CircleShape, modifier = Modifier.size(40.dp)) {
-            Box(contentAlignment = Alignment.Center) { Icon(icon, null, tint = iconColor, modifier = Modifier.size(22.dp)) }
-        }
-        Spacer(Modifier.width(16.dp))
-        Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, letterSpacing = (-0.5).sp)
+fun SectionHeader(icon: ImageVector, title: String, tint: Color = MaterialTheme.colorScheme.primary) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(icon, null, tint = tint, modifier = Modifier.size(28.dp))
+        Spacer(Modifier.width(12.dp))
+        Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
     }
 }
