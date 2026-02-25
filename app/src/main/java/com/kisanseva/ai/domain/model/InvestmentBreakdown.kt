@@ -20,6 +20,7 @@ data class Profitability(
 
 @Serializable
 data class InvestmentBreakdown(
+    @SerialName("_id")
     val id: String,
     @SerialName("crop_id") val cropId: String,
     val investments: List<Investment>,

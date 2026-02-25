@@ -46,6 +46,7 @@ data class RiskFactor(
 
 @Serializable
 data class MonoCrop(
+    @SerialName("_id")
     val id: String,
     val rank: Int? = null,
     @SerialName("crop_name")
@@ -73,6 +74,7 @@ data class MonoCrop(
 
 @Serializable
 data class InterCropRecommendation(
+    @SerialName("_id")
     val id: String,
     val rank: Int,
     @SerialName("intercrop_type")
@@ -100,6 +102,7 @@ enum class RecommendationStatus {
 
 @Serializable
 data class CropRecommendationResponse(
+    @SerialName("_id")
     val id: String,
     @SerialName("farm_id")
     val farmId: String? = null,

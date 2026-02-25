@@ -84,7 +84,7 @@ data class PreviousCrops(
 
 @Serializable
 data class FarmProfile(
-    @SerialName("id") val id: String,
+    @SerialName("_id") val id: String,
     @SerialName("farmer_id") val farmerId: String,
     @SerialName("name") val name: String,
     @SerialName("location") val location: Location,

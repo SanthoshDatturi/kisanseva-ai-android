@@ -36,6 +36,7 @@ data class CultivationTask(
 
 @Serializable
 data class CultivationCalendar(
+    @SerialName("_id")
     val id: String,
     @SerialName("crop_id") val cropId: String,
     val tasks: List<CultivationTask>

@@ -14,6 +14,7 @@ enum class CropState {
 
 @Serializable
 data class CultivatingCrop(
+    @SerialName("_id")
     val id: String,
     @SerialName("farm_id") val farmId: String,
     val name: String,
@@ -33,6 +34,7 @@ data class SpecificArrangement(
 
 @Serializable
 data class IntercroppingDetails(
+    @SerialName("_id")
     val id: String,
     @SerialName("intercrop_type") val intercropType: String,
     @SerialName("no_of_crops") val noOfCrops: Int,

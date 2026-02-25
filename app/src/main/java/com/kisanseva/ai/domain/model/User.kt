@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class User(
+    @SerialName("_id")
     val id: String,
     @SerialName("is_verified")
     val isVerified: Boolean,

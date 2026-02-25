@@ -36,6 +36,7 @@ data class PesticideStageUpdateRequest(
 
 @Serializable
 data class PesticideInfo(
+    @SerialName("_id")
     val id: String,
     @SerialName("pesticide_name")
     val pesticideName: String,
@@ -54,6 +55,7 @@ data class PesticideInfo(
 
 @Serializable
 data class PesticideRecommendationResponse(
+    @SerialName("_id")
     val id: String,
     @SerialName("farm_id")
     val farmId: String?,

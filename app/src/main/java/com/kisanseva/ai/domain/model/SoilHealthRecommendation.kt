@@ -13,6 +13,7 @@ data class ImmediateAction(
 
 @Serializable
 data class SoilHealthRecommendations(
+    @SerialName("_id")
     val id: String,
     @SerialName("crop_id") val cropId: String,
     @SerialName("immediate_actions") val immediateActions: List<ImmediateAction>,

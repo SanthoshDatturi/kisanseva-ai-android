@@ -33,6 +33,7 @@ enum class Role {
 
 @Serializable
 data class ChatSession(
+    @SerialName("_id")
     val id: String,
     @SerialName("user_id")
     val userId: String,
@@ -53,6 +54,7 @@ data class CreateChatRequest(
 
 @Serializable
 data class Message(
+    @SerialName("_id")
     val id: String,
     @SerialName("chat_id")
     var chatId: String,
