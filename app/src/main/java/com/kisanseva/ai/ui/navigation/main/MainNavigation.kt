@@ -41,7 +41,6 @@ import com.kisanseva.ai.ui.presentation.main.farm.farmList.FarmListScreen
 import com.kisanseva.ai.ui.presentation.main.home.HomeScreen
 import com.kisanseva.ai.ui.presentation.main.pesticides.PesticidesScreen
 import com.kisanseva.ai.ui.presentation.main.user.settings.SettingsScreen
-import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,7 +116,7 @@ fun MainNavigation(
                         FarmDest.FarmProfile(farmId)
                     ) },
                     onAddFarmProfile = { appNavController.navigate(ChatDest.Chat(
-                            chatId = "temp-${UUID.randomUUID()}", chatType = ChatType.FARM_SURVEY
+                            chatId = null, chatType = ChatType.FARM_SURVEY
                     )) }
                 )
             }

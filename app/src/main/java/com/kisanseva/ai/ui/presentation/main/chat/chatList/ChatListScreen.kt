@@ -41,13 +41,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.kisanseva.ai.domain.model.ChatType
-import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatListScreen(
     viewModel: ChatListViewModel = hiltViewModel(),
-    onNavigateToChat: (String, ChatType?, String?) -> Unit
+    onNavigateToChat: (String?, ChatType?, String?) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showDeleteDialog by remember { mutableStateOf<String?>(null) }
@@ -80,8 +79,7 @@ fun ChatListScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
             FloatingActionButton(onClick = {
-                val tempChatId = "temp-${UUID.randomUUID()}"
-                onNavigateToChat(tempChatId, ChatType.GENERAL, null)
+                onNavigateToChat(null, ChatType.GENERAL, null)
             }) {
                 Icon(Icons.Default.Add, contentDescription = "New Chat")
             }

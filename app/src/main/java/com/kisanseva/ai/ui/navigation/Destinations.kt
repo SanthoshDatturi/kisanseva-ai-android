@@ -62,7 +62,7 @@ sealed interface PesticideDest {
 @Serializable
 sealed interface ChatDest {
     @Serializable data class Chat(
-        val chatId: String, val chatType: ChatType? = null, val dataId: String? = null
+        val chatId: String? = null, val chatType: ChatType? = null, val dataId: String? = null
     ) : ChatDest
 }
 

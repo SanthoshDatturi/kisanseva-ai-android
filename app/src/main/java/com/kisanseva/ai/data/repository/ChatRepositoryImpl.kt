@@ -10,6 +10,8 @@ import com.kisanseva.ai.data.remote.ChatApi
 import com.kisanseva.ai.data.remote.websocket.Actions
 import com.kisanseva.ai.data.remote.websocket.WebSocketController
 import com.kisanseva.ai.domain.model.ChatSession
+import com.kisanseva.ai.domain.model.ChatType
+import com.kisanseva.ai.domain.model.CreateChatRequest
 import com.kisanseva.ai.domain.model.Message
 import com.kisanseva.ai.domain.model.MessageRequest
 import com.kisanseva.ai.domain.model.websocketModels.ChatWebSocketEvent
@@ -30,6 +32,14 @@ class ChatRepositoryImpl(
     private val mediaStorageManager: MediaStorageManager,
     private val chatSessionDao: ChatSessionDao
 ) : ChatRepository {
+
+    override suspend fun createChatSession(chatType: ChatType, dataId: String?): ChatSession {
+        val request = CreateChatRequest(chatType, dataId)
+        val session = chatApi.createChatSession(request)
+        chatSessionDao.insertOrUpdateChatSessions(listOf(session.toEntity()))
+        return session
+    }
+
     override suspend fun getChatSessions(): List<ChatSession> {
         val localChatSessions = chatSessionDao.getChatSessions()
         val latestTimestamp = localChatSessions.maxByOrNull { it.ts }?.ts

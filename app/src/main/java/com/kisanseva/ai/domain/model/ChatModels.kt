@@ -44,6 +44,14 @@ data class ChatSession(
 )
 
 @Serializable
+data class CreateChatRequest(
+    @SerialName("chat_type")
+    val chatType: ChatType = ChatType.GENERAL,
+    @SerialName("data_id")
+    val dataId: String? = null
+)
+
+@Serializable
 data class Message(
     val id: String,
     @SerialName("chat_id")

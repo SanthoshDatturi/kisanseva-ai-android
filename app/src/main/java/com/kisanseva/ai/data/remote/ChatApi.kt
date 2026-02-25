@@ -1,6 +1,7 @@
 package com.kisanseva.ai.data.remote
 
 import com.kisanseva.ai.domain.model.ChatSession
+import com.kisanseva.ai.domain.model.CreateChatRequest
 import com.kisanseva.ai.domain.model.Message
 import com.kisanseva.ai.exception.ApiException
 import kotlinx.coroutines.Dispatchers
@@ -8,8 +9,10 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class ChatApi(
     private val client: OkHttpClient,
@@ -17,6 +20,21 @@ class ChatApi(
     private val json: Json
 ) {
     private val chatUrl = "$baseUrl/chats"
+
+    suspend fun createChatSession(request: CreateChatRequest): ChatSession =
+        withContext(Dispatchers.IO) {
+            val httpRequest = Request.Builder()
+                .url(chatUrl)
+                .post(json.encodeToString(CreateChatRequest.serializer(), request).toRequestBody("application/json".toMediaType()))
+                .build()
+            client.newCall(httpRequest).execute().use { response ->
+                if (!response.isSuccessful) {
+                    throw ApiException(response.code, response.message)
+                }
+                val responseBody = response.body.string()
+                return@withContext json.decodeFromString(ChatSession.serializer(), responseBody)
+            }
+        }
 
     suspend fun getChatSessions(timestamp: Double? = null): List<ChatSession> =
         withContext(Dispatchers.IO) {

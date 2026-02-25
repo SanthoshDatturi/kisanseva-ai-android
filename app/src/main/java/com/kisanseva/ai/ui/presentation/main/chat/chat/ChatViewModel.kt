@@ -57,7 +57,6 @@ data class ChatUiState(
 )
 
 const val TEMP_ID_PREFIX = "temp-"
-const val PERM_CHAT_ID_SEPARATOR = "-perm-"
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
@@ -79,24 +78,42 @@ class ChatViewModel @Inject constructor(
         private set
 
     private var chatId: String? = savedStateHandle.get<String>("chatId")
-    private val chatType: ChatType? = savedStateHandle.get<ChatType>("chatType")
+    private val chatType: ChatType = savedStateHandle.get<ChatType>("chatType") ?: ChatType.GENERAL
     private val dataId: String? = savedStateHandle.get<String>("dataId")
 
 
     init {
-        _uiState.update { it.copy(chatType = chatType!!) }
-        chatId?.let { chatId ->
-            if (!chatId.startsWith(TEMP_ID_PREFIX)) {
-                loadMessages(chatId)
+        _uiState.update { it.copy(chatType = chatType) }
+        
+        viewModelScope.launch {
+            if (chatId == null) {
+                createNewChat()
             } else {
-                _uiState.update { it.copy(messages = emptyList()) }
-                if (chatType == ChatType.FARM_SURVEY) {
-                    message = "..."
-                    sendMessage()
-                }
+                loadMessages(chatId!!)
             }
         }
         observeEvents()
+    }
+
+    private suspend fun createNewChat() {
+        _uiState.update { it.copy(isLoading = true) }
+        try {
+            val session = chatRepository.createChatSession(chatType, dataId)
+            chatId = session.id
+            _uiState.update { it.copy(isLoading = false) }
+            
+            if (chatType == ChatType.FARM_SURVEY) {
+                message = "..."
+                sendMessage()
+            }
+        } catch (e: Exception) {
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    error = e.localizedMessage ?: "Failed to create chat session"
+                )
+            }
+        }
     }
 
     override fun onCleared() {
@@ -268,30 +285,10 @@ class ChatViewModel @Inject constructor(
     private fun observeEvents() {
         chatRepository.observeWebSocketEvents()
             .onEach { event ->
-                if (chatId == null || !event.modelMessage.chatId.contains(chatId!!)) return@onEach
+                if (chatId == null || event.modelMessage.chatId != chatId) return@onEach
 
                 _uiState.update { it.copy(isSendingMessage = false) }
                 event.modelMessage.let { modelMessage ->
-
-                    if (modelMessage.chatId.startsWith(TEMP_ID_PREFIX)) {
-                        val newChatId = modelMessage.chatId.split(PERM_CHAT_ID_SEPARATOR).last()
-                        val tempChatId = modelMessage.chatId.split(PERM_CHAT_ID_SEPARATOR).first()
-
-                        this.chatId = newChatId
-
-                        _uiState.update { currentState ->
-                            val updatedMessages = currentState.messages.map {
-                                if (it.chatId == tempChatId) {
-                                    it.copy(chatId = newChatId)
-                                } else {
-                                    it
-                                }
-                            }
-                            currentState.copy(messages = updatedMessages)
-                        }
-                        modelMessage.chatId = newChatId
-                    }
-
                     if (_uiState.value.messages.none { it.id == modelMessage.id }) {
                         modelMessage.content.parts?.find {
                             it.fileData?.mimeType?.contains("audio") == true
@@ -319,10 +316,17 @@ class ChatViewModel @Inject constructor(
                             if (it.id.startsWith(TEMP_ID_PREFIX)) {
                                 chatRepository.deleteMessage(it.id)
                                 it.copy(id = userMessage.id)
+                            } else {
+                                it
                             }
-                            it.copy(ts = userMessage.ts)
-                            chatRepository.saveMessage(it)
+                        }.map {
+                            if (it.id == userMessage.id) {
+                                it.copy(ts = userMessage.ts)
+                            } else {
+                                it
+                            }
                         }
+                        updatedMessages.forEach { chatRepository.saveMessage(it) }
                         currentState.copy(messages = updatedMessages)
                     }
                 }
@@ -340,6 +344,7 @@ class ChatViewModel @Inject constructor(
     }
 
     fun sendMessage() {
+        val currentChatId = chatId ?: return
         val messageParts = mutableListOf<Part>()
 
 
@@ -359,14 +364,14 @@ class ChatViewModel @Inject constructor(
         )
 
         val request = MessageRequest(
-            chatId = chatId,
+            chatId = currentChatId,
             content = userMessageContent,
             audioResponse = uiState.value.audioPart != null
         )
 
         val optimisticMessage = Message(
             id = "${TEMP_ID_PREFIX}${UUID.randomUUID()}",
-            chatId = chatId ?: "",
+            chatId = currentChatId,
             content = userMessageContent,
         )
 
@@ -382,15 +387,10 @@ class ChatViewModel @Inject constructor(
         }
 
         try {
-            val action = when (chatType ?: ChatType.GENERAL.name) {
+            val action = when (chatType) {
                 ChatType.FARM_SURVEY -> Actions.FARM_SURVEY_AGENT
                 ChatType.GENERAL -> Actions.GENERAL_CHAT
-                else -> {
-                    throw ApiException(
-                        404,
-                        message = "Chat type not found"
-                    )
-                }
+                else -> Actions.GENERAL_CHAT
             }
             viewModelScope.launch {
                 chatRepository.sendMessage(
