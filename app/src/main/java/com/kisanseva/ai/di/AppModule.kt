@@ -22,6 +22,7 @@ import com.kisanseva.ai.data.local.dao.PesticideRecommendationDao
 import com.kisanseva.ai.data.local.dao.QueuedMessageDao
 import com.kisanseva.ai.data.local.dao.ReverseGeocodingCacheDao
 import com.kisanseva.ai.data.local.dao.SoilHealthRecommendationDao
+import com.kisanseva.ai.data.local.dao.UserDao
 import com.kisanseva.ai.data.remote.AuthApi
 import com.kisanseva.ai.data.remote.AuthInterceptor
 import com.kisanseva.ai.data.remote.ChatApi
@@ -164,6 +165,10 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideUserDao(database: AppDatabase): UserDao = database.userDao()
+
+    @Provides
+    @Singleton
     fun provideAuthApi(@UnauthenticatedClient client: OkHttpClient): AuthApi =
         AuthApi(client, HTTP_BASE_URL, json)
 
@@ -254,12 +259,12 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideAuthRepository(api: AuthApi, ds: DataStoreManager): AuthRepository =
-        AuthRepositoryImpl(api, ds)
+    fun provideAuthRepository(api: AuthApi, ds: DataStoreManager, userDao: UserDao): AuthRepository =
+        AuthRepositoryImpl(api, ds, userDao)
 
     @Provides
     @Singleton
-    fun provideUserRepository(userApi: UserApi): UserRepository = UserRepositoryImpl(userApi)
+    fun provideUserRepository(userApi: UserApi, userDao: UserDao): UserRepository = UserRepositoryImpl(userApi, userDao)
 
     @Provides
     @Singleton

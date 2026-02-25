@@ -17,6 +17,7 @@ import com.kisanseva.ai.data.local.dao.PesticideRecommendationDao
 import com.kisanseva.ai.data.local.dao.QueuedMessageDao
 import com.kisanseva.ai.data.local.dao.ReverseGeocodingCacheDao
 import com.kisanseva.ai.data.local.dao.SoilHealthRecommendationDao
+import com.kisanseva.ai.data.local.dao.UserDao
 import com.kisanseva.ai.data.local.entity.ChatSessionEntity
 import com.kisanseva.ai.data.local.entity.CropRecommendationEntity
 import com.kisanseva.ai.data.local.entity.CultivatingCalendarEntity
@@ -33,6 +34,7 @@ import com.kisanseva.ai.data.local.entity.PesticideRecommendationEntity
 import com.kisanseva.ai.data.local.entity.QueuedMessageEntity
 import com.kisanseva.ai.data.local.entity.ReverseGeocodingCacheEntity
 import com.kisanseva.ai.data.local.entity.SoilHealthRecommendationEntity
+import com.kisanseva.ai.data.local.entity.UserEntity
 
 @Database(
     entities = [
@@ -51,8 +53,9 @@ import com.kisanseva.ai.data.local.entity.SoilHealthRecommendationEntity
         CultivatingCalendarEntity::class,
         SoilHealthRecommendationEntity::class,
         InvestmentBreakdownEntity::class,
-        PesticideRecommendationEntity::class
-    ], version = 13,
+        PesticideRecommendationEntity::class,
+        UserEntity::class
+    ], version = 14,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -71,4 +74,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun soilHealthRecommendationDao(): SoilHealthRecommendationDao
     abstract fun investmentBreakdownDao(): InvestmentBreakdownDao
     abstract fun pesticideRecommendationDao(): PesticideRecommendationDao
+    abstract fun userDao(): UserDao
 }

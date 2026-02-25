@@ -26,6 +26,5 @@ data class OTPStatusResponse(
 data class Token(
     @SerialName("access_token")
     val accessToken: String,
-    @SerialName("token_type")
-    val tokenType: String
+    val user: User
 )
