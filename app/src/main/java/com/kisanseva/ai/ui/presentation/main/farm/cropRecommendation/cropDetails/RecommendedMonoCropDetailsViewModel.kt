@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -45,17 +47,35 @@ class RecommendedMonoCropDetailsViewModel @Inject constructor(
     private val cropRecommendationResponseId: String = checkNotNull(savedStateHandle.get<String>("cropRecommendationResponseId"))
 
     init {
-        getMonoCropDetails(monoCropId)
+        observeMonoCropDetails()
+        refreshMonoCropDetails()
     }
 
-    private fun getMonoCropDetails(monoCropId: String) {
+    private fun observeMonoCropDetails() {
+        viewModelScope.launch {
+            cropRecommendationRepository.getMonoCropById(monoCropId)
+                .catch { e ->
+                    _state.update { it.copy(error = e.localizedMessage ?: "An error occurred") }
+                }
+                .collectLatest { monoCrop ->
+                    _state.update { it.copy(monoCrop = monoCrop) }
+                }
+        }
+    }
+
+    private fun refreshMonoCropDetails() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             try {
-                val monoCrop = cropRecommendationRepository.getMonoCropById(monoCropId)
-                _state.update { it.copy(monoCrop = monoCrop, isLoading = false) }
+                cropRecommendationRepository.refreshCropRecommendationById(cropRecommendationResponseId)
+                _state.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
-                _state.update { it.copy(error = e.localizedMessage, isLoading = false) }
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        error = e.localizedMessage ?: "Failed to refresh crop details"
+                    )
+                }
             }
         }
     }

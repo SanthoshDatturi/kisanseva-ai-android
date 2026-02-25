@@ -7,6 +7,8 @@ import com.kisanseva.ai.domain.repository.FarmRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,20 +29,30 @@ class FarmListViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     init {
-        loadFarms()
+        observeFarms()
+        refreshFarms()
     }
 
-    private fun loadFarms() {
+    private fun observeFarms() {
+        viewModelScope.launch {
+            farmRepository.getFarmProfiles()
+                .catch { e ->
+                    _uiState.update {
+                        it.copy(error = e.localizedMessage ?: "An unknown error occurred")
+                    }
+                }
+                .collectLatest { farms ->
+                    _uiState.update { it.copy(farms = farms) }
+                }
+        }
+    }
+
+    private fun refreshFarms() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                val farms = farmRepository.getFarmProfiles()
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        farms = farms
-                    )
-                }
+                farmRepository.refreshFarmProfiles()
+                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(

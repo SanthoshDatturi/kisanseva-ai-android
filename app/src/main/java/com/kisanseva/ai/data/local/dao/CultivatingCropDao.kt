@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.kisanseva.ai.data.local.entity.CultivatingCropEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CultivatingCropDao {
@@ -23,11 +24,11 @@ interface CultivatingCropDao {
     suspend fun deleteAllCultivatingCrops()
 
     @Query("SELECT * FROM cultivating_crop WHERE farm_id = :farmId")
-    suspend fun getCultivatingCropsByFarmId(farmId: String): List<CultivatingCropEntity>
+    fun getCultivatingCropsByFarmId(farmId: String): Flow<List<CultivatingCropEntity>>
 
     @Query("SELECT * FROM cultivating_crop WHERE id = :cropId")
-    suspend fun getCultivatingCropById(cropId: String): CultivatingCropEntity?
+    fun getCultivatingCropById(cropId: String): Flow<CultivatingCropEntity?>
 
     @Query("SELECT * FROM cultivating_crop")
-    suspend fun getAllCultivatingCrops(): List<CultivatingCropEntity>
+    fun getAllCultivatingCrops(): Flow<List<CultivatingCropEntity>>
 }

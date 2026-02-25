@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.kisanseva.ai.data.local.entity.InterCroppingDetailsEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface InterCroppingDetailsDao {
@@ -13,5 +14,5 @@ interface InterCroppingDetailsDao {
     suspend fun insertOrUpdate(interCroppingDetails: InterCroppingDetailsEntity)
 
     @Query("SELECT * FROM intercropping_details WHERE id = :id")
-    suspend fun getInterCroppingDetailsById(id: String): InterCroppingDetailsEntity?
+    fun getInterCroppingDetailsById(id: String): Flow<InterCroppingDetailsEntity?>
 }

@@ -9,7 +9,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -29,21 +32,44 @@ class SettingsViewModel @Inject constructor(
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
     init {
-        getProfile()
+        observeUser()
+        refreshUser()
     }
 
-    private fun getProfile() {
+    private fun observeUser() {
         viewModelScope.launch {
-            _uiState.value = ProfileUiState(isLoading = true)
+            userRepository.getUser()
+                .catch { e ->
+                    _uiState.update { it.copy(error = e.localizedMessage) }
+                }
+                .collectLatest { user ->
+                    _uiState.update { it.copy(user = user) }
+                }
+        }
+    }
+
+    private fun refreshUser() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             try {
                 if (dataStoreManager.token.first() != null) {
-                    val user = userRepository.getProfile()
-                    _uiState.value = ProfileUiState(user = user)
+                    userRepository.refreshUser()
+                    _uiState.update { it.copy(isLoading = false) }
                 } else {
-                    _uiState.value = ProfileUiState(error = "User not logged in")
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = "User not logged in"
+                        )
+                    }
                 }
             } catch (e: Exception) {
-                _uiState.value = ProfileUiState(error = e.message)
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = e.message
+                    )
+                }
             }
         }
     }
@@ -51,6 +77,7 @@ class SettingsViewModel @Inject constructor(
     fun logOut() {
         viewModelScope.launch {
             dataStoreManager.clearToken()
+            userRepository.clearUser()
         }
     }
 }

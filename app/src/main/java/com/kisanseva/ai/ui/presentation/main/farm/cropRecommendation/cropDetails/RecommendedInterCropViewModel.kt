@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -48,21 +50,35 @@ class RecommendedInterCropViewModel @Inject constructor(
 
 
     init {
-        getInterCropDetails()
+        observeInterCropDetails()
+        refreshInterCropDetails()
     }
 
-    private fun getInterCropDetails() {
+    private fun observeInterCropDetails() {
+        viewModelScope.launch {
+            cropRecommendationRepository.getInterCropById(interCropId)
+                .catch { e ->
+                    _uiState.update { it.copy(error = e.localizedMessage ?: "An error occurred") }
+                }
+                .collectLatest { interCrop ->
+                    _uiState.update { it.copy(interCrop = interCrop) }
+                }
+        }
+    }
+
+    private fun refreshInterCropDetails() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                val interCrop = cropRecommendationRepository.getInterCropById(interCropId)
-                if (interCrop != null) {
-                    _uiState.update { it.copy(interCrop = interCrop, isLoading = false) }
-                } else {
-                    _uiState.update { it.copy(error = "Intercrop details not found.", isLoading = false) }
-                }
+                cropRecommendationRepository.refreshCropRecommendationById(cropRecommendationResponseId)
+                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.localizedMessage ?: "An unknown error occurred.", isLoading = false) }
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = e.localizedMessage ?: "Failed to refresh intercrop details"
+                    )
+                }
             }
         }
     }

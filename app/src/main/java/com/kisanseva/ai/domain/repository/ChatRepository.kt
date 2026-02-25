@@ -9,9 +9,9 @@ import kotlinx.coroutines.flow.Flow
 
 interface ChatRepository {
     suspend fun createChatSession(chatType: ChatType, dataId: String? = null): ChatSession
-    suspend fun getChatSessions(): List<ChatSession>
+    fun getChatSessions(): Flow<List<ChatSession>>
+    fun getChatMessages(chatId: String): Flow<List<Message>>
     suspend fun getChatSession(chatId: String): ChatSession
-    suspend fun getChatMessages(chatId: String): List<Message>
     suspend fun deleteChatSession(chatId: String)
 
     fun observeWebSocketEvents(): Flow<ChatWebSocketEvent>
@@ -20,4 +20,6 @@ interface ChatRepository {
     suspend fun saveMessage(message: Message): Message
     suspend fun deleteMessage(messageId: String)
     suspend fun sendQueuedMessages()
+    suspend fun refreshChatSessions()
+    suspend fun refreshChatMessages(chatId: String)
 }

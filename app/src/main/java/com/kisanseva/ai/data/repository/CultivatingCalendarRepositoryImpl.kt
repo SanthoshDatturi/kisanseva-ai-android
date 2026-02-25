@@ -5,32 +5,34 @@ import com.kisanseva.ai.data.local.entity.CultivatingCalendarEntity
 import com.kisanseva.ai.data.remote.CultivatingCalendarApi
 import com.kisanseva.ai.domain.model.CultivationCalendar
 import com.kisanseva.ai.domain.repository.CultivatingCalendarRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class CultivatingCalendarRepositoryImpl(
     private val calendarApi: CultivatingCalendarApi,
     private val calendarDao: CultivatingCalendarDao
 ) : CultivatingCalendarRepository {
 
-    override suspend fun getCalendarById(calendarId: String): CultivationCalendar {
-        val localCalendar = calendarDao.getCalendarById(calendarId)
-        return if (localCalendar != null) {
-            entityToDomain(localCalendar)
-        } else {
-            val remoteCalendar = calendarApi.getCalendarById(calendarId)
-            calendarDao.insertCalendar(domainToEntity(remoteCalendar))
-            remoteCalendar
+    override fun getCalendarById(calendarId: String): Flow<CultivationCalendar?> {
+        return calendarDao.getCalendarById(calendarId).map { entity ->
+            entity?.let { entityToDomain(it) }
         }
     }
 
-    override suspend fun getCalendarByCropId(cropId: String): CultivationCalendar {
-        val localCalendar = calendarDao.getCalendarByCropId(cropId)
-        return if (localCalendar != null) {
-            entityToDomain(localCalendar)
-        } else {
-            val remoteCalendar = calendarApi.getCalendarByCropId(cropId)
-            calendarDao.insertCalendar(domainToEntity(remoteCalendar))
-            remoteCalendar
+    override fun getCalendarByCropId(cropId: String): Flow<CultivationCalendar?> {
+        return calendarDao.getCalendarByCropId(cropId).map { entity ->
+            entity?.let { entityToDomain(it) }
         }
+    }
+
+    override suspend fun refreshCalendarById(calendarId: String) {
+        val remoteCalendar = calendarApi.getCalendarById(calendarId)
+        calendarDao.insertCalendar(domainToEntity(remoteCalendar))
+    }
+
+    override suspend fun refreshCalendarByCropId(cropId: String) {
+        val remoteCalendar = calendarApi.getCalendarByCropId(cropId)
+        calendarDao.insertCalendar(domainToEntity(remoteCalendar))
     }
 
     override suspend fun deleteCalendar(calendarId: String) {

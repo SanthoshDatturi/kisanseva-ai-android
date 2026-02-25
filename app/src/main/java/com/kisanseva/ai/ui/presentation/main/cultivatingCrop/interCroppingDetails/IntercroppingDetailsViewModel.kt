@@ -8,6 +8,8 @@ import com.kisanseva.ai.domain.repository.CultivatingCropRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -30,20 +32,30 @@ class IntercroppingDetailsViewModel @Inject constructor(
     private val intercroppingId: String = checkNotNull(savedStateHandle.get<String>("intercroppingId"))
 
     init {
-        loadIntercroppingDetails()
+        observeIntercroppingDetails()
+        refreshIntercroppingDetails()
     }
 
-    private fun loadIntercroppingDetails() {
+    private fun observeIntercroppingDetails() {
+        viewModelScope.launch {
+            cultivatingCropRepository.getIntercroppingDetailsById(intercroppingId)
+                .catch { e ->
+                    _uiState.update {
+                        it.copy(error = e.localizedMessage ?: "An unknown error occurred")
+                    }
+                }
+                .collectLatest { details ->
+                    _uiState.update { it.copy(intercroppingDetails = details) }
+                }
+        }
+    }
+
+    private fun refreshIntercroppingDetails() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                val details = cultivatingCropRepository.getIntercroppingDetailsById(intercroppingId)
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        intercroppingDetails = details
-                    )
-                }
+                cultivatingCropRepository.refreshIntercroppingDetailsById(intercroppingId)
+                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(

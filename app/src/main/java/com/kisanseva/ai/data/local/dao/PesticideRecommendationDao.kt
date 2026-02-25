@@ -5,18 +5,19 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.kisanseva.ai.data.local.entity.PesticideRecommendationEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PesticideRecommendationDao {
-    @Query("SELECT * FROM pesticide_recommendation WHERE id = :id")
-    suspend fun getRecommendationById(id: String): PesticideRecommendationEntity?
-
-    @Query("SELECT * FROM pesticide_recommendation WHERE cropId = :cropId ORDER BY timestamp DESC")
-    suspend fun getRecommendationsByCropId(cropId: String): List<PesticideRecommendationEntity>
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRecommendation(recommendation: PesticideRecommendationEntity)
 
-    @Query("DELETE FROM pesticide_recommendation WHERE id = :id")
-    suspend fun deleteRecommendation(id: String)
+    @Query("SELECT * FROM pesticide_recommendations WHERE id = :recommendationId")
+    fun getRecommendationById(recommendationId: String): Flow<PesticideRecommendationEntity?>
+
+    @Query("SELECT * FROM pesticide_recommendations WHERE cropId = :cropId")
+    fun getRecommendationsByCropId(cropId: String): Flow<List<PesticideRecommendationEntity>>
+
+    @Query("DELETE FROM pesticide_recommendations WHERE id = :recommendationId")
+    suspend fun deleteRecommendation(recommendationId: String)
 }

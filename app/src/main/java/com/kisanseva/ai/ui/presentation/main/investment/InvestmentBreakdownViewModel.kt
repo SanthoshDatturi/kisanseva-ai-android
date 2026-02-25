@@ -8,6 +8,8 @@ import com.kisanseva.ai.domain.repository.InvestmentBreakdownRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -31,24 +33,36 @@ class InvestmentBreakdownViewModel @Inject constructor(
     private val breakdownId: String? = savedStateHandle.get<String>("breakdownId")
 
     init {
-        loadBreakdown()
+        observeBreakdown()
+        refreshBreakdown()
     }
 
-    private fun loadBreakdown() {
+    private fun observeBreakdown() {
+        viewModelScope.launch {
+            val flow = when {
+                breakdownId != null -> repository.getBreakdownById(breakdownId)
+                cropId != null -> repository.getBreakdownByCropId(cropId)
+                else -> return@launch
+            }
+
+            flow.catch { e ->
+                _uiState.update { it.copy(error = e.localizedMessage) }
+            }.collectLatest { result ->
+                _uiState.update { it.copy(breakdown = result) }
+            }
+        }
+    }
+
+    private fun refreshBreakdown() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                val result = when {
-                    breakdownId != null -> repository.getBreakdownById(breakdownId)
-                    cropId != null -> repository.getBreakdownByCropId(cropId)
+                when {
+                    breakdownId != null -> repository.refreshBreakdownById(breakdownId)
+                    cropId != null -> repository.refreshBreakdownByCropId(cropId)
                     else -> throw IllegalArgumentException("Missing cropId or breakdownId")
                 }
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        breakdown = result
-                    )
-                }
+                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(

@@ -38,46 +38,50 @@ class CropRecommendationRepositoryImpl(
     private val cultivatingCropRepository: CultivatingCropRepository
 ) : CropRecommendationRepository {
 
-    override suspend fun getCropRecommendationByFarmId(farmId: String): CropRecommendationResponse {
-        val localData = cropRecommendationDao.getLatestCropRecommendation(farmId)
-        if (localData != null) {
-            return mapToDomain(localData)
+    override fun getCropRecommendationByFarmId(farmId: String): Flow<CropRecommendationResponse?> {
+        return cropRecommendationDao.getLatestCropRecommendation(farmId).map { localData ->
+            localData?.let { mapToDomain(it) }
         }
+    }
+
+    override fun getCropRecommendationById(recommendationId: String): Flow<CropRecommendationResponse?> {
+        return cropRecommendationDao.getCropRecommendationById(recommendationId).map { localData ->
+            localData?.let { mapToDomain(it) }
+        }
+    }
+
+    override fun getMonoCropById(monoCropId: String): Flow<MonoCrop?> {
+        return cropRecommendationDao.getMonoCropById(monoCropId).map { entity ->
+            entity?.let { mapToMonoCropDomain(it) }
+        }
+    }
+
+    override fun getInterCropById(interCropId: String): Flow<InterCropRecommendation?> {
+        return cropRecommendationDao.getInterCropById(interCropId).map { entity ->
+            entity?.let {
+                InterCropRecommendation(
+                    id = it.interCropRecommendation.id,
+                    rank = it.interCropRecommendation.rank,
+                    intercropType = it.interCropRecommendation.intercropType,
+                    noOfCrops = it.interCropRecommendation.noOfCrops,
+                    arrangement = it.interCropRecommendation.arrangement,
+                    specificArrangement = it.interCropRecommendation.specificArrangement,
+                    crops = it.crops.map { monoCrop -> mapToMonoCropDomain(monoCrop) },
+                    description = it.interCropRecommendation.description,
+                    benefits = it.interCropRecommendation.benefits
+                )
+            }
+        }
+    }
+
+    override suspend fun refreshCropRecommendationByFarmId(farmId: String) {
         val remoteData = cropRecommendationApi.getCropRecommendationByFarmId(farmId)
         cacheRecommendation(remoteData)
-        return remoteData
     }
 
-    override suspend fun getCropRecommendationById(recommendationId: String): CropRecommendationResponse {
-        val localData = cropRecommendationDao.getCropRecommendationById(recommendationId)
-        if (localData != null) {
-            return mapToDomain(localData)
-        }
+    override suspend fun refreshCropRecommendationById(recommendationId: String) {
         val remoteData = cropRecommendationApi.getCropRecommendationById(recommendationId)
         cacheRecommendation(remoteData)
-        return remoteData
-    }
-
-    override suspend fun getMonoCropById(monoCropId: String): MonoCrop? {
-        val entity = cropRecommendationDao.getMonoCropById(monoCropId)
-        return entity?.let { mapToMonoCropDomain(it) }
-    }
-
-    override suspend fun getInterCropById(interCropId: String): InterCropRecommendation? {
-        val entity = cropRecommendationDao.getInterCropById(interCropId)
-        return entity?.let {
-            InterCropRecommendation(
-                id = it.interCropRecommendation.id,
-                rank = it.interCropRecommendation.rank,
-                intercropType = it.interCropRecommendation.intercropType,
-                noOfCrops = it.interCropRecommendation.noOfCrops,
-                arrangement = it.interCropRecommendation.arrangement,
-                specificArrangement = it.interCropRecommendation.specificArrangement,
-                crops = it.crops.map { monoCrop -> mapToMonoCropDomain(monoCrop) },
-                description = it.interCropRecommendation.description,
-                benefits = it.interCropRecommendation.benefits
-            )
-        }
     }
 
     override suspend fun requestCropRecommendation(farmId: String) {
@@ -99,27 +103,23 @@ class CropRecommendationRepositoryImpl(
             }
     }
 
-    override suspend fun getLatestCropRecommendation(farmId: String): CropRecommendationResponse? {
-        val localData = cropRecommendationDao.getLatestCropRecommendation(farmId)
-        return localData?.let { mapToDomain(it) }
+    override fun getLatestCropRecommendation(farmId: String): Flow<CropRecommendationResponse?> {
+        return cropRecommendationDao.getLatestCropRecommendation(farmId).map { localData ->
+            localData?.let { mapToDomain(it) }
+        }
     }
 
     override suspend fun selectCropForCultivation(cropId: String, farmId: String, cropRecommendationResponseId: String) {
         try {
-            val selectedCrop: CultivatingCrop = cultivatingCropRepository.getCultivatingCropById(cropId)
+            val selectedCrop: CultivatingCrop = cultivatingCropRepository.getCultivatingCropById(cropId).first() ?: throw ApiException(404, "Crop not found")
             cultivatingCropRepository.saveCultivatingCrop(selectedCrop)
-        } catch (e: ApiException) {
-            if (e.code != 404) {
-                throw e
-            }
-            try {
+        } catch (e: Exception) {
+            // Check if it's an intercropping details or needs web socket
+             try {
                 val interCroppingDetails: IntercroppingDetails = cultivatingCropRepository
                     .getIntercroppingDetailsById(cropId)
                 cultivatingCropRepository.saveIntercroppingDetails(interCroppingDetails)
-            } catch (e: ApiException) {
-                if (e.code != 404) {
-                    throw e
-                }
+            } catch (e2: Exception) {
                 webSocketController.sendMessage(
                     Actions.SELECT_CROP_FROM_RECOMMENDATION,
                     SelectCropRequestData(
@@ -131,9 +131,6 @@ class CropRecommendationRepositoryImpl(
                 webSocketController.messages
                     .filter { it.action == Actions.SELECT_CROP_FROM_RECOMMENDATION }
                     .mapNotNull { it.data as? CropSelectionResponse }
-                    .map { response ->
-
-                    }
                     .first()
             }
         }

@@ -7,23 +7,26 @@ import kotlinx.coroutines.flow.Flow
 
 interface CropRecommendationRepository {
 
-    suspend fun getCropRecommendationByFarmId(farmId: String): CropRecommendationResponse
+    fun getCropRecommendationByFarmId(farmId: String): Flow<CropRecommendationResponse?>
 
-    suspend fun getCropRecommendationById(recommendationId: String): CropRecommendationResponse
+    fun getCropRecommendationById(recommendationId: String): Flow<CropRecommendationResponse?>
 
-    suspend fun getMonoCropById(monoCropId: String): MonoCrop?
+    fun getMonoCropById(monoCropId: String): Flow<MonoCrop?>
 
-    suspend fun getInterCropById(interCropId: String): InterCropRecommendation?
+    fun getInterCropById(interCropId: String): Flow<InterCropRecommendation?>
 
     suspend fun requestCropRecommendation(farmId: String)
 
     fun listenToCropRecommendations(): Flow<CropRecommendationResponse>
 
-    suspend fun getLatestCropRecommendation(farmId: String): CropRecommendationResponse?
+    fun getLatestCropRecommendation(farmId: String): Flow<CropRecommendationResponse?>
 
     suspend fun selectCropForCultivation(
         cropId: String,
         farmId: String,
         cropRecommendationResponseId: String
     )
+
+    suspend fun refreshCropRecommendationByFarmId(farmId: String)
+    suspend fun refreshCropRecommendationById(recommendationId: String)
 }

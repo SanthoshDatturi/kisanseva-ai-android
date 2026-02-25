@@ -9,6 +9,10 @@ import com.kisanseva.ai.domain.repository.CultivatingCropRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -32,24 +36,35 @@ class CultivatingCropViewModel @Inject constructor(
     private val cropId: String = checkNotNull(savedStateHandle.get<String>("cropId"))
 
     init {
-        loadCultivatingCrop()
+        observeCultivatingCrop()
+        refreshCultivatingCrop()
     }
 
-    private fun loadCultivatingCrop() {
+    private fun observeCultivatingCrop() {
+        viewModelScope.launch {
+            cultivatingCropRepository.getCultivatingCropById(cropId)
+                .catch { e ->
+                    _uiState.update {
+                        it.copy(error = e.localizedMessage ?: "An unknown error occurred")
+                    }
+                }
+                .filterNotNull()
+                .distinctUntilChanged()
+                .collectLatest { crop ->
+                    _uiState.update { it.copy(crop = crop) }
+                    if (crop.intercroppingId != null) {
+                        loadIntercroppingDetails(crop.intercroppingId)
+                    }
+                }
+        }
+    }
+
+    private fun refreshCultivatingCrop() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                val crop = cultivatingCropRepository.getCultivatingCropById(cropId)
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        crop = crop
-                    )
-                }
-                if (crop.intercroppingId != null) {
-                    val intercroppingDetails = cultivatingCropRepository.getIntercroppingDetailsById(crop.intercroppingId)
-                    _uiState.update { it.copy(intercroppingDetails = intercroppingDetails) }
-                }
+                cultivatingCropRepository.refreshCultivatingCropById(cropId)
+                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
@@ -57,6 +72,17 @@ class CultivatingCropViewModel @Inject constructor(
                         error = e.localizedMessage ?: "An unknown error occurred"
                     )
                 }
+            }
+        }
+    }
+
+    private fun loadIntercroppingDetails(intercroppingId: String) {
+        viewModelScope.launch {
+            try {
+                val details = cultivatingCropRepository.getIntercroppingDetailsById(intercroppingId)
+                _uiState.update { it.copy(intercroppingDetails = details) }
+            } catch (e: Exception) {
+                // Handle error if necessary
             }
         }
     }

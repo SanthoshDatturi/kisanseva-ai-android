@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -37,22 +38,38 @@ class RecommendationViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     init {
-        getRecommendations()
+        observeRecommendations()
+        refreshRecommendations()
     }
 
-    private fun getRecommendations() {
+    private fun observeRecommendations() {
+        viewModelScope.launch {
+            cropRecommendationRepository.getLatestCropRecommendation(farmId)
+                .catch { e ->
+                    _uiState.update {
+                        it.copy(error = e.localizedMessage ?: "An error occurred")
+                    }
+                }
+                .collectLatest { recommendation ->
+                    if (recommendation != null) {
+                        _uiState.update {
+                            it.copy(
+                                cropRecommendationResponseId = recommendation.id,
+                                isLoading = false,
+                                monoCrops = recommendation.monoCrops,
+                                interCrops = recommendation.interCrops
+                            )
+                        }
+                    }
+                }
+        }
+    }
+
+    private fun refreshRecommendations() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                val recommendations = cropRecommendationRepository.getCropRecommendationByFarmId(farmId)
-                _uiState.update {
-                    it.copy(
-                        cropRecommendationResponseId = recommendations.id,
-                        isLoading = false,
-                        monoCrops = recommendations.monoCrops,
-                        interCrops = recommendations.interCrops
-                    )
-                }
+                cropRecommendationRepository.refreshCropRecommendationByFarmId(farmId)
             } catch (e: Exception) {
                 requestAndListenForRecommendations()
             }

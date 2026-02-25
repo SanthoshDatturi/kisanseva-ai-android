@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.kisanseva.ai.data.local.entity.CultivatingCalendarEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CultivatingCalendarDao {
@@ -12,10 +13,10 @@ interface CultivatingCalendarDao {
     suspend fun insertCalendar(calendar: CultivatingCalendarEntity)
 
     @Query("SELECT * FROM cultivating_calendars WHERE id = :id")
-    suspend fun getCalendarById(id: String): CultivatingCalendarEntity?
+    fun getCalendarById(id: String): Flow<CultivatingCalendarEntity?>
 
     @Query("SELECT * FROM cultivating_calendars WHERE cropId = :cropId")
-    suspend fun getCalendarByCropId(cropId: String): CultivatingCalendarEntity?
+    fun getCalendarByCropId(cropId: String): Flow<CultivatingCalendarEntity?>
 
     @Query("DELETE FROM cultivating_calendars WHERE id = :id")
     suspend fun deleteCalendarById(id: String)

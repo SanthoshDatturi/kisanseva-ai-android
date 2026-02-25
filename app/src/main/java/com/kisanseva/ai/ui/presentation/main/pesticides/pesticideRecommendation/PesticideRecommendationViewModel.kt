@@ -9,6 +9,8 @@ import com.kisanseva.ai.domain.repository.PesticideRecommendationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -34,15 +36,28 @@ class PesticideRecommendationViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     init {
-        loadRecommendation()
+        observeRecommendation()
+        refreshRecommendation()
     }
 
-    fun loadRecommendation() {
+    private fun observeRecommendation() {
+        viewModelScope.launch {
+            repository.getRecommendationById(recommendationId)
+                .catch { e ->
+                    _uiState.update { it.copy(error = e.localizedMessage) }
+                }
+                .collectLatest { response ->
+                    _uiState.update { it.copy(recommendation = response) }
+                }
+        }
+    }
+
+    private fun refreshRecommendation() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                val response = repository.getRecommendationById(recommendationId)
-                _uiState.update { it.copy(isLoading = false, recommendation = response) }
+                repository.refreshRecommendationById(recommendationId)
+                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.localizedMessage) }
             }
@@ -59,7 +74,7 @@ class PesticideRecommendationViewModel @Inject constructor(
                     stage = stage,
                     appliedDate = appliedDate
                 )
-                loadRecommendation() // Refresh data
+                // Local cache will be updated by repository, and Flow will emit new value
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.localizedMessage) }
             } finally {

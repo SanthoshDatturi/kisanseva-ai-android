@@ -8,6 +8,8 @@ import com.kisanseva.ai.data.remote.CultivatingCropApi
 import com.kisanseva.ai.domain.model.CultivatingCrop
 import com.kisanseva.ai.domain.model.IntercroppingDetails
 import com.kisanseva.ai.domain.repository.CultivatingCropRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class CultivatingCropRepositoryImpl(
     private val cultivatingCropApi: CultivatingCropApi,
@@ -15,46 +17,53 @@ class CultivatingCropRepositoryImpl(
     private val interCroppingDetailsDao: InterCroppingDetailsDao
 ) : CultivatingCropRepository {
 
-    override suspend fun getAllCultivatingCrops(): List<CultivatingCrop> {
-        return cultivatingCropDao.getAllCultivatingCrops().map { entityToCultivatingCrop(it) }
-    }
-
-    override suspend fun getCultivatingCropsByFarmId(farmId: String): List<CultivatingCrop> {
-        val localCrops = cultivatingCropDao.getCultivatingCropsByFarmId(farmId)
-        return if (localCrops.isNotEmpty()) {
-            localCrops.map { entityToCultivatingCrop(it) }
-        } else {
-            val remoteCrops = cultivatingCropApi.getCultivatingCropsByFarmId(farmId)
-            remoteCrops.forEach { cultivatingCropDao.insertCultivatingCrop(cultivatingCropToEntity(it)) }
-            remoteCrops
+    override fun getAllCultivatingCrops(): Flow<List<CultivatingCrop>> {
+        return cultivatingCropDao.getAllCultivatingCrops().map { entities ->
+            entities.map { entityToCultivatingCrop(it) }
         }
     }
 
-    override suspend fun getCultivatingCropById(cultivatingCropId: String): CultivatingCrop {
-        val localCrop = cultivatingCropDao.getCultivatingCropById(cultivatingCropId)
-        return if (localCrop != null) {
-            entityToCultivatingCrop(localCrop)
-        } else {
-            val remoteCrop = cultivatingCropApi.getCultivatingCropById(cultivatingCropId)
-            cultivatingCropDao.insertCultivatingCrop(cultivatingCropToEntity(remoteCrop))
-            remoteCrop
+    override fun getCultivatingCropsByFarmId(farmId: String): Flow<List<CultivatingCrop>> {
+        return cultivatingCropDao.getCultivatingCropsByFarmId(farmId).map { entities ->
+            entities.map { entityToCultivatingCrop(it) }
         }
+    }
+
+    override fun getCultivatingCropById(cultivatingCropId: String): Flow<CultivatingCrop?> {
+        return cultivatingCropDao.getCultivatingCropById(cultivatingCropId).map { entity ->
+            entity?.let { entityToCultivatingCrop(it) }
+        }
+    }
+
+    override fun getIntercroppingDetailsById(intercroppingDetailsId: String): Flow<IntercroppingDetails?> {
+        return interCroppingDetailsDao.getInterCroppingDetailsById(intercroppingDetailsId).map { entity ->
+            entity?.let { entityToIntercroppingDetails(it) }
+        }
+    }
+
+    override suspend fun refreshCultivatingCropsByFarmId(farmId: String) {
+        val remoteCrops = cultivatingCropApi.getCultivatingCropsByFarmId(farmId)
+        remoteCrops.forEach { cultivatingCropDao.insertCultivatingCrop(cultivatingCropToEntity(it)) }
+    }
+
+    override suspend fun refreshAllCultivatingCrops() {
+        val remoteCrops = cultivatingCropApi.getAllCultivatingCrops()
+        remoteCrops.forEach { cultivatingCropDao.insertCultivatingCrop(cultivatingCropToEntity(it)) }
+    }
+
+    override suspend fun refreshCultivatingCropById(cultivatingCropId: String) {
+        val remoteCrop = cultivatingCropApi.getCultivatingCropById(cultivatingCropId)
+        cultivatingCropDao.insertCultivatingCrop(cultivatingCropToEntity(remoteCrop))
+    }
+
+    override suspend fun refreshIntercroppingDetailsById(intercroppingDetailsId: String) {
+        val remoteDetails = cultivatingCropApi.getIntercroppingDetailsById(intercroppingDetailsId)
+        interCroppingDetailsDao.insertOrUpdate(interCroppingDetailsToEntity(remoteDetails))
     }
 
     override suspend fun deleteCultivatingCrop(cultivatingCropId: String) {
         cultivatingCropApi.deleteCultivatingCrop(cultivatingCropId)
         cultivatingCropDao.deleteCultivatingCropById(cultivatingCropId)
-    }
-
-    override suspend fun getIntercroppingDetailsById(intercroppingDetailsId: String): IntercroppingDetails {
-        val localDetails = interCroppingDetailsDao.getInterCroppingDetailsById(intercroppingDetailsId)
-        return if (localDetails != null) {
-            entityToIntercroppingDetails(localDetails)
-        } else {
-            val remoteDetails = cultivatingCropApi.getIntercroppingDetailsById(intercroppingDetailsId)
-            interCroppingDetailsDao.insertOrUpdate(interCroppingDetailsToEntity(remoteDetails))
-            remoteDetails
-        }
     }
 
     override suspend fun saveCultivatingCrop(crop: CultivatingCrop) {

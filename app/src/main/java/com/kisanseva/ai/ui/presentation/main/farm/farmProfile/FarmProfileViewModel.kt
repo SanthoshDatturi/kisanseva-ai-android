@@ -12,6 +12,10 @@ import com.kisanseva.ai.domain.repository.WeatherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -41,22 +45,35 @@ class FarmProfileViewModel @Inject constructor(
     private val farmId: String = checkNotNull(savedStateHandle.get<String>("farmId"))
 
     init {
-        loadFarmProfile()
-        loadCultivatingCrops()
+        observeFarmProfile()
+        refreshFarmProfile()
+        observeCultivatingCrops()
+        refreshCultivatingCrops()
     }
 
-    private fun loadFarmProfile() {
+    private fun observeFarmProfile() {
+        viewModelScope.launch {
+            farmRepository.getProfileById(farmId)
+                .catch { e ->
+                    _uiState.update {
+                        it.copy(error = e.localizedMessage ?: "An unknown error occurred")
+                    }
+                }
+                .filterNotNull()
+                .distinctUntilChanged()
+                .collectLatest { farm ->
+                    _uiState.update { it.copy(farm = farm) }
+                    loadWeather(farm.location.latitude, farm.location.longitude)
+                }
+        }
+    }
+
+    private fun refreshFarmProfile() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                val farm = farmRepository.getProfileById(farmId)
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        farm = farm
-                    )
-                }
-                loadWeather(farm.location.latitude, farm.location.longitude)
+                farmRepository.refreshFarmProfileById(farmId)
+                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
@@ -85,19 +102,33 @@ class FarmProfileViewModel @Inject constructor(
         }
     }
 
-    private fun loadCultivatingCrops() {
+    private fun observeCultivatingCrops() {
+        viewModelScope.launch {
+            cultivatingCropRepository.getCultivatingCropsByFarmId(farmId)
+                .catch { e ->
+                    _uiState.update {
+                        it.copy(error = e.localizedMessage ?: "An unknown error occurred")
+                    }
+                }
+                .collectLatest { crops ->
+                    _uiState.update { it.copy(cultivatingCrops = crops) }
+                }
+        }
+    }
+
+    private fun refreshCultivatingCrops() {
         viewModelScope.launch {
             _uiState.update { it.copy(isCropsLoading = true) }
             try {
-                val crops = cultivatingCropRepository.getCultivatingCropsByFarmId(farmId)
+                cultivatingCropRepository.refreshCultivatingCropsByFarmId(farmId)
+                _uiState.update { it.copy(isCropsLoading = false) }
+            } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         isCropsLoading = false,
-                        cultivatingCrops = crops
+                        error = e.localizedMessage ?: "An unknown error occurred"
                     )
                 }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isCropsLoading = false) }
             }
         }
     }

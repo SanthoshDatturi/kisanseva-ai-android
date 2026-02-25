@@ -5,32 +5,30 @@ import com.kisanseva.ai.data.local.entity.SoilHealthRecommendationEntity
 import com.kisanseva.ai.data.remote.SoilHealthRecommendationApi
 import com.kisanseva.ai.domain.model.SoilHealthRecommendations
 import com.kisanseva.ai.domain.repository.SoilHealthRecommendationRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class SoilHealthRecommendationRepositoryImpl(
     private val api: SoilHealthRecommendationApi,
     private val dao: SoilHealthRecommendationDao
 ) : SoilHealthRecommendationRepository {
 
-    override suspend fun getRecommendationById(id: String): SoilHealthRecommendations {
-        val local = dao.getRecommendationById(id)
-        return if (local != null) {
-            entityToDomain(local)
-        } else {
-            val remote = api.getRecommendationById(id)
-            dao.insertRecommendation(domainToEntity(remote))
-            remote
-        }
+    override fun getRecommendationById(id: String): Flow<SoilHealthRecommendations?> {
+        return dao.getRecommendationById(id).map { it?.let { entityToDomain(it) } }
     }
 
-    override suspend fun getRecommendationsByCropId(cropId: String): List<SoilHealthRecommendations> {
-        val local = dao.getRecommendationsByCropId(cropId)
-        return if (local.isNotEmpty()) {
-            local.map { entityToDomain(it) }
-        } else {
-            val remote = api.getRecommendationsByCropId(cropId)
-            remote.forEach { dao.insertRecommendation(domainToEntity(it)) }
-            remote
-        }
+    override fun getRecommendationsByCropId(cropId: String): Flow<List<SoilHealthRecommendations>> {
+        return dao.getRecommendationsByCropId(cropId).map { list -> list.map { entityToDomain(it) } }
+    }
+
+    override suspend fun refreshRecommendationById(id: String) {
+        val remote = api.getRecommendationById(id)
+        dao.insertRecommendation(domainToEntity(remote))
+    }
+
+    override suspend fun refreshRecommendationsByCropId(cropId: String) {
+        val remote = api.getRecommendationsByCropId(cropId)
+        remote.forEach { dao.insertRecommendation(domainToEntity(it)) }
     }
 
     override suspend fun deleteRecommendation(id: String) {

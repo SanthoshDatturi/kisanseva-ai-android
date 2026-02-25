@@ -5,32 +5,30 @@ import com.kisanseva.ai.data.local.entity.InvestmentBreakdownEntity
 import com.kisanseva.ai.data.remote.InvestmentBreakdownApi
 import com.kisanseva.ai.domain.model.InvestmentBreakdown
 import com.kisanseva.ai.domain.repository.InvestmentBreakdownRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class InvestmentBreakdownRepositoryImpl(
     private val api: InvestmentBreakdownApi,
     private val dao: InvestmentBreakdownDao
 ) : InvestmentBreakdownRepository {
 
-    override suspend fun getBreakdownById(id: String): InvestmentBreakdown {
-        val local = dao.getBreakdownById(id)
-        return if (local != null) {
-            entityToDomain(local)
-        } else {
-            val remote = api.getBreakdownById(id)
-            dao.insertBreakdown(domainToEntity(remote))
-            remote
-        }
+    override fun getBreakdownById(id: String): Flow<InvestmentBreakdown?> {
+        return dao.getBreakdownById(id).map { it?.let { entityToDomain(it) } }
     }
 
-    override suspend fun getBreakdownByCropId(cropId: String): InvestmentBreakdown {
-        val local = dao.getBreakdownByCropId(cropId)
-        return if (local != null) {
-            entityToDomain(local)
-        } else {
-            val remote = api.getBreakdownByCropId(cropId)
-            dao.insertBreakdown(domainToEntity(remote))
-            remote
-        }
+    override fun getBreakdownByCropId(cropId: String): Flow<InvestmentBreakdown?> {
+        return dao.getBreakdownByCropId(cropId).map { it?.let { entityToDomain(it) } }
+    }
+
+    override suspend fun refreshBreakdownById(id: String) {
+        val remote = api.getBreakdownById(id)
+        dao.insertBreakdown(domainToEntity(remote))
+    }
+
+    override suspend fun refreshBreakdownByCropId(cropId: String) {
+        val remote = api.getBreakdownByCropId(cropId)
+        dao.insertBreakdown(domainToEntity(remote))
     }
 
     override suspend fun deleteBreakdown(id: String) {

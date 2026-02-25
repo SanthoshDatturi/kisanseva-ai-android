@@ -1,9 +1,12 @@
 package com.kisanseva.ai.domain.repository
 
 import com.kisanseva.ai.domain.model.InvestmentBreakdown
+import kotlinx.coroutines.flow.Flow
 
 interface InvestmentBreakdownRepository {
-    suspend fun getBreakdownById(id: String): InvestmentBreakdown
-    suspend fun getBreakdownByCropId(cropId: String): InvestmentBreakdown
+    fun getBreakdownById(id: String): Flow<InvestmentBreakdown?>
+    fun getBreakdownByCropId(cropId: String): Flow<InvestmentBreakdown?>
     suspend fun deleteBreakdown(id: String)
+    suspend fun refreshBreakdownById(id: String)
+    suspend fun refreshBreakdownByCropId(cropId: String)
 }

@@ -40,40 +40,38 @@ class ChatRepositoryImpl(
         return session
     }
 
-    override suspend fun getChatSessions(): List<ChatSession> {
-        val localChatSessions = chatSessionDao.getChatSessions()
-        val latestTimestamp = localChatSessions.maxByOrNull { it.ts }?.ts
-
-        try {
-            val remoteChatSessions = chatApi.getChatSessions(latestTimestamp)
-            if (remoteChatSessions.isNotEmpty()) {
-                chatSessionDao.insertOrUpdateChatSessions(remoteChatSessions.map { it.toEntity() })
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
+    override fun getChatSessions(): Flow<List<ChatSession>> {
+        return chatSessionDao.getChatSessions().map { entities ->
+            entities.map { it.toDomain() }
         }
+    }
 
-        return chatSessionDao.getChatSessions().map { it.toDomain() }
+    override suspend fun refreshChatSessions() {
+        val localChatSessions = chatSessionDao.getChatSessions().first()
+        val latestTimestamp = localChatSessions.maxByOrNull { it.ts }?.ts
+        val remoteChatSessions = chatApi.getChatSessions(latestTimestamp)
+        if (remoteChatSessions.isNotEmpty()) {
+            chatSessionDao.insertOrUpdateChatSessions(remoteChatSessions.map { it.toEntity() })
+        }
     }
 
     override suspend fun getChatSession(chatId: String): ChatSession {
         return chatApi.getChatSession(chatId)
     }
 
-    override suspend fun getChatMessages(chatId: String): List<Message> {
+    override fun getChatMessages(chatId: String): Flow<List<Message>> {
+        return messageDao.getMessagesFlow(chatId).map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun refreshChatMessages(chatId: String) {
         val localMessages = messageDao.getMessages(chatId)
         val latestTimestamp = localMessages.maxByOrNull { it.ts }?.ts
-
-        try {
-            val remoteMessages = chatApi.getChatMessages(chatId, latestTimestamp, limit = 10)
-            if (remoteMessages.isNotEmpty()) {
-                remoteMessages.forEach { saveMessage(it) }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        val remoteMessages = chatApi.getChatMessages(chatId, latestTimestamp, limit = 50)
+        if (remoteMessages.isNotEmpty()) {
+            remoteMessages.forEach { saveMessage(it) }
         }
-
-        return messageDao.getMessages(chatId).map { it.toDomain() }
     }
 
     override suspend fun deleteChatSession(chatId: String) {

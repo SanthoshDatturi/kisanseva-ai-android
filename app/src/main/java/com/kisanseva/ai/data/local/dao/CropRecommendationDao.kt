@@ -10,24 +10,25 @@ import com.kisanseva.ai.data.local.entity.CropRecommendationWithRelations
 import com.kisanseva.ai.data.local.entity.InterCropRecommendationEntity
 import com.kisanseva.ai.data.local.entity.InterCropRecommendationWithRelations
 import com.kisanseva.ai.data.local.entity.MonoCropEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CropRecommendationDao {
 
     @Transaction
     @Query("SELECT * FROM crop_recommendation WHERE farmId = :farmId ORDER BY timestamp DESC LIMIT 1")
-    suspend fun getLatestCropRecommendation(farmId: String): CropRecommendationWithRelations?
+    fun getLatestCropRecommendation(farmId: String): Flow<CropRecommendationWithRelations?>
 
     @Transaction
     @Query("SELECT * FROM crop_recommendation WHERE id = :recommendationId")
-    suspend fun getCropRecommendationById(recommendationId: String): CropRecommendationWithRelations?
+    fun getCropRecommendationById(recommendationId: String): Flow<CropRecommendationWithRelations?>
 
     @Query("SELECT * FROM mono_crop WHERE id = :monoCropId")
-    suspend fun getMonoCropById(monoCropId: String): MonoCropEntity?
+    fun getMonoCropById(monoCropId: String): Flow<MonoCropEntity?>
 
     @Transaction
     @Query("SELECT * FROM inter_crop_recommendation WHERE id = :interCropId")
-    suspend fun getInterCropById(interCropId: String): InterCropRecommendationWithRelations?
+    fun getInterCropById(interCropId: String): Flow<InterCropRecommendationWithRelations?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCropRecommendation(cropRecommendation: CropRecommendationEntity)

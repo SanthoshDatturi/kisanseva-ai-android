@@ -2,13 +2,18 @@ package com.kisanseva.ai.domain.repository
 
 import com.kisanseva.ai.domain.model.CultivatingCrop
 import com.kisanseva.ai.domain.model.IntercroppingDetails
+import kotlinx.coroutines.flow.Flow
 
 interface CultivatingCropRepository {
-    suspend fun getCultivatingCropsByFarmId(farmId: String): List<CultivatingCrop>
-    suspend fun getAllCultivatingCrops(): List<CultivatingCrop>
-    suspend fun getCultivatingCropById(cultivatingCropId: String): CultivatingCrop
+    fun getCultivatingCropsByFarmId(farmId: String): Flow<List<CultivatingCrop>>
+    fun getAllCultivatingCrops(): Flow<List<CultivatingCrop>>
+    fun getCultivatingCropById(cultivatingCropId: String): Flow<CultivatingCrop?>
     suspend fun deleteCultivatingCrop(cultivatingCropId: String)
-    suspend fun getIntercroppingDetailsById(intercroppingDetailsId: String): IntercroppingDetails
+    fun getIntercroppingDetailsById(intercroppingDetailsId: String): Flow<IntercroppingDetails?>
     suspend fun saveCultivatingCrop(crop: CultivatingCrop)
     suspend fun saveIntercroppingDetails(details: IntercroppingDetails)
+    suspend fun refreshCultivatingCropsByFarmId(farmId: String)
+    suspend fun refreshAllCultivatingCrops()
+    suspend fun refreshCultivatingCropById(cultivatingCropId: String)
+    suspend fun refreshIntercroppingDetailsById(intercroppingDetailsId: String)
 }

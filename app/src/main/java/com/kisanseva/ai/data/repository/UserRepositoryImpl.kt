@@ -13,14 +13,14 @@ class UserRepositoryImpl(
     private val userApi: UserApi,
     private val userDao: UserDao
 ) : UserRepository {
-    override suspend fun getProfile(): User {
-        val user = userApi.getProfile()
-        userDao.insertUser(user.toEntity())
-        return user
-    }
 
     override fun getUser(): Flow<User?> {
         return userDao.getUser().map { it?.toDomain() }
+    }
+
+    override suspend fun refreshUser() {
+        val user = userApi.getProfile()
+        userDao.insertUser(user.toEntity())
     }
 
     override suspend fun clearUser() {

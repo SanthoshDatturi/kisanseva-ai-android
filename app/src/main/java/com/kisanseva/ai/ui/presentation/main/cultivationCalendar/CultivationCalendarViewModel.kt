@@ -8,6 +8,8 @@ import com.kisanseva.ai.domain.repository.CultivatingCalendarRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -31,24 +33,35 @@ class CultivationCalendarViewModel @Inject constructor(
     private val calendarId: String? = savedStateHandle.get<String>("calendarId")
 
     init {
-        loadCalendar()
+        observeCalendar()
+        refreshCalendar()
     }
 
-    private fun loadCalendar() {
+    private fun observeCalendar() {
+        viewModelScope.launch {
+            val flow = when {
+                calendarId != null -> repository.getCalendarById(calendarId)
+                cropId != null -> repository.getCalendarByCropId(cropId)
+                else -> return@launch
+            }
+            flow.catch { e ->
+                _uiState.update { it.copy(error = e.localizedMessage ?: "An error occurred") }
+            }.collectLatest { calendar ->
+                _uiState.update { it.copy(calendar = calendar) }
+            }
+        }
+    }
+
+    private fun refreshCalendar() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                val calendar = when {
-                    calendarId != null -> repository.getCalendarById(calendarId)
-                    cropId != null -> repository.getCalendarByCropId(cropId)
+                when {
+                    calendarId != null -> repository.refreshCalendarById(calendarId)
+                    cropId != null -> repository.refreshCalendarByCropId(cropId)
                     else -> throw IllegalArgumentException("Neither cropId nor calendarId provided")
                 }
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        calendar = calendar
-                    )
-                }
+                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(

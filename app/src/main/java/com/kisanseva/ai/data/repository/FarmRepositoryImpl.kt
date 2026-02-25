@@ -5,6 +5,8 @@ import com.kisanseva.ai.data.local.entity.FarmProfileEntity
 import com.kisanseva.ai.data.remote.FarmApi
 import com.kisanseva.ai.domain.model.FarmProfile
 import com.kisanseva.ai.domain.repository.FarmRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class FarmRepositoryImpl(
     private val farmApi: FarmApi,
@@ -17,26 +19,27 @@ class FarmRepositoryImpl(
         return createdProfile
     }
 
-    override suspend fun getProfileById(farmId: String): FarmProfile {
-        val localProfile = farmProfileDao.getFarmProfileById(farmId)
-        return if (localProfile != null) {
-            entityToFarmProfile(localProfile)
-        } else {
-            val remoteProfile = farmApi.getProfileById(farmId)
-            farmProfileDao.insertFarmProfile(farmProfileToEntity(remoteProfile))
-            remoteProfile
+    override fun getProfileById(farmId: String): Flow<FarmProfile?> {
+        return farmProfileDao.getFarmProfileById(farmId).map { entity ->
+            entity?.let { entityToFarmProfile(it) }
         }
     }
 
-    override suspend fun getFarmProfiles(): List<FarmProfile> {
-        val localProfiles = farmProfileDao.getFarmProfiles()
-        return if (localProfiles.isNotEmpty()) {
-            localProfiles.map { entityToFarmProfile(it) }
-        } else {
-            val remoteProfiles = farmApi.getFarmProfiles()
-            remoteProfiles.forEach { farmProfileDao.insertFarmProfile(farmProfileToEntity(it)) }
-            remoteProfiles
+    override fun getFarmProfiles(): Flow<List<FarmProfile>> {
+        return farmProfileDao.getFarmProfiles().map { entities ->
+            entities.map { entityToFarmProfile(it) }
         }
+    }
+
+    override suspend fun refreshFarmProfiles() {
+        val remoteProfiles = farmApi.getFarmProfiles()
+        farmProfileDao.deleteAllFarmProfiles()
+        remoteProfiles.forEach { farmProfileDao.insertFarmProfile(farmProfileToEntity(it)) }
+    }
+
+    override suspend fun refreshFarmProfileById(farmId: String) {
+        val remoteProfile = farmApi.getProfileById(farmId)
+        farmProfileDao.insertFarmProfile(farmProfileToEntity(remoteProfile))
     }
 
     override suspend fun deleteProfile(farmId: String) {

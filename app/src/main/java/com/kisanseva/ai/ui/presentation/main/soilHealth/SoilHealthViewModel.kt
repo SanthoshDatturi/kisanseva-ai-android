@@ -8,6 +8,8 @@ import com.kisanseva.ai.domain.repository.SoilHealthRecommendationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -31,24 +33,38 @@ class SoilHealthViewModel @Inject constructor(
     private val recommendationId: String? = savedStateHandle.get<String>("recommendationId")
 
     init {
-        loadRecommendations()
+        observeRecommendations()
+        refreshRecommendations()
     }
 
-    private fun loadRecommendations() {
+    private fun observeRecommendations() {
+        viewModelScope.launch {
+            val flow = when {
+                recommendationId != null -> repository.getRecommendationById(recommendationId).catch { e ->
+                    _uiState.update { it.copy(error = e.localizedMessage) }
+                }.collectLatest { result ->
+                    _uiState.update { it.copy(recommendations = listOfNotNull(result)) }
+                }
+                cropId != null -> repository.getRecommendationsByCropId(cropId).catch { e ->
+                    _uiState.update { it.copy(error = e.localizedMessage) }
+                }.collectLatest { results ->
+                    _uiState.update { it.copy(recommendations = results) }
+                }
+                else -> return@launch
+            }
+        }
+    }
+
+    private fun refreshRecommendations() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                val results = when {
-                    recommendationId != null -> listOf(repository.getRecommendationById(recommendationId))
-                    cropId != null -> repository.getRecommendationsByCropId(cropId)
+                when {
+                    recommendationId != null -> repository.refreshRecommendationById(recommendationId)
+                    cropId != null -> repository.refreshRecommendationsByCropId(cropId)
                     else -> throw IllegalArgumentException("Missing cropId or recommendationId")
                 }
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        recommendations = results
-                    )
-                }
+                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(

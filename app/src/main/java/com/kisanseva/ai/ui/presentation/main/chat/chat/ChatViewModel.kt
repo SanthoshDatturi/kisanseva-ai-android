@@ -31,6 +31,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -89,7 +91,8 @@ class ChatViewModel @Inject constructor(
             if (chatId == null) {
                 createNewChat()
             } else {
-                loadMessages(chatId!!)
+                observeMessages(chatId!!)
+                refreshMessages(chatId!!)
             }
         }
         observeEvents()
@@ -102,6 +105,9 @@ class ChatViewModel @Inject constructor(
             chatId = session.id
             _uiState.update { it.copy(isLoading = false) }
             
+            observeMessages(chatId!!)
+            refreshMessages(chatId!!)
+
             if (chatType == ChatType.FARM_SURVEY) {
                 message = "..."
                 sendMessage()
@@ -258,17 +264,24 @@ class ChatViewModel @Inject constructor(
         _uiState.update { it.copy(audioFile = null, audioPart = null, isRecording = false) }
     }
 
-    private fun loadMessages(chatId: String) {
+    private fun observeMessages(chatId: String) {
+        viewModelScope.launch {
+            chatRepository.getChatMessages(chatId)
+                .catch { e ->
+                    _uiState.update { it.copy(error = e.localizedMessage ?: "An unknown error occurred") }
+                }
+                .collectLatest { messages ->
+                    _uiState.update { it.copy(messages = messages) }
+                }
+        }
+    }
+
+    private fun refreshMessages(chatId: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                val messages = chatRepository.getChatMessages(chatId)
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        messages = messages
-                    )
-                }
+                chatRepository.refreshChatMessages(chatId)
+                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
@@ -297,36 +310,7 @@ class ChatViewModel @Inject constructor(
                             url?.let { audioPlayer.play(it) }
                         }
                     }
-
-                    _uiState.update { currentState ->
-                        if (currentState.messages.any { it.id == modelMessage.id }) {
-                            currentState
-                        } else {
-                            currentState.copy(
-                                messages = currentState.messages + modelMessage
-                            )
-                        }
-                    }
-                }
-                event.userMessage?.let { userMessage ->
-                    _uiState.update { currentState ->
-                        val updatedMessages = currentState.messages.map {
-                            if (it.id.startsWith(TEMP_ID_PREFIX)) {
-                                chatRepository.deleteMessage(it.id)
-                                it.copy(id = userMessage.id)
-                            } else {
-                                it
-                            }
-                        }.map {
-                            if (it.id == userMessage.id) {
-                                it.copy(ts = userMessage.ts)
-                            } else {
-                                it
-                            }
-                        }
-                        updatedMessages.forEach { chatRepository.saveMessage(it) }
-                        currentState.copy(messages = updatedMessages)
-                    }
+                    // No need to manually update state as observeMessages will catch this through Room
                 }
                 when (event) {
                     is ChatWebSocketEvent.FarmSurveyEventChat -> {
@@ -373,15 +357,10 @@ class ChatViewModel @Inject constructor(
             content = userMessageContent,
         )
 
-        _uiState.update {
-            it.copy(
-                messages = it.messages + optimisticMessage,
-                isSendingMessage = true
-            )
-        }
-
+        // Optimistic update handled by repository saving it and Flow emitting it
         viewModelScope.launch {
             chatRepository.saveMessage(optimisticMessage)
+            _uiState.update { it.copy(isSendingMessage = true) }
         }
 
         try {

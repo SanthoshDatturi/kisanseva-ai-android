@@ -12,6 +12,8 @@ import com.kisanseva.ai.domain.model.PesticideStageUpdateRequest
 import com.kisanseva.ai.domain.repository.PesticideRecommendationRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 
@@ -21,19 +23,22 @@ class PesticideRecommendationRepositoryImpl(
     private val webSocketController: WebSocketController
 ) : PesticideRecommendationRepository {
 
-    override suspend fun getRecommendationById(recommendationId: String): PesticideRecommendationResponse {
-        val local = dao.getRecommendationById(recommendationId)
-        if (local != null) return mapToDomain(local)
-        
-        val remote = api.getRecommendationById(recommendationId)
-        dao.insertRecommendation(mapToEntity(remote))
-        return remote
+    override fun getRecommendationById(recommendationId: String): Flow<PesticideRecommendationResponse?> {
+        return dao.getRecommendationById(recommendationId).map { it?.let { mapToDomain(it) } }
     }
 
-    override suspend fun getRecommendationsByCropId(cropId: String): List<PesticideRecommendationResponse> {
+    override fun getRecommendationsByCropId(cropId: String): Flow<List<PesticideRecommendationResponse>> {
+        return dao.getRecommendationsByCropId(cropId).map { list -> list.map { mapToDomain(it) } }
+    }
+
+    override suspend fun refreshRecommendationsByCropId(cropId: String) {
         val remote = api.getRecommendationsByCropId(cropId)
         remote.forEach { dao.insertRecommendation(mapToEntity(it)) }
-        return remote
+    }
+
+    override suspend fun refreshRecommendationById(recommendationId: String) {
+        val remote = api.getRecommendationById(recommendationId)
+        dao.insertRecommendation(mapToEntity(remote))
     }
 
     override suspend fun deleteRecommendation(recommendationId: String) {
@@ -79,7 +84,7 @@ class PesticideRecommendationRepositoryImpl(
         )
         
         // Update local cache
-        val local = dao.getRecommendationById(recommendationId)
+        val local = dao.getRecommendationById(recommendationId).firstOrNull()
         if (local != null) {
             val updatedRecommendations = local.recommendations.map {
                 if (it.id == pesticideId) {

@@ -8,6 +8,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,20 +29,28 @@ class ChatListViewModel @Inject constructor(
     val uiState: StateFlow<ChatListUiState> = _uiState.asStateFlow()
 
     init {
-        getChatSessions()
+        observeChatSessions()
+        refreshChatSessions()
     }
 
-    fun getChatSessions() {
+    private fun observeChatSessions() {
+        viewModelScope.launch {
+            chatRepository.getChatSessions()
+                .catch { e ->
+                    _uiState.update { it.copy(error = e.localizedMessage ?: "An unknown error occurred") }
+                }
+                .collectLatest { sessions ->
+                    _uiState.update { it.copy(chatSessions = sessions) }
+                }
+        }
+    }
+
+    fun refreshChatSessions() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                val sessions = chatRepository.getChatSessions()
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        chatSessions = sessions
-                    )
-                }
+                chatRepository.refreshChatSessions()
+                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
@@ -56,7 +66,6 @@ class ChatListViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 chatRepository.deleteChatSession(chatId)
-                getChatSessions()
             } catch (e: Exception) {
                  _uiState.update {
                     it.copy(error = e.localizedMessage ?: "Failed to delete chat")
