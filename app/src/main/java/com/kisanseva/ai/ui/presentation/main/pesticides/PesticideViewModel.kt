@@ -151,14 +151,13 @@ class PesticideViewModel @Inject constructor(
                 )
                 _uiState.update { it.copy(imageParts = it.imageParts + newPart) }
 
-                val userId = dataStoreManager.userId.first()
                 val response = filesRepository.uploadFile(
                     fileStream = localFile.inputStream(),
                     blobName = UUID.randomUUID().toString(),
                     fileType = FileType.USER_CONTENT,
                     mimeType = mimeType,
                     folder = FileFolder.IMAGES,
-                    pathPrefix = userId
+                    pathPrefix = null
                 )
                 _uiState.update { state ->
                     val updatedParts = state.imageParts.map {
@@ -210,14 +209,13 @@ class PesticideViewModel @Inject constructor(
                 )
                 _uiState.update { it.copy(audioPart = newPart) }
 
-                val userId = dataStoreManager.userId.first()
                 val response = filesRepository.uploadFile(
                     fileStream = audioFile.inputStream(),
                     blobName = UUID.randomUUID().toString(),
                     fileType = FileType.USER_CONTENT,
                     mimeType = "audio/mp4",
                     folder = FileFolder.AUDIO,
-                    pathPrefix = userId
+                    pathPrefix = null
                 )
 
                 _uiState.update { state ->

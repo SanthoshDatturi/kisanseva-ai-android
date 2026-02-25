@@ -142,8 +142,7 @@ class ChatViewModel @Inject constructor(
                     fileData = FileData(mimeType = mimeType, localUri = localFile.absolutePath),
                 )
                 _uiState.update { it.copy(imageParts = it.imageParts + newPart) }
-                val userId = dataStoreManager.userId.first()
-                val pathPrefix = if (userId != null && chatId != null) "$userId/$chatId" else null
+                val pathPrefix = chatId
                 val response = filesRepository.uploadFile(
                     fileStream = localFile.inputStream(),
                     blobName = "${UUID.randomUUID()}",
@@ -209,8 +208,7 @@ class ChatViewModel @Inject constructor(
                         ),
                     )
                     _uiState.update { it.copy(audioPart = newPart) }
-                    val userId = dataStoreManager.userId.first()
-                    val pathPrefix = if (userId != null && chatId != null) "$userId/$chatId" else null
+                    val pathPrefix = chatId
 
                     val response = filesRepository.uploadFile(
                         fileStream = audioFile.inputStream(),
