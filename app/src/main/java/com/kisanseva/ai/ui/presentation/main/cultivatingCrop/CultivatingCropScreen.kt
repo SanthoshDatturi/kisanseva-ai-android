@@ -55,6 +55,7 @@ import coil3.compose.AsyncImage
 import com.kisanseva.ai.domain.model.CropState
 import com.kisanseva.ai.domain.model.CultivatingCrop
 import com.kisanseva.ai.ui.components.ActionItem
+import com.kisanseva.ai.util.UrlUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -142,7 +143,7 @@ fun CultivatingCropScreen(
 fun CropImageHeader(crop: CultivatingCrop) {
     Box(modifier = Modifier.fillMaxWidth()) {
         AsyncImage(
-            model = crop.imageUrl,
+            model = crop.imageUrl.let { UrlUtils.getFullUrlFromRef(it) },
             contentDescription = crop.name,
             modifier = Modifier
                 .fillMaxWidth()

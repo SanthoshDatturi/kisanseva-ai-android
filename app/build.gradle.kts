@@ -27,10 +27,21 @@ android {
         val properties = Properties()
         val propertiesFile = rootProject.file("local.properties")
         if (propertiesFile.exists()) {
-            properties.load(propertiesFile.inputStream())
+            propertiesFile.inputStream().use { properties.load(it) }
         }
-        val baseUrl = properties.getProperty("BASE_URL") ?: "\"https://fallback-url.com\""
-        buildConfigField("String", "BASE_URL", baseUrl)
+
+        fun getSafeProperty(key: String, default: String): String {
+            val value = properties.getProperty(key)?.trim() ?: return "\"$default\""
+            // Ensure the value is wrapped in double quotes for BuildConfig
+            return if (value.startsWith("\"") && value.endsWith("\"")) {
+                value
+            } else {
+                "\"$value\""
+            }
+        }
+
+        buildConfigField("String", "BASE_URL", getSafeProperty("BASE_URL", "fallback.url.com"))
+        buildConfigField("String", "BLOB_BASE_URL", getSafeProperty("BLOB_BASE_URL", "https://fallback-url.com"))
     }
 
     buildTypes {

@@ -5,11 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kisanseva.ai.data.local.DataStoreManager
 import com.kisanseva.ai.system.audio.player.AudioPlayer
 import com.kisanseva.ai.system.storage.MediaStorageManager
 import com.kisanseva.ai.domain.model.CultivatingCrop
 import com.kisanseva.ai.domain.model.FarmProfile
 import com.kisanseva.ai.domain.model.FileData
+import com.kisanseva.ai.domain.model.FileFolder
 import com.kisanseva.ai.domain.model.FileType
 import com.kisanseva.ai.domain.model.Part
 import com.kisanseva.ai.domain.model.PesticideInfo
@@ -18,6 +20,7 @@ import com.kisanseva.ai.domain.repository.CultivatingCropRepository
 import com.kisanseva.ai.domain.repository.FarmRepository
 import com.kisanseva.ai.domain.repository.FilesRepository
 import com.kisanseva.ai.domain.repository.PesticideRecommendationRepository
+import com.kisanseva.ai.util.UrlUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -49,6 +52,7 @@ class PesticideViewModel @Inject constructor(
     private val pesticideRepository: PesticideRecommendationRepository,
     private val filesRepository: FilesRepository,
     private val mediaStorageManager: MediaStorageManager,
+    private val dataStoreManager: DataStoreManager,
     val audioPlayer: AudioPlayer
 ) : ViewModel() {
 
@@ -147,11 +151,14 @@ class PesticideViewModel @Inject constructor(
                 )
                 _uiState.update { it.copy(imageParts = it.imageParts + newPart) }
 
+                val userId = dataStoreManager.userId.first()
                 val response = filesRepository.uploadFile(
                     fileStream = localFile.inputStream(),
                     blobName = UUID.randomUUID().toString(),
-                    fileType = FileType.IMAGE,
-                    mimeType = mimeType
+                    fileType = FileType.USER_CONTENT,
+                    mimeType = mimeType,
+                    folder = FileFolder.IMAGES,
+                    pathPrefix = userId
                 )
                 _uiState.update { state ->
                     val updatedParts = state.imageParts.map {
@@ -176,7 +183,7 @@ class PesticideViewModel @Inject constructor(
         }
         part.fileData?.localUri?.let { mediaStorageManager.deleteFile(it) }
         viewModelScope.launch {
-            part.fileData?.fileUri?.let { filesRepository.deleteFile(it, FileType.IMAGE) }
+            part.fileData?.fileUri?.let { filesRepository.deleteFile(it, FileType.USER_CONTENT) }
         }
     }
 
@@ -203,11 +210,14 @@ class PesticideViewModel @Inject constructor(
                 )
                 _uiState.update { it.copy(audioPart = newPart) }
 
+                val userId = dataStoreManager.userId.first()
                 val response = filesRepository.uploadFile(
                     fileStream = audioFile.inputStream(),
                     blobName = UUID.randomUUID().toString(),
-                    fileType = FileType.AUDIO,
-                    mimeType = "audio/mp4"
+                    fileType = FileType.USER_CONTENT,
+                    mimeType = "audio/mp4",
+                    folder = FileFolder.AUDIO,
+                    pathPrefix = userId
                 )
 
                 _uiState.update { state ->

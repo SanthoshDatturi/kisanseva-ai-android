@@ -56,6 +56,7 @@ import coil3.request.crossfade
 import com.kisanseva.ai.domain.model.InterCropRecommendation
 import com.kisanseva.ai.domain.model.MonoCrop
 import com.kisanseva.ai.ui.presentation.main.farm.cropRecommendation.cropDetails.RankDisplay
+import com.kisanseva.ai.util.UrlUtils
 import kotlinx.coroutines.launch
 
 @OptIn(
@@ -210,7 +211,7 @@ fun MonoCropItem(crop: MonoCrop, onClick: () -> Unit, modifier: Modifier = Modif
             Box {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(crop.imageUrl)
+                        .data(crop.imageUrl.let { UrlUtils.getFullUrlFromRef(it) })
                         .crossfade(true)
                         .build(),
                     contentDescription = crop.cropName,
@@ -282,7 +283,7 @@ fun InterCropItem(
                         Box(modifier = Modifier.weight(1f)) {
                             AsyncImage(
                                 model = ImageRequest.Builder(LocalContext.current)
-                                    .data(crop.imageUrl)
+                                    .data(crop.imageUrl.let { UrlUtils.getFullUrlFromRef(it) })
                                     .crossfade(true)
                                     .build(),
                                 contentDescription = crop.cropName,

@@ -60,6 +60,7 @@ import com.kisanseva.ai.domain.model.MonoCrop
 import com.kisanseva.ai.domain.model.RiskFactor
 import com.kisanseva.ai.domain.model.RiskImpact
 import com.kisanseva.ai.domain.model.SowingWindow
+import com.kisanseva.ai.util.UrlUtils
 
 @Composable
 fun MonoCropHeader(monoCrop: MonoCrop) {
@@ -72,7 +73,7 @@ fun MonoCropHeader(monoCrop: MonoCrop) {
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(monoCrop.imageUrl)
+                    .data(monoCrop.imageUrl.let { UrlUtils.getFullUrlFromRef(it) })
                     .crossfade(true)
                     .build(),
                 contentDescription = null,

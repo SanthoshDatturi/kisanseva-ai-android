@@ -6,10 +6,12 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kisanseva.ai.data.local.DataStoreManager
 import com.kisanseva.ai.data.remote.websocket.Actions
 import com.kisanseva.ai.domain.model.ChatType
 import com.kisanseva.ai.domain.model.Content
 import com.kisanseva.ai.domain.model.FileData
+import com.kisanseva.ai.domain.model.FileFolder
 import com.kisanseva.ai.domain.model.FileType
 import com.kisanseva.ai.domain.model.Message
 import com.kisanseva.ai.domain.model.MessageRequest
@@ -23,11 +25,13 @@ import com.kisanseva.ai.exception.ApiException
 import com.kisanseva.ai.system.audio.player.AudioPlayer
 import com.kisanseva.ai.system.storage.MediaStorageManager
 import com.kisanseva.ai.ui.presentation.main.chat.chat.ChatEvent.HandleCommand
+import com.kisanseva.ai.util.UrlUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -60,6 +64,7 @@ class ChatViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
     private val filesRepository: FilesRepository,
     private val mediaStorageManager: MediaStorageManager,
+    private val dataStoreManager: DataStoreManager,
     val audioPlayer: AudioPlayer,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -120,12 +125,15 @@ class ChatViewModel @Inject constructor(
                     fileData = FileData(mimeType = mimeType, localUri = localFile.absolutePath),
                 )
                 _uiState.update { it.copy(imageParts = it.imageParts + newPart) }
-
+                val userId = dataStoreManager.userId.first()
+                val pathPrefix = if (userId != null && chatId != null) "$userId/$chatId" else null
                 val response = filesRepository.uploadFile(
                     fileStream = localFile.inputStream(),
                     blobName = "${UUID.randomUUID()}",
-                    fileType = FileType.IMAGE,
-                    mimeType = mimeType
+                    fileType = FileType.AI_CHAT,
+                    mimeType = mimeType,
+                    folder = FileFolder.IMAGES,
+                    pathPrefix = pathPrefix
                 )
                 _uiState.update { state ->
                     val updatedParts = state.imageParts.map {
@@ -154,7 +162,7 @@ class ChatViewModel @Inject constructor(
         }
         viewModelScope.launch {
             part.fileData?.fileUri?.let {
-                filesRepository.deleteFile(it, FileType.IMAGE)
+                filesRepository.deleteFile(it, FileType.AI_CHAT)
             }
         }
     }
@@ -184,12 +192,16 @@ class ChatViewModel @Inject constructor(
                         ),
                     )
                     _uiState.update { it.copy(audioPart = newPart) }
+                    val userId = dataStoreManager.userId.first()
+                    val pathPrefix = if (userId != null && chatId != null) "$userId/$chatId" else null
 
                     val response = filesRepository.uploadFile(
                         fileStream = audioFile.inputStream(),
                         blobName = "${UUID.randomUUID()}",
-                        fileType = FileType.AUDIO,
-                        mimeType = "audio/mp4"
+                        fileType = FileType.AI_CHAT,
+                        mimeType = "audio/mp4",
+                        folder = FileFolder.AUDIO,
+                        pathPrefix = pathPrefix
                     )
 
                     _uiState.update { state ->
@@ -225,7 +237,7 @@ class ChatViewModel @Inject constructor(
         }
         viewModelScope.launch {
             _uiState.value.audioPart?.fileData?.fileUri?.let {
-                filesRepository.deleteFile(it, FileType.AUDIO)
+                filesRepository.deleteFile(it, FileType.AI_CHAT)
             }
         }
         _uiState.update { it.copy(audioFile = null, audioPart = null, isRecording = false) }
@@ -284,9 +296,10 @@ class ChatViewModel @Inject constructor(
                         modelMessage.content.parts?.find {
                             it.fileData?.mimeType?.contains("audio") == true
                         }?.let { part ->
-                            (part.fileData?.localUri ?: part.fileData?.fileUri)?.let {
-                                audioPlayer.play(it)
+                            val url = (part.fileData?.fileUri ?: part.fileData?.localUri)?.let {
+                                if (it.startsWith("http")) it else UrlUtils.getFullUrlFromRef(it)
                             }
+                            url?.let { audioPlayer.play(it) }
                         }
                     }
 

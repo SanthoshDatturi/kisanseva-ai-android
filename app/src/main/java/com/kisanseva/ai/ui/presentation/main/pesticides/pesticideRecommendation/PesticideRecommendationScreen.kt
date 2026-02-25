@@ -55,9 +55,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.kisanseva.ai.domain.model.PesticideInfo
 import com.kisanseva.ai.domain.model.PesticideStage
+import com.kisanseva.ai.util.UrlUtils
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
@@ -254,11 +255,12 @@ fun PesticideCard(
                         Spacer(modifier = Modifier.height(8.dp))
                         val formattedDate = remember(pesticide.appliedDate) {
                             try {
-                                if (pesticide.appliedDate.contains("T")) {
-                                    val dt = LocalDateTime.parse(pesticide.appliedDate)
+                                val dateStr = pesticide.appliedDate
+                                if (dateStr.contains("T")) {
+                                    val dt = LocalDateTime.parse(dateStr)
                                     dt.format(DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a"))
                                 } else {
-                                    pesticide.appliedDate
+                                    dateStr
                                 }
                             } catch (e: Exception) {
                                 pesticide.appliedDate

@@ -18,7 +18,8 @@ import java.util.Base64
 
 @Serializable
 data class UserPreferences(
-    val token: String? = null
+    val token: String? = null,
+    val userId: String? = null
 )
 
 object UserPreferencesSerializer: Serializer<UserPreferences> {
@@ -61,15 +62,27 @@ class DataStoreManager(private val context: Context) {
         }
         .map { it.token }
 
+    val userId: Flow<String?> = context.userPreferencesStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(UserPreferences()) else throw exception
+        }
+        .map { it.userId }
+
     suspend fun saveToken(token: String) {
         context.userPreferencesStore.updateData { prefs ->
             prefs.copy(token = token)
         }
     }
 
+    suspend fun saveUserId(userId: String) {
+        context.userPreferencesStore.updateData { prefs ->
+            prefs.copy(userId = userId)
+        }
+    }
+
     suspend fun clearToken() {
         context.userPreferencesStore.updateData { prefs ->
-            prefs.copy(token = null)
+            prefs.copy(token = null, userId = null)
         }
     }
 }

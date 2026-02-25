@@ -82,6 +82,7 @@ import com.kisanseva.ai.system.audio.player.AudioPlayer
 import com.kisanseva.ai.ui.components.AudioPlayBar
 import com.kisanseva.ai.ui.components.AudioRecordingBar
 import com.kisanseva.ai.ui.components.rememberGalleryLauncher
+import com.kisanseva.ai.util.UrlUtils
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.io.File
@@ -105,7 +106,7 @@ fun ChatScreen(
     val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
 
     val locationPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
+        contract = ActivityResultContracts.RequestPermission(),
     ) { isGranted ->
         if (isGranted) {
             viewModel.bottomSheetState(true)
@@ -306,11 +307,13 @@ fun MessageItem(
 
     for (part in message.content.parts ?: emptyList()) {
         if (!part.text.isNullOrBlank()) text = part.text
-        if (part.fileData?.mimeType?.contains("image") == true) {
-            imageUris += part.fileData.localUri?: part.fileData.fileUri
+        val fileData = part.fileData
+        if (fileData?.mimeType?.contains("image") == true) {
+            val uri = fileData.localUri ?: fileData.fileUri?.let { UrlUtils.getFullUrlFromRef(it) }
+            imageUris += uri
         }
-        if (part.fileData?.mimeType?.contains("audio") == true) {
-            audioUri = part.fileData.localUri?: part.fileData.fileUri
+        if (fileData?.mimeType?.contains("audio") == true) {
+            audioUri = fileData.localUri ?: fileData.fileUri?.let { UrlUtils.getFullUrlFromRef(it) }
         }
     }
 
@@ -439,9 +442,10 @@ fun MessageInput(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(imageParts) { part ->
+                            val uri = part.fileData?.localUri ?: part.fileData?.fileUri?.let { UrlUtils.getFullUrlFromRef(it) }
                             Box(modifier = Modifier.size(140.dp)) {
                                 AsyncImage(
-                                    model = part.fileData?.localUri?: part.fileData?.fileUri,
+                                    model = uri,
                                     contentDescription = null,
                                     modifier = Modifier
                                         .fillMaxSize()

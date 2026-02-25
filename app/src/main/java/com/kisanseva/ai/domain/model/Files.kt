@@ -26,15 +26,25 @@ data class FileDeleteRequest(
 )
 
 @Serializable
-enum class FileType {
-    @SerialName("image")
-    IMAGE,
+enum class FileType(val value: String) {
+    @SerialName("user-content")
+    USER_CONTENT("user-content"),
+    @SerialName("ai-chat")
+    AI_CHAT("ai-chat"),
+    @SerialName("system-data")
+    SYSTEM_DATA("system-data")
+}
+
+@Serializable
+enum class FileFolder(val value: String) {
+    @SerialName("images")
+    IMAGES("images"),
     @SerialName("audio")
-    AUDIO,
-    @SerialName("video")
-    VIDEO,
-    @SerialName("document")
-    DOCUMENT
+    AUDIO("audio"),
+    @SerialName("documents")
+    DOCUMENTS("documents"),
+    @SerialName("crops")
+    CROPS("crops")
 }
 
 @Serializable

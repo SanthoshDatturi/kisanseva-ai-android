@@ -71,6 +71,7 @@ import com.kisanseva.ai.domain.model.PesticideStage
 import com.kisanseva.ai.ui.components.AudioPlayBar
 import com.kisanseva.ai.ui.components.AudioRecordingBar
 import com.kisanseva.ai.ui.components.rememberGalleryLauncher
+import com.kisanseva.ai.util.UrlUtils
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -266,9 +267,10 @@ fun ActionArea(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     items(uiState.imageParts) { part ->
+                        val uri = part.fileData?.localUri ?: part.fileData?.fileUri?.let { UrlUtils.getFullUrlFromRef(it) }
                         Box(modifier = Modifier.size(120.dp)) {
                             AsyncImage(
-                                model = part.fileData?.localUri ?: part.fileData?.fileUri,
+                                model = uri,
                                 contentDescription = null,
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -311,13 +313,14 @@ fun ActionArea(
                 }
 
                 uiState.audioPart?.let { audioPart ->
+                    val uri = audioPart.fileData?.localUri ?: audioPart.fileData?.fileUri?.let { UrlUtils.getFullUrlFromRef(it) } ?: ""
                     Surface(
                         shape = RoundedCornerShape(20.dp),
                         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(0.2f))
                     ) {
                         AudioPlayBar(
-                            audioSource = audioPart.fileData?.localUri ?: audioPart.fileData?.fileUri ?: "",
+                            audioSource = uri,
                             audioPlayer = viewModel.audioPlayer,
                             modifier = Modifier.padding(8.dp).fillMaxWidth()
                         )
@@ -508,8 +511,9 @@ fun CropCircle(crop: CultivatingCrop, isSelected: Boolean, onClick: () -> Unit) 
                 ),
             contentAlignment = Alignment.Center
         ) {
+            val uri = crop.imageUrl.let { UrlUtils.getFullUrlFromRef(it) }
             AsyncImage(
-                model = crop.imageUrl,
+                model = uri,
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxSize()
