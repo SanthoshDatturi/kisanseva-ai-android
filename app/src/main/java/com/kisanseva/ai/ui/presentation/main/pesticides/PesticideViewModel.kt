@@ -9,7 +9,6 @@ import com.kisanseva.ai.data.local.DataStoreManager
 import com.kisanseva.ai.domain.model.CultivatingCrop
 import com.kisanseva.ai.domain.model.FarmProfile
 import com.kisanseva.ai.domain.model.FileData
-import com.kisanseva.ai.domain.model.FileFolder
 import com.kisanseva.ai.domain.model.FileType
 import com.kisanseva.ai.domain.model.Part
 import com.kisanseva.ai.domain.model.PesticideInfo
@@ -194,6 +193,11 @@ class PesticideViewModel @Inject constructor(
         _uiState.update { it.copy(isUploading = true) }
         viewModelScope.launch {
             try {
+                val cropId = _uiState.value.selectedCropId
+                if (cropId.isNullOrBlank()) {
+                    _uiState.update { it.copy(error = "Upload failed: Crop ID not found") }
+                    return@launch
+                }
                 val localFile = mediaStorageManager.saveImage(inputStream, mimeType = mimeType)
                 val newPart = Part(
                     fileData = FileData(mimeType = mimeType, localUri = localFile.absolutePath),
@@ -205,8 +209,7 @@ class PesticideViewModel @Inject constructor(
                     blobName = UUID.randomUUID().toString(),
                     fileType = FileType.USER_CONTENT,
                     mimeType = mimeType,
-                    folder = FileFolder.IMAGES,
-                    pathPrefix = null
+                    pathPrefix = cropId
                 )
                 _uiState.update { state ->
                     val updatedParts = state.imageParts.map {
@@ -253,6 +256,11 @@ class PesticideViewModel @Inject constructor(
         _uiState.update { it.copy(isUploading = true) }
         viewModelScope.launch {
             try {
+                val cropId = _uiState.value.selectedCropId
+                if (cropId.isNullOrBlank()) {
+                    _uiState.update { it.copy(error = "Upload failed: Crop ID not found") }
+                    return@launch
+                }
                 val newPart = Part(
                     fileData = FileData(mimeType = "audio/mp4", localUri = audioFile.absolutePath),
                 )
@@ -263,8 +271,7 @@ class PesticideViewModel @Inject constructor(
                     blobName = UUID.randomUUID().toString(),
                     fileType = FileType.USER_CONTENT,
                     mimeType = "audio/mp4",
-                    folder = FileFolder.AUDIO,
-                    pathPrefix = null
+                    pathPrefix = cropId
                 )
 
                 _uiState.update { state ->

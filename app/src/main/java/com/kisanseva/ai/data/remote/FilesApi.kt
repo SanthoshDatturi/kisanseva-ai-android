@@ -1,7 +1,6 @@
 package com.kisanseva.ai.data.remote
 
 import com.kisanseva.ai.domain.model.FileDeleteRequest
-import com.kisanseva.ai.domain.model.FileFolder
 import com.kisanseva.ai.domain.model.FileUploadResponse
 import com.kisanseva.ai.domain.model.FileType
 import com.kisanseva.ai.domain.model.TextToSpeechRequest
@@ -25,8 +24,7 @@ class FilesApi(
         blobName: String,
         fileType: FileType,
         mimeType: String,
-        folder: FileFolder? = null,
-        pathPrefix: String? = null
+        pathPrefix: String
     ): FileUploadResponse {
         val requestBodyBuilder = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
@@ -37,16 +35,10 @@ class FilesApi(
             )
             .addFormDataPart("blob_name", blobName)
             .addFormDataPart("file_type", fileType.value)
-
-        folder?.let {
-            requestBodyBuilder.addFormDataPart("folder", it.value)
-        }
-        pathPrefix?.let {
-            requestBodyBuilder.addFormDataPart("path_prefix", it)
-        }
+            .addFormDataPart("path_prefix", pathPrefix)
 
         val request = Request.Builder()
-            .url("$baseUrl/files/upload")
+            .url("$baseUrl/files/")
             .post(requestBodyBuilder.build())
             .build()
 

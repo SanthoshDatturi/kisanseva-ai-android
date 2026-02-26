@@ -11,7 +11,6 @@ import com.kisanseva.ai.data.remote.websocket.Actions
 import com.kisanseva.ai.domain.model.ChatType
 import com.kisanseva.ai.domain.model.Content
 import com.kisanseva.ai.domain.model.FileData
-import com.kisanseva.ai.domain.model.FileFolder
 import com.kisanseva.ai.domain.model.FileType
 import com.kisanseva.ai.domain.model.Message
 import com.kisanseva.ai.domain.model.MessageRequest
@@ -33,7 +32,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -143,19 +141,21 @@ class ChatViewModel @Inject constructor(
         _uiState.update { it.copy(isUploading = true) }
         viewModelScope.launch {
             try {
+                if (chatId.isNullOrBlank()) {
+                    _uiState.update { it.copy(error = "Upload failed: Chat ID not found") }
+                    return@launch
+                }
                 val localFile = mediaStorageManager.saveImage(inputStream, mimeType = mimeType)
                 val newPart = Part(
                     fileData = FileData(mimeType = mimeType, localUri = localFile.absolutePath),
                 )
                 _uiState.update { it.copy(imageParts = it.imageParts + newPart) }
-                val pathPrefix = chatId
                 val response = filesRepository.uploadFile(
                     fileStream = localFile.inputStream(),
                     blobName = "${UUID.randomUUID()}",
                     fileType = FileType.AI_CHAT,
                     mimeType = mimeType,
-                    folder = FileFolder.IMAGES,
-                    pathPrefix = pathPrefix
+                    pathPrefix = chatId!!
                 )
                 _uiState.update { state ->
                     val updatedParts = state.imageParts.map {
@@ -207,6 +207,10 @@ class ChatViewModel @Inject constructor(
         if (audioFile != null) {
             viewModelScope.launch {
                 try {
+                    if (chatId.isNullOrBlank()) {
+                        _uiState.update { it.copy(error = "Upload failed: Chat ID not found") }
+                        return@launch
+                    }
                     val newPart = Part(
                         fileData = FileData(
                             mimeType = "audio/mp4",
@@ -214,15 +218,13 @@ class ChatViewModel @Inject constructor(
                         ),
                     )
                     _uiState.update { it.copy(audioPart = newPart) }
-                    val pathPrefix = chatId
 
                     val response = filesRepository.uploadFile(
                         fileStream = audioFile.inputStream(),
                         blobName = "${UUID.randomUUID()}",
                         fileType = FileType.AI_CHAT,
                         mimeType = "audio/mp4",
-                        folder = FileFolder.AUDIO,
-                        pathPrefix = pathPrefix
+                        pathPrefix = chatId!!
                     )
 
                     _uiState.update { state ->

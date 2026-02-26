@@ -1,6 +1,5 @@
 package com.kisanseva.ai.domain.repository
 
-import com.kisanseva.ai.domain.model.FileFolder
 import com.kisanseva.ai.domain.model.FileUploadResponse
 import com.kisanseva.ai.domain.model.FileType
 import com.kisanseva.ai.domain.model.TextToSpeechRequest
@@ -13,13 +12,12 @@ interface FilesRepository {
         blobName: String,
         fileType: FileType,
         mimeType: String,
-        folder: FileFolder? = null,
-        pathPrefix: String? = null
+        pathPrefix: String
     ): FileUploadResponse
 
     suspend fun textToSpeech(
         request: TextToSpeechRequest
     ): FileUploadResponse
 
-    suspend fun deleteFile(url: String, fileType: FileType)
+    suspend fun deleteFile(url: String, fileType: FileType? = null)
 }

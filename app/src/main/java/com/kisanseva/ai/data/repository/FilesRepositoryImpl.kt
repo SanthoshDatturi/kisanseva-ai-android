@@ -2,7 +2,6 @@ package com.kisanseva.ai.data.repository
 
 import com.kisanseva.ai.data.remote.FilesApi
 import com.kisanseva.ai.domain.model.FileDeleteRequest
-import com.kisanseva.ai.domain.model.FileFolder
 import com.kisanseva.ai.domain.model.FileUploadResponse
 import com.kisanseva.ai.domain.model.FileType
 import com.kisanseva.ai.domain.model.TextToSpeechRequest
@@ -18,10 +17,9 @@ class FilesRepositoryImpl(
         blobName: String,
         fileType: FileType,
         mimeType: String,
-        folder: FileFolder?,
-        pathPrefix: String?
+        pathPrefix: String
     ): FileUploadResponse {
-        return filesApi.uploadFile(fileStream, blobName, fileType, mimeType, folder, pathPrefix)
+        return filesApi.uploadFile(fileStream, blobName, fileType, mimeType, pathPrefix)
     }
 
     override suspend fun textToSpeech(
@@ -30,7 +28,7 @@ class FilesRepositoryImpl(
         return filesApi.textToSpeech(request)
     }
 
-    override suspend fun deleteFile(url: String, fileType: FileType) {
+    override suspend fun deleteFile(url: String, fileType: FileType?) {
         filesApi.deleteFile(FileDeleteRequest(url, fileType))
     }
 }
