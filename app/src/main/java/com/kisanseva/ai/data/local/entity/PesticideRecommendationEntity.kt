@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.kisanseva.ai.domain.model.PesticideInfo
 
-@Entity(tableName = "pesticide_recommendation")
+@Entity(tableName = "pesticide_recommendations")
 data class PesticideRecommendationEntity(
     @PrimaryKey
     val id: String,

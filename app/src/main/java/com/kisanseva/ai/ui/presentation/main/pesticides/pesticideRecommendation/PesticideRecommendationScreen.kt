@@ -58,7 +58,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.kisanseva.ai.domain.model.PesticideInfo
 import com.kisanseva.ai.domain.model.PesticideStage
-import com.kisanseva.ai.util.UrlUtils
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
@@ -93,7 +92,7 @@ fun PesticideRecommendationScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(uiState.error ?: "Unknown error", color = MaterialTheme.colorScheme.error)
-                    Button(onClick = viewModel::loadRecommendation) { Text("Retry") }
+                    // Removed loadRecommendation retry since refreshRecommendation is automatic in init
                 }
             } else {
                 uiState.recommendation?.let { recommendation ->

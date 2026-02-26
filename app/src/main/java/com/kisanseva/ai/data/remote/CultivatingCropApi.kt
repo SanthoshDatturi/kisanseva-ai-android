@@ -17,6 +17,25 @@ class CultivatingCropApi(
 ) {
     private val cultivatingCropsUrl = "$baseUrl/cultivating-crops"
 
+    suspend fun getAllCultivatingCrops(): List<CultivatingCrop> =
+        withContext(Dispatchers.IO) {
+            val url = "$cultivatingCropsUrl/"
+            val httpRequest = Request.Builder()
+                .url(url)
+                .get()
+                .build()
+            client.newCall(httpRequest).execute().use { response ->
+                if (!response.isSuccessful) {
+                    throw ApiException(response.code, response.message)
+                }
+                val responseBody = response.body.string()
+                return@withContext json.decodeFromString(
+                    ListSerializer(CultivatingCrop.serializer()),
+                    responseBody
+                )
+            }
+        }
+
     suspend fun getCultivatingCropsByFarmId(farmId: String): List<CultivatingCrop> =
         withContext(Dispatchers.IO) {
             val url = "$cultivatingCropsUrl/farm/$farmId"

@@ -53,7 +53,7 @@ class CultivatingCropViewModel @Inject constructor(
                 .collectLatest { crop ->
                     _uiState.update { it.copy(crop = crop) }
                     if (crop.intercroppingId != null) {
-                        loadIntercroppingDetails(crop.intercroppingId)
+                        observeIntercroppingDetails(crop.intercroppingId)
                     }
                 }
         }
@@ -76,14 +76,15 @@ class CultivatingCropViewModel @Inject constructor(
         }
     }
 
-    private fun loadIntercroppingDetails(intercroppingId: String) {
+    private fun observeIntercroppingDetails(intercroppingId: String) {
         viewModelScope.launch {
-            try {
-                val details = cultivatingCropRepository.getIntercroppingDetailsById(intercroppingId)
-                _uiState.update { it.copy(intercroppingDetails = details) }
-            } catch (e: Exception) {
-                // Handle error if necessary
-            }
+            cultivatingCropRepository.getIntercroppingDetailsById(intercroppingId)
+                .catch { e ->
+                    // Handle error if necessary
+                }
+                .collectLatest { details ->
+                    _uiState.update { it.copy(intercroppingDetails = details) }
+                }
         }
     }
 }

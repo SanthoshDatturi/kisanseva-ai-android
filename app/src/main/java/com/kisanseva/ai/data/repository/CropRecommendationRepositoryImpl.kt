@@ -1,4 +1,3 @@
-
 @file:OptIn(ExperimentalCoroutinesApi::class)
 
 package com.kisanseva.ai.data.repository
@@ -117,7 +116,7 @@ class CropRecommendationRepositoryImpl(
             // Check if it's an intercropping details or needs web socket
              try {
                 val interCroppingDetails: IntercroppingDetails = cultivatingCropRepository
-                    .getIntercroppingDetailsById(cropId)
+                    .getIntercroppingDetailsById(cropId).first() ?: throw ApiException(404, "Intercropping details not found")
                 cultivatingCropRepository.saveIntercroppingDetails(interCroppingDetails)
             } catch (e2: Exception) {
                 webSocketController.sendMessage(
