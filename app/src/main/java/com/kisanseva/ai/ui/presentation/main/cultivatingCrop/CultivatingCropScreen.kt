@@ -2,59 +2,32 @@ package com.kisanseva.ai.ui.presentation.main.cultivatingCrop
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.Agriculture
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Grass
-import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Science
-import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.rounded.Grid4x4
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
-import com.kisanseva.ai.domain.model.CropState
 import com.kisanseva.ai.domain.model.CultivatingCrop
 import com.kisanseva.ai.ui.components.ActionItem
+import com.kisanseva.ai.ui.components.CropStateBadge
 import com.kisanseva.ai.util.UrlUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -151,35 +124,12 @@ fun CropImageHeader(crop: CultivatingCrop) {
             contentScale = ContentScale.Crop
         )
         
-        // Dynamic State Badge at Right Top
-        val stateInfo = getCropStateInfo(crop.cropState)
-        Surface(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(16.dp),
-            color = stateInfo.color,
-            contentColor = Color.White,
-            shape = RoundedCornerShape(16.dp),
-            shadowElevation = 8.dp
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    imageVector = stateInfo.icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Text(
-                    text = stateInfo.label,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = 1.sp
-                )
-            }
-        }
+        // Unified Crop State Badge
+        CropStateBadge(
+            state = crop.cropState,
+            modifier = Modifier.align(Alignment.TopEnd),
+            padding = 16.dp
+        )
         
         // Bottom Rounded Corner Overlay
         Box(
@@ -338,21 +288,5 @@ fun ManagementActions(
             color = Color(0xFFFF9800),
             onClick = { onNavigateToSoilHealth(cropId) }
         )
-    }
-}
-
-data class CropStateInfo(
-    val label: String,
-    val icon: ImageVector,
-    val color: Color
-)
-
-fun getCropStateInfo(state: CropState): CropStateInfo {
-    return when (state) {
-        CropState.SELECTED -> CropStateInfo("Selected", Icons.Default.CheckCircle, Color(0xFF9C27B0))
-        CropState.PLANTED -> CropStateInfo("Planted", Icons.Default.Agriculture, Color(0xFF4CAF50))
-        CropState.GROWING -> CropStateInfo("Growing", Icons.AutoMirrored.Filled.TrendingUp, Color(0xFF2196F3))
-        CropState.HARVESTED -> CropStateInfo("Harvested", Icons.Default.Inventory, Color(0xFFFF9800))
-        CropState.COMPLETE -> CropStateInfo("Complete", Icons.Default.Verified, Color(0xFF795548))
     }
 }
