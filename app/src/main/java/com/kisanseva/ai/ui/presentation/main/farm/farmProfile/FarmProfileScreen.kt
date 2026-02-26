@@ -67,6 +67,7 @@ import com.kisanseva.ai.domain.model.PreviousCrops
 import com.kisanseva.ai.domain.model.SoilTestProperties
 import com.kisanseva.ai.domain.model.SoilType
 import com.kisanseva.ai.domain.model.WaterSource
+import com.kisanseva.ai.ui.components.ActionItem
 import com.kisanseva.ai.ui.components.CultivatingCropCard
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -198,11 +199,14 @@ fun FarmTabContent(
             }
 
             item {
-                RecommendationBanner(
-                    onClick = {
-                        onNavigateToCropRecommendation(farm.id)
-                    }
-                )
+                ActionItem(
+                    title = "Crop Recommendation",
+                    subtitle = "Discover the best crops for your farm",
+                    icon = Icons.Outlined.Psychology,
+                    color = MaterialTheme.colorScheme.primary
+                ) {
+                    onNavigateToCropRecommendation(farm.id)
+                }
             }
 
             item { BasicInfoCard(farm) }
@@ -256,63 +260,6 @@ fun CropsTabContent(
                     onClick = { onNavigateToCultivatingCrop(crop.id) }
                 )
             }
-        }
-    }
-}
-
-@Composable
-fun RecommendationBanner(onClick: () -> Unit) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        ),
-        shape = RoundedCornerShape(20.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(20.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.primary),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Psychology,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(28.dp)
-                )
-            }
-            
-            Spacer(modifier = Modifier.width(16.dp))
-            
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Crop Recommendation",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                Text(
-                    text = "Discover the best crops for your farm",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                )
-            }
-            
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowRightAlt,
-                contentDescription = "Navigate",
-                tint = MaterialTheme.colorScheme.primary
-            )
         }
     }
 }
