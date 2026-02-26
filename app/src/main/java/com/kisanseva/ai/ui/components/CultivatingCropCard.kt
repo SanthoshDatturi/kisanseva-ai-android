@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.kisanseva.ai.domain.model.CropState
 import com.kisanseva.ai.domain.model.CultivatingCrop
+import com.kisanseva.ai.util.UrlUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,7 +44,7 @@ fun CultivatingCropCard(
         Column {
             Box(modifier = Modifier.fillMaxWidth()) {
                 AsyncImage(
-                    model = crop.imageUrl,
+                    model = crop.imageUrl.let { UrlUtils.getFullUrlFromRef(it) },
                     contentDescription = crop.name,
                     modifier = Modifier
                         .fillMaxWidth()
