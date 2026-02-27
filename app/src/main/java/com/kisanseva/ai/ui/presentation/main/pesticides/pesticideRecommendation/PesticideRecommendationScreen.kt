@@ -104,13 +104,10 @@ fun PesticideRecommendationScreen(
                         
                         val recommendationsToShow = remember(allPesticides) {
                             val applied = allPesticides.filter { it.stage == PesticideStage.APPLIED }
-                            if (applied.isNotEmpty()) {
-                                applied
-                            } else {
-                                val selected = allPesticides.filter { it.stage == PesticideStage.SELECTED }
-                                if (selected.isNotEmpty()) {
-                                    selected
-                                } else {
+                            applied.ifEmpty {
+                                val selected =
+                                    allPesticides.filter { it.stage == PesticideStage.SELECTED }
+                                selected.ifEmpty {
                                     allPesticides
                                 }
                             }
