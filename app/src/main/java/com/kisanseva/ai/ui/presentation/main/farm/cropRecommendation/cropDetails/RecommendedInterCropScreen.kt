@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -138,16 +137,19 @@ fun InterCropContent(interCrop: InterCropRecommendation, listState: androidx.com
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        item { 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(interCrop.crops.joinToString(" + ") { it.cropName }, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
-                    Text(interCrop.intercropType, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
-                }                
+        item {
+            InterCropHeader(interCrop = interCrop)
+        }
+        
+        item {
+            InterCropArrangementCard(interCrop.arrangement, interCrop.specificArrangement)
+        }
+        
+        if (interCrop.benefits.isNotEmpty()) {
+            item {
+                BenefitsCard(benefits = interCrop.benefits)
             }
         }
-        item { InterCropArrangementCard(interCrop.arrangement, interCrop.specificArrangement) }
-        if (interCrop.benefits.isNotEmpty()) item { BenefitsCard(benefits = interCrop.benefits) }
         
         item {
             HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))

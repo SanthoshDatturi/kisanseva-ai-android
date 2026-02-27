@@ -2,7 +2,6 @@ package com.kisanseva.ai.ui.presentation.main.farm.cropRecommendation.cropDetail
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -24,44 +24,102 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.kisanseva.ai.domain.model.InterCropRecommendation
 import com.kisanseva.ai.domain.model.SpecificArrangement
+import com.kisanseva.ai.util.UrlUtils
 
 @Composable
 fun InterCropHeader(interCrop: InterCropRecommendation) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth().height(220.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            interCrop.crops.forEach { crop ->
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(crop.imageUrl).crossfade(true).build(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(24.dp))
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Surface(
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), 
-                shape = RoundedCornerShape(16.dp), 
-                modifier = Modifier.size(56.dp)
+        if (interCrop.crops.isNotEmpty()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().height(220.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Box(contentAlignment = Alignment.Center) { 
-                    Icon(Icons.Rounded.Hub, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp)) 
+                interCrop.crops.forEach { crop ->
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(crop.imageUrl.let { UrlUtils.getFullUrlFromRef(it) }).crossfade(true).build(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(24.dp))
+                    )
                 }
             }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text(interCrop.intercropType, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black)
-                Text("${interCrop.noOfCrops} Crops Mixed Cultivation", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+        
+        InterCropSummaryCard(
+            intercropType = interCrop.intercropType,
+            noOfCrops = interCrop.noOfCrops,
+            title = interCrop.crops.joinToString(" + ") { it.cropName }
+        )
+
+        if (interCrop.description.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(24.dp))
+            Text("Overview", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(interCrop.description, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 28.sp)
+        }
+    }
+}
+
+@Composable
+fun InterCropSummaryCard(
+    intercropType: String,
+    noOfCrops: Int,
+    title: String? = null,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(32.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+    ) {
+        Column(modifier = Modifier.padding(24.dp)) {
+            if (title != null) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.ExtraBold
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.size(56.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(Icons.Rounded.Hub, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
+                    }
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    Text(
+                        text = intercropType,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Rounded.Agriculture,
+                            null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = "$noOfCrops Crops Mixed Cultivation",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(interCrop.description, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 28.sp)
     }
 }
 
@@ -74,9 +132,34 @@ fun InterCropArrangementCard(arrangement: String, specificArrangements: List<Spe
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
-            SectionHeader(Icons.Rounded.Schema, "Farm Layout Plan")
-            Spacer(Modifier.height(8.dp))
-            Text(arrangement, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline)
+            SectionHeader(Icons.Rounded.Schema, "Arrangement Plan")
+            Spacer(Modifier.height(16.dp))
+            
+            Surface(
+                color = MaterialTheme.colorScheme.surface,
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Rounded.ViewStream,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        text = arrangement,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        lineHeight = 22.sp
+                    )
+                }
+            }
             
             Spacer(Modifier.height(24.dp))
             
@@ -162,14 +245,14 @@ fun BenefitsCard(benefits: List<String>) {
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.25f))
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
-            SectionHeader(Icons.Rounded.AutoAwesome, "Why this combination works", MaterialTheme.colorScheme.tertiary)
+            SectionHeader(Icons.Rounded.AutoAwesome, "Key Benefits", MaterialTheme.colorScheme.tertiary)
             Spacer(Modifier.height(20.dp))
             benefits.forEach { benefit ->
                 Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.Top) {
                     Icon(
                         Icons.Rounded.CheckCircle, 
                         null, 
-                        tint = MaterialTheme.colorScheme.tertiary, 
+                        tint = Color(0xFF4CAF50), 
                         modifier = Modifier.size(22.dp).padding(top = 2.dp)
                     )
                     Spacer(Modifier.width(16.dp))
