@@ -126,43 +126,47 @@ fun RecommendationsScreen(
                 )
             }
 
-            if (uiState.isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    LoadingIndicator(modifier = Modifier.size(60.dp))
-                }
-            } else if (uiState.error != null) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
-                        Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.error)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = uiState.error!!,
-                            color = MaterialTheme.colorScheme.error,
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
+            when {
+                uiState.isRefreshing && uiState.monoCrops.isEmpty() && uiState.interCrops.isEmpty() -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        LoadingIndicator(modifier = Modifier.size(60.dp))
                     }
                 }
-            } else {
-                HorizontalPager(
-                    state = pagerState,
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) { page ->
-                    when (page) {
-                        0 -> MonoCropList(uiState.monoCrops) { cropId ->
-                            onMonoCropClick(
-                                cropId,
-                                uiState.farmId,
-                                uiState.cropRecommendationResponseId!!
+                uiState.error != null && uiState.monoCrops.isEmpty() && uiState.interCrops.isEmpty() -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
+                            Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.error)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = uiState.error!!,
+                                color = MaterialTheme.colorScheme.error,
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.bodyLarge
                             )
                         }
-                        1 -> InterCropList(uiState.interCrops) { cropId ->
-                            onInterCropClick(
-                                cropId,
-                                uiState.farmId,
-                                uiState.cropRecommendationResponseId!!
-                            )
+                    }
+                }
+                else -> {
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ) { page ->
+                        when (page) {
+                            0 -> MonoCropList(uiState.monoCrops) { cropId ->
+                                onMonoCropClick(
+                                    cropId,
+                                    uiState.farmId,
+                                    uiState.cropRecommendationResponseId!!
+                                )
+                            }
+                            1 -> InterCropList(uiState.interCrops) { cropId ->
+                                onInterCropClick(
+                                    cropId,
+                                    uiState.farmId,
+                                    uiState.cropRecommendationResponseId!!
+                                )
+                            }
                         }
                     }
                 }

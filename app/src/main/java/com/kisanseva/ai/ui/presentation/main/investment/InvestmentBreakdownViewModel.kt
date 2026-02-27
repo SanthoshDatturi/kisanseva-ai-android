@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 data class InvestmentUiState(
     val breakdown: InvestmentBreakdown? = null,
-    val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val error: String? = null
 )
 
@@ -53,23 +53,23 @@ class InvestmentBreakdownViewModel @Inject constructor(
         }
     }
 
-    private fun refreshBreakdown() {
+    fun refreshBreakdown() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isRefreshing = true, error = null) }
             try {
                 when {
                     breakdownId != null -> repository.refreshBreakdownById(breakdownId)
                     cropId != null -> repository.refreshBreakdownByCropId(cropId)
                     else -> throw IllegalArgumentException("Missing cropId or breakdownId")
                 }
-                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
-                        isLoading = false,
                         error = e.localizedMessage ?: "Failed to load investment breakdown"
                     )
                 }
+            } finally {
+                _uiState.update { it.copy(isRefreshing = false) }
             }
         }
     }

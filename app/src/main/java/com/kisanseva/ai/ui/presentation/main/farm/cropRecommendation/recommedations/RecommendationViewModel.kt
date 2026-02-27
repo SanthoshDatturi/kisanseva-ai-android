@@ -20,7 +20,7 @@ import javax.inject.Inject
 data class RecommendationUiState(
     val monoCrops: List<MonoCrop> = emptyList(),
     val interCrops: List<InterCropRecommendation> = emptyList(),
-    val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val error: String? = null,
     val farmId: String,
     val cropRecommendationResponseId: String? = null
@@ -55,7 +55,6 @@ class RecommendationViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 cropRecommendationResponseId = recommendation.id,
-                                isLoading = false,
                                 monoCrops = recommendation.monoCrops,
                                 interCrops = recommendation.interCrops
                             )
@@ -65,11 +64,12 @@ class RecommendationViewModel @Inject constructor(
         }
     }
 
-    private fun refreshRecommendations() {
+    fun refreshRecommendations() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isRefreshing = true, error = null) }
             try {
                 cropRecommendationRepository.refreshCropRecommendationByFarmId(farmId)
+                _uiState.update { it.copy(isRefreshing = false) }
             } catch (e: Exception) {
                 requestAndListenForRecommendations()
             }
@@ -87,7 +87,7 @@ class RecommendationViewModel @Inject constructor(
                                 it.copy(
                                     cropRecommendationResponseId = recommendation.id,
                                     farmId = recommendation.farmId,
-                                    isLoading = false,
+                                    isRefreshing = false,
                                     monoCrops = recommendation.monoCrops,
                                     interCrops = recommendation.interCrops
                                 )
@@ -97,7 +97,7 @@ class RecommendationViewModel @Inject constructor(
                     .catch { e ->
                         _uiState.update {
                             it.copy(
-                                isLoading = false,
+                                isRefreshing = false,
                                 error = e.localizedMessage ?: "An error occurred"
                             )
                         }
@@ -106,7 +106,7 @@ class RecommendationViewModel @Inject constructor(
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
-                        isLoading = false,
+                        isRefreshing = false,
                         error = e.localizedMessage ?: "Failed to request recommendation"
                     )
                 }

@@ -43,7 +43,7 @@ import javax.inject.Inject
 
 data class ChatUiState(
     val messages: List<Message> = emptyList(),
-    val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val isSendingMessage: Boolean = false,
     val error: String? = null,
     val chatType: ChatType = ChatType.GENERAL,
@@ -97,11 +97,11 @@ class ChatViewModel @Inject constructor(
     }
 
     private suspend fun createNewChat() {
-        _uiState.update { it.copy(isLoading = true) }
+        _uiState.update { it.copy(isRefreshing = true) }
         try {
             val session = chatRepository.createChatSession(chatType, dataId)
             chatId = session.id
-            _uiState.update { it.copy(isLoading = false) }
+            _uiState.update { it.copy(isRefreshing = false) }
             
             observeMessages(chatId!!)
             refreshMessages(chatId!!)
@@ -113,7 +113,7 @@ class ChatViewModel @Inject constructor(
         } catch (e: Exception) {
             _uiState.update {
                 it.copy(
-                    isLoading = false,
+                    isRefreshing = false,
                     error = e.localizedMessage ?: "Failed to create chat session"
                 )
             }
@@ -278,19 +278,19 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    private fun refreshMessages(chatId: String) {
+    fun refreshMessages(chatId: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isRefreshing = true, error = null) }
             try {
                 chatRepository.refreshChatMessages(chatId)
-                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
-                        isLoading = false,
                         error = e.localizedMessage ?: "An unknown error occurred"
                     )
                 }
+            } finally {
+                _uiState.update { it.copy(isRefreshing = false) }
             }
         }
     }

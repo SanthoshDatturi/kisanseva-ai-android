@@ -92,52 +92,52 @@ fun ChatListScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            }
-
-            uiState.error?.let { error ->
-                Text(
-                    text = error,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
-
-            if (!uiState.isLoading && uiState.error == null) {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    contentPadding = PaddingValues(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(uiState.chatSessions) { chatSession ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onNavigateToChat(chatSession.id, chatSession.chatType, null) }
-                        ) {
-                            Row(
+            when {
+                uiState.isRefreshing && uiState.chatSessions.isEmpty() -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+                uiState.error != null && uiState.chatSessions.isEmpty() -> {
+                    Text(
+                        text = uiState.error!!,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        contentPadding = PaddingValues(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(uiState.chatSessions) { chatSession ->
+                            Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                                    .clickable { onNavigateToChat(chatSession.id, chatSession.chatType, null) }
                             ) {
-                                Text(
-                                    text = chatSession.chatType.name
-                                )
-                                IconButton(
-                                    onClick = { showDeleteDialog = chatSession.id },
+                                Row(
                                     modifier = Modifier
-                                        .clip(CircleShape)
-                                        .background(Color.Red)
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = stringResource(R.string.delete),
-                                        tint = Color.White
+                                    Text(
+                                        text = chatSession.chatType.name
                                     )
+                                    IconButton(
+                                        onClick = { showDeleteDialog = chatSession.id },
+                                        modifier = Modifier
+                                            .clip(CircleShape)
+                                            .background(Color.Red)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Delete,
+                                            contentDescription = stringResource(R.string.delete),
+                                            tint = Color.White
+                                        )
+                                    }
                                 }
                             }
                         }

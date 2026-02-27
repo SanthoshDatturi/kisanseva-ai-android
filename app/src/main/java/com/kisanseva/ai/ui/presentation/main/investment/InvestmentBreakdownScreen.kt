@@ -81,10 +81,10 @@ fun InvestmentBreakdownScreen(
                 .background(MaterialTheme.colorScheme.surface)
         ) {
             when {
-                uiState.isLoading -> {
+                uiState.isRefreshing && uiState.breakdown == null -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
-                uiState.error != null -> {
+                uiState.error != null && uiState.breakdown == null -> {
                     Text(
                         text = uiState.error!!,
                         color = MaterialTheme.colorScheme.error,

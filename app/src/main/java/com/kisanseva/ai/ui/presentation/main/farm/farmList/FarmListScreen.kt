@@ -58,25 +58,29 @@ fun FarmListScreen(
         .padding(16.dp)) {
         AddFarmProfileCard(onAddFarmProfile = onAddFarmProfile)
 
-        if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+        when {
+            uiState.isRefreshing && uiState.farms.isEmpty() -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             }
-        } else if (uiState.error != null) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = uiState.error!!,
-                    color = MaterialTheme.colorScheme.error
-                )
+            uiState.error != null && uiState.farms.isEmpty() -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = uiState.error!!,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(uiState.farms) { farm ->
-                    FarmListItem(farm = farm, onFarmClick = onNavigateToFarmProfile)
+            else -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(uiState.farms) { farm ->
+                        FarmListItem(farm = farm, onFarmClick = onNavigateToFarmProfile)
+                    }
                 }
             }
         }

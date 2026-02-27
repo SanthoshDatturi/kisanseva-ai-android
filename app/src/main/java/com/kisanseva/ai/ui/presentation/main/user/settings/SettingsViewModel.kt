@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ProfileUiState(
-    val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val user: User? = null,
     val error: String? = null
 )
@@ -48,28 +48,23 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun refreshUser() {
+    fun refreshUser() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isRefreshing = true, error = null) }
             try {
                 if (dataStoreManager.token.first() != null) {
                     userRepository.refreshUser()
-                    _uiState.update { it.copy(isLoading = false) }
                 } else {
                     _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            error = "User not logged in"
-                        )
+                        it.copy(error = "User not logged in")
                     }
                 }
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = e.message
-                    )
+                    it.copy(error = e.message)
                 }
+            } finally {
+                _uiState.update { it.copy(isRefreshing = false) }
             }
         }
     }

@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 data class CultivationCalendarUiState(
     val calendar: CultivationCalendar? = null,
-    val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val error: String? = null
 )
 
@@ -52,23 +52,23 @@ class CultivationCalendarViewModel @Inject constructor(
         }
     }
 
-    private fun refreshCalendar() {
+    fun refreshCalendar() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isRefreshing = true, error = null) }
             try {
                 when {
                     calendarId != null -> repository.refreshCalendarById(calendarId)
                     cropId != null -> repository.refreshCalendarByCropId(cropId)
                     else -> throw IllegalArgumentException("Neither cropId nor calendarId provided")
                 }
-                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
-                        isLoading = false,
                         error = e.localizedMessage ?: "An unknown error occurred"
                     )
                 }
+            } finally {
+                _uiState.update { it.copy(isRefreshing = false) }
             }
         }
     }

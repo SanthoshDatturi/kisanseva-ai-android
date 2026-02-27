@@ -22,7 +22,7 @@ import javax.inject.Inject
 
 data class RecommendedInterCropUiState(
     val interCrop: InterCropRecommendation? = null,
-    val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val error: String? = null,
     val isSelectingCrop: Boolean = false
 )
@@ -66,19 +66,19 @@ class RecommendedInterCropViewModel @Inject constructor(
         }
     }
 
-    private fun refreshInterCropDetails() {
+    fun refreshInterCropDetails() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isRefreshing = true, error = null) }
             try {
                 cropRecommendationRepository.refreshCropRecommendationById(cropRecommendationResponseId)
-                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
-                        isLoading = false,
                         error = e.localizedMessage ?: "Failed to refresh intercrop details"
                     )
                 }
+            } finally {
+                _uiState.update { it.copy(isRefreshing = false) }
             }
         }
     }

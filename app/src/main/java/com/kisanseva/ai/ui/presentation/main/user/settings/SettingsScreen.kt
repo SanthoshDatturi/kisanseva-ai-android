@@ -57,66 +57,70 @@ fun SettingsScreen(
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else if (uiState.error != null) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = uiState.error!!, color = MaterialTheme.colorScheme.error)
-            }
-        } else if (uiState.user != null) {
-            ProfileHeader(name = uiState.user!!.name, phone = uiState.user!!.phone)
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Text(
-                text = stringResource(R.string.application_preferences),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                modifier = Modifier
-                    .align(Alignment.Start)
-                    .padding(start = 4.dp, bottom = 8.dp)
-            )
-
-            ActionItem(
-                title = stringResource(id = R.string.language),
-                subtitle = stringResource(R.string.switch_language_desc),
-                icon = Icons.Default.Language,
-                color = MaterialTheme.colorScheme.primary,
-                onClick = onNavigateToLanguage
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Button(
-                onClick = { showLogoutDialog = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
-                    contentColor = MaterialTheme.colorScheme.error
-                ),
-                elevation = ButtonDefaults.buttonElevation(0.dp),
-                contentPadding = PaddingValues(horizontal = 24.dp)
-            ) {
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Logout,
-                        contentDescription = null,
-                        modifier = Modifier.align(Alignment.CenterStart)
-                    )
-                    Text(
-                        text = stringResource(id = R.string.logout),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+        when {
+            uiState.isRefreshing && uiState.user == null -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            uiState.error != null && uiState.user == null -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(text = uiState.error!!, color = MaterialTheme.colorScheme.error)
+                }
+            }
+            uiState.user != null -> {
+                ProfileHeader(name = uiState.user!!.name, phone = uiState.user!!.phone)
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Text(
+                    text = stringResource(R.string.application_preferences),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(start = 4.dp, bottom = 8.dp)
+                )
+
+                ActionItem(
+                    title = stringResource(id = R.string.language),
+                    subtitle = stringResource(R.string.switch_language_desc),
+                    icon = Icons.Default.Language,
+                    color = MaterialTheme.colorScheme.primary,
+                    onClick = onNavigateToLanguage
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Button(
+                    onClick = { showLogoutDialog = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
+                        contentColor = MaterialTheme.colorScheme.error
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(0.dp),
+                    contentPadding = PaddingValues(horizontal = 24.dp)
+                ) {
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = null,
+                            modifier = Modifier.align(Alignment.CenterStart)
+                        )
+                        Text(
+                            text = stringResource(id = R.string.logout),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
         }
     }
 }

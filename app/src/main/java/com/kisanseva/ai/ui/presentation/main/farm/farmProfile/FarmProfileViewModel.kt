@@ -24,9 +24,9 @@ data class FarmProfileUiState(
     val farm: FarmProfile? = null,
     val weather: CurrentWeatherResponse? = null,
     val cultivatingCrops: List<CultivatingCrop> = emptyList(),
-    val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val isWeatherLoading: Boolean = false,
-    val isCropsLoading: Boolean = false,
+    val isCropsRefreshing: Boolean = false,
     val error: String? = null,
     val selectedTabIndex: Int = 0
 )
@@ -68,19 +68,17 @@ class FarmProfileViewModel @Inject constructor(
         }
     }
 
-    private fun refreshFarmProfile() {
+    fun refreshFarmProfile() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isRefreshing = true, error = null) }
             try {
                 farmRepository.refreshFarmProfileById(farmId)
-                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = e.localizedMessage ?: "An unknown error occurred"
-                    )
+                    it.copy(error = e.localizedMessage ?: "An unknown error occurred")
                 }
+            } finally {
+                _uiState.update { it.copy(isRefreshing = false) }
             }
         }
     }
@@ -116,19 +114,17 @@ class FarmProfileViewModel @Inject constructor(
         }
     }
 
-    private fun refreshCultivatingCrops() {
+    fun refreshCultivatingCrops() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isCropsLoading = true) }
+            _uiState.update { it.copy(isCropsRefreshing = true, error = null) }
             try {
                 cultivatingCropRepository.refreshCultivatingCropsByFarmId(farmId)
-                _uiState.update { it.copy(isCropsLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(
-                        isCropsLoading = false,
-                        error = e.localizedMessage ?: "An unknown error occurred"
-                    )
+                    it.copy(error = e.localizedMessage ?: "An unknown error occurred")
                 }
+            } finally {
+                _uiState.update { it.copy(isCropsRefreshing = false) }
             }
         }
     }

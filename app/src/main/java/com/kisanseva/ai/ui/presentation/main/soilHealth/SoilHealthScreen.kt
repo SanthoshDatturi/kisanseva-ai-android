@@ -57,10 +57,10 @@ fun SoilHealthScreen(
                 .background(MaterialTheme.colorScheme.surface)
         ) {
             when {
-                uiState.isLoading -> {
+                uiState.isRefreshing && uiState.recommendations.isEmpty() -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
-                uiState.error != null -> {
+                uiState.error != null && uiState.recommendations.isEmpty() -> {
                     Text(
                         text = uiState.error!!,
                         color = MaterialTheme.colorScheme.error,

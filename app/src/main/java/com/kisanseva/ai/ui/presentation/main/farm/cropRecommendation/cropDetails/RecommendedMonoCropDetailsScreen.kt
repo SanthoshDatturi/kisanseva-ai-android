@@ -96,37 +96,41 @@ fun RecommendedMonoCropDetailsScreen(
         }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            if (uiState.isLoading) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            } else if (uiState.error != null) {
-                Text(uiState.error!!, color = MaterialTheme.colorScheme.error, modifier = Modifier.align(Alignment.Center))
-            } else {
-                uiState.monoCrop?.let { monoCrop ->
-                    LazyColumn(
-                        state = listState,
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(24.dp)
-                    ) {
-                        item { MonoCropHeader(monoCrop = monoCrop) }
-                        item { SowingWindowCard(sowingWindow = monoCrop.sowingWindow) }
-                        item { FinancialForecastingCard(financialForecasting = monoCrop.financialForecasting) }
-                        item { ReasonsCard(reasons = monoCrop.reasons) }
-                        item { RiskFactorsCard(riskFactors = monoCrop.riskFactors) }
+            when {
+                uiState.isRefreshing && uiState.monoCrop == null -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
                     }
                 }
-                AnimatedVisibility(
-                    visible = isBottomBarVisible,
-                    enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
-                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it }),
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(horizontal = 20.dp, vertical = 0.dp)
-                        .navigationBarsPadding()
-                ) {
-                    CropSelectionButton {
-                        viewModel.selectCropForCultivation()
+                uiState.error != null && uiState.monoCrop == null -> {
+                    Text(uiState.error!!, color = MaterialTheme.colorScheme.error, modifier = Modifier.align(Alignment.Center))
+                }
+                uiState.monoCrop != null -> {
+                    uiState.monoCrop?.let { monoCrop ->
+                        LazyColumn(
+                            state = listState,
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(24.dp)
+                        ) {
+                            item { MonoCropHeader(monoCrop = monoCrop) }
+                            item { SowingWindowCard(sowingWindow = monoCrop.sowingWindow) }
+                            item { FinancialForecastingCard(financialForecasting = monoCrop.financialForecasting) }
+                            item { ReasonsCard(reasons = monoCrop.reasons) }
+                            item { RiskFactorsCard(riskFactors = monoCrop.riskFactors) }
+                        }
+                    }
+                    AnimatedVisibility(
+                        visible = isBottomBarVisible,
+                        enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                        exit = fadeOut() + slideOutVertically(targetOffsetY = { it }),
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(horizontal = 20.dp, vertical = 0.dp)
+                            .navigationBarsPadding()
+                    ) {
+                        CropSelectionButton {
+                            viewModel.selectCropForCultivation()
+                        }
                     }
                 }
             }

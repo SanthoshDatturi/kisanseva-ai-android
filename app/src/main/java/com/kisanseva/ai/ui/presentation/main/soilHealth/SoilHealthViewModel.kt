@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 data class SoilHealthUiState(
     val recommendations: List<SoilHealthRecommendations> = emptyList(),
-    val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val error: String? = null
 )
 
@@ -39,7 +39,7 @@ class SoilHealthViewModel @Inject constructor(
 
     private fun observeRecommendations() {
         viewModelScope.launch {
-            val flow = when {
+            when {
                 recommendationId != null -> repository.getRecommendationById(recommendationId).catch { e ->
                     _uiState.update { it.copy(error = e.localizedMessage) }
                 }.collectLatest { result ->
@@ -50,28 +50,27 @@ class SoilHealthViewModel @Inject constructor(
                 }.collectLatest { results ->
                     _uiState.update { it.copy(recommendations = results) }
                 }
-                else -> return@launch
             }
         }
     }
 
-    private fun refreshRecommendations() {
+    fun refreshRecommendations() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isRefreshing = true, error = null) }
             try {
                 when {
                     recommendationId != null -> repository.refreshRecommendationById(recommendationId)
                     cropId != null -> repository.refreshRecommendationsByCropId(cropId)
                     else -> throw IllegalArgumentException("Missing cropId or recommendationId")
                 }
-                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
-                        isLoading = false,
                         error = e.localizedMessage ?: "Failed to load recommendations"
                     )
                 }
+            } finally {
+                _uiState.update { it.copy(isRefreshing = false) }
             }
         }
     }

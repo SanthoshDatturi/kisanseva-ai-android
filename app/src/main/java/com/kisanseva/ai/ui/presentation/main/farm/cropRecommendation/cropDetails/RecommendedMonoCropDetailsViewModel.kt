@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 data class RecommendedMonoCropDetailsState(
     val monoCrop: MonoCrop? = null,
-    val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val error: String? = null,
     val isSelectingCrop: Boolean = false
 )
@@ -63,19 +63,19 @@ class RecommendedMonoCropDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun refreshMonoCropDetails() {
+    fun refreshMonoCropDetails() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
+            _state.update { it.copy(isRefreshing = true, error = null) }
             try {
                 cropRecommendationRepository.refreshCropRecommendationById(cropRecommendationResponseId)
-                _state.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _state.update {
                     it.copy(
-                        isLoading = false,
                         error = e.localizedMessage ?: "Failed to refresh crop details"
                     )
                 }
+            } finally {
+                _state.update { it.copy(isRefreshing = false) }
             }
         }
     }

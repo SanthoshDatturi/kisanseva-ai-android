@@ -18,7 +18,7 @@ import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 data class PesticideRecommendationUiState(
-    val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val recommendation: PesticideRecommendationResponse? = null,
     val error: String? = null,
     val isUpdating: Boolean = false
@@ -52,14 +52,15 @@ class PesticideRecommendationViewModel @Inject constructor(
         }
     }
 
-    private fun refreshRecommendation() {
+    fun refreshRecommendation() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            _uiState.update { it.copy(isRefreshing = true, error = null) }
             try {
                 repository.refreshRecommendationById(recommendationId)
-                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = e.localizedMessage) }
+                _uiState.update { it.copy(error = e.localizedMessage) }
+            } finally {
+                _uiState.update { it.copy(isRefreshing = false) }
             }
         }
     }

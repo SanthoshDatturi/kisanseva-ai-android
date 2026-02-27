@@ -101,27 +101,31 @@ fun RecommendedInterCropScreen(
         }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            if (uiState.isLoading) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+            when {
+                uiState.isRefreshing && uiState.interCrop == null -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
                 }
-            } else if (uiState.error != null) {
-                Text(uiState.error!!, color = MaterialTheme.colorScheme.error, modifier = Modifier.align(Alignment.Center))
-            } else {
-                uiState.interCrop?.let { interCrop ->
-                    InterCropContent(interCrop = interCrop, listState = listState)
+                uiState.error != null && uiState.interCrop == null -> {
+                    Text(uiState.error!!, color = MaterialTheme.colorScheme.error, modifier = Modifier.align(Alignment.Center))
                 }
-                AnimatedVisibility(
-                    visible = isBottomBarVisible,
-                    enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
-                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it }),
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(horizontal = 20.dp, vertical = 0.dp)
-                        .navigationBarsPadding()
-                ) {
-                    CropSelectionButton {
-                        viewModel.selectCropForCultivation()
+                uiState.interCrop != null -> {
+                    uiState.interCrop?.let { interCrop ->
+                        InterCropContent(interCrop = interCrop, listState = listState)
+                    }
+                    AnimatedVisibility(
+                        visible = isBottomBarVisible,
+                        enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                        exit = fadeOut() + slideOutVertically(targetOffsetY = { it }),
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(horizontal = 20.dp, vertical = 0.dp)
+                            .navigationBarsPadding()
+                    ) {
+                        CropSelectionButton {
+                            viewModel.selectCropForCultivation()
+                        }
                     }
                 }
             }

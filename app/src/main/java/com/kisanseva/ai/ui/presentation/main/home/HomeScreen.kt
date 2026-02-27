@@ -1,6 +1,7 @@
 package com.kisanseva.ai.ui.presentation.main.home
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,26 +32,31 @@ fun HomeScreen(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        if (uiState.isLoading) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-        }
-
-        uiState.error?.let { error ->
-            Text(
-                text = error,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-        }
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(uiState.cultivatingCrops) { crop ->
-                CultivatingCropCard(crop = crop, onClick = { onNavigateToCultivatingCrop(crop.id) })
+        when {
+            uiState.isRefreshing && uiState.cultivatingCrops.isEmpty() -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+            uiState.error != null && uiState.cultivatingCrops.isEmpty() -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = uiState.error!!,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+            else -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(uiState.cultivatingCrops) { crop ->
+                        CultivatingCropCard(crop = crop, onClick = { onNavigateToCultivatingCrop(crop.id) })
+                    }
+                }
             }
         }
     }

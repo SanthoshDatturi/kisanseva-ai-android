@@ -78,10 +78,10 @@ fun CultivationCalendarScreen(
                 .background(MaterialTheme.colorScheme.surface)
         ) {
             when {
-                uiState.isLoading -> {
+                uiState.isRefreshing && uiState.calendar == null -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
-                uiState.error != null -> {
+                uiState.error != null && uiState.calendar == null -> {
                     Text(
                         text = uiState.error!!,
                         color = MaterialTheme.colorScheme.error,

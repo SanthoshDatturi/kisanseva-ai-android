@@ -195,6 +195,12 @@ fun PesticidesScreen(
                     )
                 }
             }
+        } else if (uiState.isRefreshing && uiState.previousPesticides.isEmpty()) {
+            item {
+                Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
         }
     }
 }
@@ -379,7 +385,7 @@ fun ActionArea(
 
                             Button(
                                 onClick = viewModel::requestRecommendation,
-                                enabled = !uiState.isLoading && !uiState.isUploading,
+                                enabled = !uiState.isRequesting && !uiState.isUploading,
                                 shape = RoundedCornerShape(18.dp),
                                 modifier = Modifier.height(56.dp),
                                 colors = ButtonDefaults.buttonColors(
@@ -387,7 +393,7 @@ fun ActionArea(
                                 ),
                                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                             ) {
-                                if (uiState.isLoading) {
+                                if (uiState.isRequesting) {
                                     CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                                 } else {
                                     Text(stringResource(R.string.get_solution), fontWeight = FontWeight.ExtraBold, style = MaterialTheme.typography.titleMedium)

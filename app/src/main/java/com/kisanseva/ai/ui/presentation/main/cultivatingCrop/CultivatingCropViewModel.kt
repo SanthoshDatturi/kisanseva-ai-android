@@ -20,7 +20,7 @@ import javax.inject.Inject
 data class CultivatingCropUiState(
     val crop: CultivatingCrop? = null,
     val intercroppingDetails: IntercroppingDetails? = null,
-    val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val error: String? = null
 )
 
@@ -61,17 +61,15 @@ class CultivatingCropViewModel @Inject constructor(
 
     private fun refreshCultivatingCrop() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isRefreshing = true, error = null) }
             try {
                 cultivatingCropRepository.refreshCultivatingCropById(cropId)
-                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = e.localizedMessage ?: "An unknown error occurred"
-                    )
+                    it.copy(error = e.localizedMessage ?: "An unknown error occurred")
                 }
+            } finally {
+                _uiState.update { it.copy(isRefreshing = false) }
             }
         }
     }

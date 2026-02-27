@@ -37,7 +37,7 @@ import java.util.UUID
 import javax.inject.Inject
 
 data class PesticideUiState(
-    val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val farms: List<FarmProfile> = emptyList(),
     val selectedFarmId: String? = null,
     val cultivatingCrops: List<CultivatingCrop> = emptyList(),
@@ -49,7 +49,8 @@ data class PesticideUiState(
     val isRecording: Boolean = false,
     val audioFile: File? = null,
     val audioPart: Part? = null,
-    val showDescriptionInput: Boolean = false
+    val showDescriptionInput: Boolean = false,
+    val isRequesting: Boolean = false
 )
 
 @HiltViewModel
@@ -96,14 +97,15 @@ class PesticideViewModel @Inject constructor(
         }
     }
 
-    private fun refreshFarms() {
+    fun refreshFarms() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isRefreshing = true, error = null) }
             try {
                 farmRepository.refreshFarmProfiles()
-                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = e.localizedMessage) }
+                _uiState.update { it.copy(error = e.localizedMessage) }
+            } finally {
+                _uiState.update { it.copy(isRefreshing = false) }
             }
         }
     }
@@ -141,12 +143,15 @@ class PesticideViewModel @Inject constructor(
         }
     }
 
-    private fun refreshCrops(farmId: String) {
+    fun refreshCrops(farmId: String) {
         viewModelScope.launch {
+            _uiState.update { it.copy(isRefreshing = true, error = null) }
             try {
                 cultivatingCropRepository.refreshCultivatingCropsByFarmId(farmId)
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.localizedMessage) }
+            } finally {
+                _uiState.update { it.copy(isRefreshing = false) }
             }
         }
     }
@@ -175,12 +180,15 @@ class PesticideViewModel @Inject constructor(
         }
     }
 
-    private fun refreshPreviousPesticides(cropId: String) {
+    fun refreshPreviousPesticides(cropId: String) {
         viewModelScope.launch {
+            _uiState.update { it.copy(isRefreshing = true, error = null) }
             try {
                 pesticideRepository.refreshRecommendationsByCropId(cropId)
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.localizedMessage) }
+            } finally {
+                _uiState.update { it.copy(isRefreshing = false) }
             }
         }
     }
@@ -312,7 +320,7 @@ class PesticideViewModel @Inject constructor(
                 listOfNotNull(state.audioPart?.fileData?.fileUri)
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            _uiState.update { it.copy(isRequesting = true, error = null) }
             try {
                 pesticideRepository.requestPesticideRecommendation(
                     cropId = cId,
@@ -320,10 +328,12 @@ class PesticideViewModel @Inject constructor(
                     description = description,
                     files = files
                 )
-                _uiState.update { it.copy(imageParts = emptyList(), audioPart = null, showDescriptionInput = false, isLoading = false) }
+                _uiState.update { it.copy(imageParts = emptyList(), audioPart = null, showDescriptionInput = false) }
                 description = ""
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = e.localizedMessage) }
+                _uiState.update { it.copy(error = e.localizedMessage) }
+            } finally {
+                _uiState.update { it.copy(isRequesting = false) }
             }
         }
     }

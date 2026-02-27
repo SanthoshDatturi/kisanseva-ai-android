@@ -79,7 +79,7 @@ fun FarmProfileScreen(
     ) { paddingValues ->
         if (uiState.farm == null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                if (uiState.isLoading) {
+                if (uiState.isRefreshing) {
                     CircularProgressIndicator(modifier = Modifier.padding(paddingValues))
                 } else if (uiState.error != null) {
                     Text(text = uiState.error!!, color = MaterialTheme.colorScheme.error)
@@ -342,7 +342,7 @@ fun WeatherDetailItem(icon: ImageVector, label: String, value: String) {
 
 @Composable
 fun CropsTabContent(uiState: FarmProfileUiState, onNavigateToCultivatingCrop: (String) -> Unit) {
-    if (uiState.isCropsLoading) {
+    if (uiState.isCropsRefreshing && uiState.cultivatingCrops.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
     } else if (uiState.cultivatingCrops.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text(stringResource(R.string.no_cultivating_crops)) }

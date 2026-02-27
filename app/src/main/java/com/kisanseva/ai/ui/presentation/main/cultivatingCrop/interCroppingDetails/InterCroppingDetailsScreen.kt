@@ -58,43 +58,47 @@ fun InterCroppingDetailsScreen(
         }
     ) { paddingValues ->
 
-        if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+        when {
+            uiState.isRefreshing && uiState.intercroppingDetails == null -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             }
-        } else if (uiState.error != null) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = uiState.error!!,
-                    color = MaterialTheme.colorScheme.error
-                )
+            uiState.error != null && uiState.intercroppingDetails == null -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = uiState.error!!,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
-        } else {
-            uiState.intercroppingDetails?.let { details ->
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(24.dp)
-                ) {
-                    item {
-                        InterCropSummaryCard(
-                            intercropType = details.intercropType,
-                            noOfCrops = details.noOfCrops
-                        )
-                    }
-
-                    item {
-                        InterCropArrangementCard(
-                            arrangement = details.arrangement,
-                            specificArrangements = details.specificArrangement
-                        )
-                    }
-
-                    if (details.benefits.isNotEmpty()) {
+            uiState.intercroppingDetails != null -> {
+                uiState.intercroppingDetails?.let { details ->
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(24.dp)
+                    ) {
                         item {
-                            BenefitsCard(benefits = details.benefits)
+                            InterCropSummaryCard(
+                                intercropType = details.intercropType,
+                                noOfCrops = details.noOfCrops
+                            )
+                        }
+
+                        item {
+                            InterCropArrangementCard(
+                                arrangement = details.arrangement,
+                                specificArrangements = details.specificArrangement
+                            )
+                        }
+
+                        if (details.benefits.isNotEmpty()) {
+                            item {
+                                BenefitsCard(benefits = details.benefits)
+                            }
                         }
                     }
                 }

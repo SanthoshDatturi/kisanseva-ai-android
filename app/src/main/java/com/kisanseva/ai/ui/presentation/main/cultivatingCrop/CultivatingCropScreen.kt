@@ -68,45 +68,49 @@ fun CultivatingCropScreen(
         }
     ) { paddingValues ->
 
-        if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+        when {
+            uiState.isRefreshing && uiState.crop == null -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             }
-        } else if (uiState.error != null) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = uiState.error!!,
-                    color = MaterialTheme.colorScheme.error
-                )
+            uiState.error != null && uiState.crop == null -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = uiState.error!!,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
-        } else {
-            uiState.crop?.let { crop ->
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                ) {
-                    item {
-                        CropImageHeader(crop)
-                    }
+            uiState.crop != null -> {
+                uiState.crop?.let { crop ->
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues)
+                    ) {
+                        item {
+                            CropImageHeader(crop)
+                        }
 
-                    item {
-                        CropMainInfo(crop = crop)
-                    }
+                        item {
+                            CropMainInfo(crop = crop)
+                        }
 
-                    item {
-                        ManagementActions(
-                            cropId = crop.id,
-                            intercroppingId = crop.intercroppingId,
-                            onNavigateToCalendar = onNavigateToCalendar,
-                            onNavigateToInvestment = onNavigateToInvestment,
-                            onNavigateToSoilHealth = onNavigateToSoilHealth,
-                            onNavigateToIntercroppingDetails = onNavigateToIntercroppingDetails
-                        )
-                    }
-                    
-                    item {
-                        Spacer(modifier = Modifier.height(32.dp))
+                        item {
+                            ManagementActions(
+                                cropId = crop.id,
+                                intercroppingId = crop.intercroppingId,
+                                onNavigateToCalendar = onNavigateToCalendar,
+                                onNavigateToInvestment = onNavigateToInvestment,
+                                onNavigateToSoilHealth = onNavigateToSoilHealth,
+                                onNavigateToIntercroppingDetails = onNavigateToIntercroppingDetails
+                            )
+                        }
+                        
+                        item {
+                            Spacer(modifier = Modifier.height(32.dp))
+                        }
                     }
                 }
             }
