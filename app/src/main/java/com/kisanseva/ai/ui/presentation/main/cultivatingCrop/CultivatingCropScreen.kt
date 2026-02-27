@@ -20,11 +20,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import com.kisanseva.ai.R
 import com.kisanseva.ai.domain.model.CultivatingCrop
 import com.kisanseva.ai.ui.components.ActionItem
 import com.kisanseva.ai.ui.components.CropStateBadge
@@ -54,7 +56,7 @@ fun CultivatingCropScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 },
@@ -183,7 +185,7 @@ fun CropMainInfo(crop: CultivatingCrop) {
                             tint = Color(0xFF673AB7)
                         )
                         Text(
-                            text = "Intercropped",
+                            text = stringResource(R.string.intercropped),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -215,7 +217,7 @@ fun CropMainInfo(crop: CultivatingCrop) {
         Spacer(modifier = Modifier.height(24.dp))
         
         Text(
-            text = "Description",
+            text = stringResource(R.string.description),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
@@ -247,7 +249,7 @@ fun ManagementActions(
             .fillMaxWidth()
     ) {
         Text(
-            text = "Management Tools",
+            text = stringResource(R.string.management_tools),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
@@ -257,8 +259,8 @@ fun ManagementActions(
 
         if (intercroppingId != null) {
             ActionItem(
-                title = "Intercropping Guide",
-                subtitle = "View mixed crop arrangement",
+                title = stringResource(R.string.intercropping_guide),
+                subtitle = stringResource(R.string.intercropping_guide_desc),
                 icon = Icons.Rounded.Grid4x4,
                 color = Color(0xFF673AB7), // Deep Purple for unique tool
                 onClick = { onNavigateToIntercroppingDetails(intercroppingId) }
@@ -266,24 +268,24 @@ fun ManagementActions(
         }
 
         ActionItem(
-            title = "Cultivation Calendar",
-            subtitle = "Track growth and tasks",
+            title = stringResource(R.string.cultivation_calendar),
+            subtitle = stringResource(R.string.cultivation_calendar_desc),
             icon = Icons.Default.CalendarMonth,
             color = Color(0xFF2196F3),
             onClick = { onNavigateToCalendar(cropId) }
         )
 
         ActionItem(
-            title = "Investment Analysis",
-            subtitle = "Costs and profit estimates",
+            title = stringResource(R.string.investment_analysis),
+            subtitle = stringResource(R.string.investment_analysis_desc),
             icon = Icons.Default.Payments,
             color = Color(0xFF4CAF50),
             onClick = { onNavigateToInvestment(cropId) }
         )
 
         ActionItem(
-            title = "Soil Health Advice",
-            subtitle = "Maintain soil fertility",
+            title = stringResource(R.string.soil_health_advice),
+            subtitle = stringResource(R.string.soil_health_advice_desc),
             icon = Icons.Default.Science,
             color = Color(0xFFFF9800),
             onClick = { onNavigateToSoilHealth(cropId) }

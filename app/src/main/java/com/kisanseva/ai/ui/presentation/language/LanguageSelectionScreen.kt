@@ -47,7 +47,7 @@ fun LanguageSelectionScreen(
                 .padding(24.dp)
         ) {
             Text(
-                text = "Choose your preferred language to continue",
+                text = stringResource(R.string.choose_language_desc),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

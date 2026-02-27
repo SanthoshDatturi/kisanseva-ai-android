@@ -21,11 +21,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import com.kisanseva.ai.R
 import com.kisanseva.ai.domain.model.*
 import com.kisanseva.ai.ui.components.ActionItem
 import com.kisanseva.ai.ui.components.CultivatingCropCard
@@ -68,7 +70,7 @@ fun FarmProfileScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 }
@@ -94,12 +96,12 @@ fun FarmProfileScreen(
                     Tab(
                         selected = pagerState.currentPage == 0,
                         onClick = { scope.launch { pagerState.animateScrollToPage(0) } },
-                        text = { Text("Farm Details", fontWeight = FontWeight.Bold) }
+                        text = { Text(stringResource(R.string.farm_details), fontWeight = FontWeight.Bold) }
                     )
                     Tab(
                         selected = pagerState.currentPage == 1,
                         onClick = { scope.launch { pagerState.animateScrollToPage(1) } },
-                        text = { Text("My Crops", fontWeight = FontWeight.Bold) }
+                        text = { Text(stringResource(R.string.my_crops), fontWeight = FontWeight.Bold) }
                     )
                 }
 
@@ -126,44 +128,44 @@ fun FarmTabContent(uiState: FarmProfileUiState, onNavigateToCropRecommendation: 
             
             item {
                 ActionItem(
-                    title = "Crop Recommendation",
-                    subtitle = "Discover the best crops for your farm",
+                    title = stringResource(R.string.crop_recommendation),
+                    subtitle = stringResource(R.string.crop_recommendation_desc),
                     icon = Icons.Outlined.Psychology,
                     color = MaterialTheme.colorScheme.primary
                 ) { onNavigateToCropRecommendation(farm.id) }
             }
 
             item {
-                SectionHeader("Land Information", Icons.Outlined.Terrain)
+                SectionHeader(stringResource(R.string.land_information), Icons.Outlined.Terrain)
                 InfoGroupCard {
-                    InfoRowItem(Icons.Outlined.SquareFoot, "Total Area", "${farm.totalAreaAcres} acres")
+                    InfoRowItem(Icons.Outlined.SquareFoot, stringResource(R.string.total_area), stringResource(R.string.acres_format, farm.totalAreaAcres.toString()))
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                    InfoRowItem(Icons.Outlined.Grass, "Cultivated Area", "${farm.cultivatedAreaAcres} acres")
+                    InfoRowItem(Icons.Outlined.Grass, stringResource(R.string.cultivated_area), stringResource(R.string.acres_format, farm.cultivatedAreaAcres.toString()))
                 }
             }
 
             item {
-                SectionHeader("Location", Icons.Default.PinDrop)
+                SectionHeader(stringResource(R.string.location), Icons.Default.PinDrop)
                 InfoGroupCard {
-                    InfoRowItem(Icons.Outlined.Home, "Village", farm.location.village)
+                    InfoRowItem(Icons.Outlined.Home, stringResource(R.string.village), farm.location.village)
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                    InfoRowItem(Icons.Outlined.Map, "Mandal", farm.location.mandal)
+                    InfoRowItem(Icons.Outlined.Map, stringResource(R.string.mandal), farm.location.mandal)
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                    InfoRowItem(Icons.Outlined.Public, "District", farm.location.district)
+                    InfoRowItem(Icons.Outlined.Public, stringResource(R.string.district), farm.location.district)
                 }
             }
 
             item {
-                SectionHeader("Resources", Icons.Outlined.WaterDrop)
+                SectionHeader(stringResource(R.string.resources), Icons.Outlined.WaterDrop)
                 InfoGroupCard {
-                    InfoRowItem(Icons.Outlined.Opacity, "Water Source", farm.waterSource.name.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() })
+                    InfoRowItem(Icons.Outlined.Opacity, stringResource(R.string.water_source), farm.waterSource.name.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() })
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                    InfoRowItem(Icons.Outlined.Science, "Soil Type", farm.soilType.name.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() })
+                    InfoRowItem(Icons.Outlined.Science, stringResource(R.string.soil_type), farm.soilType.name.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() })
                 }
             }
 
             if (!farm.crops.isNullOrEmpty()) {
-                item { SectionHeader("Crop History", Icons.Outlined.History) }
+                item { SectionHeader(stringResource(R.string.crop_history), Icons.Outlined.History) }
                 items(farm.crops) { CropHistoryCard(it) }
             }
             item { Spacer(modifier = Modifier.height(16.dp)) }
@@ -241,7 +243,7 @@ fun WeatherWidget(
                     ) {
                         Column {
                             Text(
-                                text = "Current Weather",
+                                text = stringResource(R.string.current_weather),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = Color.White.copy(alpha = 0.8f)
                             )
@@ -300,26 +302,26 @@ fun WeatherWidget(
                     ) {
                         WeatherDetailItem(
                             icon = Icons.Outlined.WaterDrop,
-                            label = "Humidity",
+                            label = stringResource(R.string.humidity),
                             value = "${weather.main.humidity}%"
                         )
                         Box(modifier = Modifier.height(32.dp).width(1.dp).background(Color.White.copy(alpha = 0.2f)))
                         WeatherDetailItem(
                             icon = Icons.Outlined.Air,
-                            label = "Wind",
+                            label = stringResource(R.string.wind),
                             value = "${weather.wind.speed} m/s"
                         )
                         Box(modifier = Modifier.height(32.dp).width(1.dp).background(Color.White.copy(alpha = 0.2f)))
                         WeatherDetailItem(
                             icon = Icons.Outlined.DeviceThermostat,
-                            label = "Pressure",
+                            label = stringResource(R.string.pressure),
                             value = "${weather.main.pressure} hPa"
                         )
                     }
                 }
             } else {
                 Text(
-                    text = "Weather data unavailable",
+                    text = stringResource(R.string.weather_unavailable),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White,
                     modifier = Modifier.fillMaxWidth().padding(16.dp)
@@ -343,7 +345,7 @@ fun CropsTabContent(uiState: FarmProfileUiState, onNavigateToCultivatingCrop: (S
     if (uiState.isCropsLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
     } else if (uiState.cultivatingCrops.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("No cultivating crops found.") }
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text(stringResource(R.string.no_cultivating_crops)) }
     } else {
         LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             items(uiState.cultivatingCrops) { crop ->

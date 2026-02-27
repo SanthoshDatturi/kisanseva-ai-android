@@ -22,9 +22,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.kisanseva.ai.R
 import com.kisanseva.ai.ui.presentation.main.farm.cropRecommendation.cropDetails.BenefitsCard
 import com.kisanseva.ai.ui.presentation.main.farm.cropRecommendation.cropDetails.InterCropArrangementCard
 import com.kisanseva.ai.ui.presentation.main.farm.cropRecommendation.cropDetails.InterCropSummaryCard
@@ -40,12 +42,12 @@ fun InterCroppingDetailsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = "Intercropping Guide", fontWeight = FontWeight.ExtraBold) },
+                title = { Text(text = stringResource(R.string.intercropping_guide), fontWeight = FontWeight.ExtraBold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 },

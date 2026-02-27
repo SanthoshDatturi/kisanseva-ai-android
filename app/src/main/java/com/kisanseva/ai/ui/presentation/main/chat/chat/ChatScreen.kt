@@ -66,6 +66,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -111,7 +112,7 @@ fun ChatScreen(
         if (isGranted) {
             viewModel.bottomSheetState(true)
         } else {
-            Toast.makeText(context, "Location permission denied", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.location_permission_denied), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -121,12 +122,12 @@ fun ChatScreen(
                 is ChatEvent.HandleCommand<*> -> {
                     when (event.command) {
                         Command.OPEN_CAMERA -> {
-                            Toast.makeText(context, "Opening camera...", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.opening_camera), Toast.LENGTH_SHORT).show()
                             // TODO: Implement camera logic
                         }
 
                         Command.LOCATION -> {
-                            Toast.makeText(context, "Getting location...", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.getting_location), Toast.LENGTH_SHORT).show()
                             viewModel.setCommand(Command.LOCATION)
                             if (ActivityCompat.checkSelfPermission(
                                     context,
@@ -161,7 +162,7 @@ fun ChatScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(context.getString(R.string.chats)) })
+            TopAppBar(title = { Text(stringResource(R.string.chats)) })
         },
         bottomBar = {
             MessageInput(
@@ -256,7 +257,7 @@ fun ChatScreen(
                                 } else {
                                     fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                                         location?.let {
-                                            viewModel.onMessageChange("Captured Location: (${it.latitude}, ${it.longitude})")
+                                            viewModel.onMessageChange(context.getString(R.string.captured_location, it.latitude.toString(), it.longitude.toString()))
                                             viewModel.sendMessage()
                                             scope.launch { sheetState.hide() }.invokeOnCompletion {
                                                 if (!sheetState.isVisible) {
@@ -265,7 +266,7 @@ fun ChatScreen(
                                                 }
                                             }
                                         } ?: run {
-                                            Toast.makeText(context, "Location not found", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context, context.getString(R.string.location_not_found), Toast.LENGTH_SHORT).show()
                                         }
                                     }
                                 }
@@ -281,7 +282,7 @@ fun ChatScreen(
                             Icon(
                                 Icons.Filled.LocationOn,
                                 modifier = Modifier.size(80.dp),
-                                contentDescription = "Share Location"
+                                contentDescription = stringResource(R.string.share_location)
                             )
                         }
                     }
@@ -424,7 +425,7 @@ fun MessageInput(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
             )
         ) {
-            Icon(Icons.Default.Add, modifier = Modifier.size(30.dp), contentDescription = "Add attachment")
+            Icon(Icons.Default.Add, modifier = Modifier.size(30.dp), contentDescription = stringResource(R.string.add_attachment))
         }
 
         Spacer(Modifier.size(8.dp))
@@ -468,7 +469,7 @@ fun MessageInput(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Close,
-                                        contentDescription = "Remove image",
+                                        contentDescription = stringResource(R.string.remove_image),
                                         tint = Color.White,
                                         modifier = Modifier.size(12.dp)
                                     )
@@ -487,7 +488,7 @@ fun MessageInput(
                             value = message,
                             onValueChange = onMessageChange,
                             modifier = Modifier.weight(1f),
-                            placeholder = { Text("Type a message...") },
+                            placeholder = { Text(stringResource(R.string.message_placeholder)) },
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
                                 unfocusedContainerColor = Color.Transparent,
@@ -525,7 +526,7 @@ fun MessageInput(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
             )
         ) {
-            Icon(Icons.AutoMirrored.Filled.Send, modifier = Modifier.size(30.dp), contentDescription = "Add attachment")
+            Icon(Icons.AutoMirrored.Filled.Send, modifier = Modifier.size(30.dp), contentDescription = stringResource(R.string.add_attachment))
         }
     }
 }

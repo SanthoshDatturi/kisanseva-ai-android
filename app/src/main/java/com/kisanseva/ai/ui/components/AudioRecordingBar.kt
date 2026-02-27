@@ -19,10 +19,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import com.kisanseva.ai.R
 import com.kisanseva.ai.system.audio.recorder.AndroidAudioRecorder
 import kotlinx.coroutines.delay
 import java.io.File
@@ -86,7 +88,7 @@ fun AudioRecordingBar(
                     onAudioFileChange(null)
                     onRecordingCancel()
                 }) {
-                    Icon(Icons.Default.Close, contentDescription = "Cancel Recording")
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.cancel_recording))
                 }
                 AudioWaveform(modifier = Modifier.weight(1f), amplitudes = amplitudes.toList())
                 IconButton(onClick = {
@@ -96,7 +98,7 @@ fun AudioRecordingBar(
                         onRecordingComplete(audioFile)
                     }
                 }) {
-                    Icon(Icons.Default.Stop, contentDescription = "Stop Recording")
+                    Icon(Icons.Default.Stop, contentDescription = stringResource(R.string.stop_recording))
                 }
             }
             audioFile != null && !isRecording -> {
@@ -105,7 +107,7 @@ fun AudioRecordingBar(
                     onAudioFileChange(null) // Just reset UI, don't delete file.
                     onRecordingCancel()
                 }) {
-                    Icon(Icons.Default.Close, contentDescription = "Clear Recording")
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.clear_recording))
                 }
                 AudioWaveform(modifier = Modifier.weight(1f), amplitudes = amplitudes.toList())
             }
@@ -125,7 +127,7 @@ fun AudioRecordingBar(
                             recordAudioPermissionState.launchPermissionRequest()
                         }
                     }) {
-                        Icon(Icons.Default.Mic, contentDescription = "Start Recording")
+                        Icon(Icons.Default.Mic, contentDescription = stringResource(R.string.start_recording))
                     }
                 }
             }

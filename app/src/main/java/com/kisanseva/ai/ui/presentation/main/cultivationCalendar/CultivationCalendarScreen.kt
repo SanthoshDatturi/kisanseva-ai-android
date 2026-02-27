@@ -41,10 +41,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.kisanseva.ai.R
 import com.kisanseva.ai.domain.model.CultivationTask
 import com.kisanseva.ai.domain.model.Priority
 import com.kisanseva.ai.domain.model.TaskState
@@ -60,10 +62,10 @@ fun CultivationCalendarScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Cultivation Calendar", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.cultivation_calendar), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
             )
@@ -90,7 +92,7 @@ fun CultivationCalendarScreen(
                     val tasks = uiState.calendar!!.tasks
                     if (tasks.isEmpty()) {
                         Text(
-                            text = "No tasks found for this calendar.",
+                            text = stringResource(R.string.no_tasks_found),
                             modifier = Modifier.align(Alignment.Center)
                         )
                     } else {
@@ -225,7 +227,7 @@ fun TaskTimelineItem(
                 if (task.state != TaskState.PENDING) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Status: ${task.state.name.lowercase().replaceFirstChar { it.uppercase() }}",
+                        text = stringResource(R.string.status_label, task.state.name.lowercase().replaceFirstChar { it.uppercase() }),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.ExtraBold,
                         color = if (task.state == TaskState.COMPLETED) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
@@ -238,11 +240,11 @@ fun TaskTimelineItem(
 
 @Composable
 fun PriorityBadge(priority: Priority) {
-    val (color, label) = when (priority) {
-        Priority.LOW -> Color(0xFF8BC34A) to "Low"
-        Priority.MEDIUM -> Color(0xFFFFC107) to "Medium"
-        Priority.HIGH -> Color(0xFFFF9800) to "High"
-        Priority.CRITICAL -> Color(0xFFF44336) to "Critical"
+    val (color, labelId) = when (priority) {
+        Priority.LOW -> Color(0xFF8BC34A) to R.string.priority_low
+        Priority.MEDIUM -> Color(0xFFFFC107) to R.string.priority_medium
+        Priority.HIGH -> Color(0xFFFF9800) to R.string.priority_high
+        Priority.CRITICAL -> Color(0xFFF44336) to R.string.priority_critical
     }
 
     Surface(
@@ -261,7 +263,7 @@ fun PriorityBadge(priority: Priority) {
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
-                text = label,
+                text = stringResource(labelId),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.ExtraBold,
                 color = color

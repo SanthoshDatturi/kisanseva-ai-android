@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,6 +54,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.kisanseva.ai.R
 import com.kisanseva.ai.domain.model.InterCropRecommendation
 import com.kisanseva.ai.domain.model.MonoCrop
 import com.kisanseva.ai.ui.presentation.main.farm.cropRecommendation.cropDetails.RankDisplay
@@ -80,13 +82,13 @@ fun RecommendationsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Crop Recommendations",
+                        stringResource(R.string.crop_recommendations),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
             )
@@ -107,7 +109,7 @@ fun RecommendationsScreen(
                     onClick = { scope.launch { pagerState.animateScrollToPage(0) } },
                     text = {
                         Text(
-                            "Single Crop",
+                            stringResource(R.string.single_crop),
                             fontWeight = if (pagerState.currentPage == 0) FontWeight.Bold else FontWeight.Normal
                         )
                     }
@@ -117,7 +119,7 @@ fun RecommendationsScreen(
                     onClick = { scope.launch { pagerState.animateScrollToPage(1) } },
                     text = {
                         Text(
-                            "Mixed Cropping",
+                            stringResource(R.string.mixed_cropping),
                             fontWeight = if (pagerState.currentPage == 1) FontWeight.Bold else FontWeight.Normal
                         )
                     }

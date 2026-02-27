@@ -23,8 +23,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kisanseva.ai.R
 import com.kisanseva.ai.system.audio.player.AudioPlayer
 import com.kisanseva.ai.system.audio.player.AudioState
 import java.util.Locale
@@ -77,7 +79,7 @@ fun AudioPlayBar(
             ) {
                 Icon(
                     imageVector = if (showPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    contentDescription = if (showPlaying) "Pause" else "Play",
+                    contentDescription = if (showPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
                     tint = tint,
                     modifier = Modifier.size(24.dp)
                 )

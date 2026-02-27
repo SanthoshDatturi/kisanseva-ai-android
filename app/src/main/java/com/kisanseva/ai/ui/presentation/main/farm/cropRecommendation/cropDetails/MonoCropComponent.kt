@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -55,6 +56,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.kisanseva.ai.R
 import com.kisanseva.ai.domain.model.FinancialForecasting
 import com.kisanseva.ai.domain.model.MonoCrop
 import com.kisanseva.ai.domain.model.RiskFactor
@@ -93,13 +95,13 @@ fun MonoCropHeader(monoCrop: MonoCrop) {
                 .height(IntrinsicSize.Min), 
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            InfoBlock(Icons.Rounded.Timer, "${monoCrop.growingPeriodDays}", "Days", Modifier.weight(1f).fillMaxHeight())
-            InfoBlock(Icons.Rounded.Agriculture, monoCrop.expectedYieldPerAcre, "Yield/Acre", Modifier.weight(1.2f).fillMaxHeight())
-            InfoBlock(Icons.Rounded.Verified, "${(monoCrop.confidence * 100).toInt()}%", "Confidence", Modifier.weight(1f).fillMaxHeight())
+            InfoBlock(Icons.Rounded.Timer, "${monoCrop.growingPeriodDays}", stringResource(R.string.days), Modifier.weight(1f).fillMaxHeight())
+            InfoBlock(Icons.Rounded.Agriculture, monoCrop.expectedYieldPerAcre, stringResource(R.string.yield_per_acre_label), Modifier.weight(1.2f).fillMaxHeight())
+            InfoBlock(Icons.Rounded.Verified, "${(monoCrop.confidence * 100).toInt()}%", stringResource(R.string.confidence), Modifier.weight(1f).fillMaxHeight())
         }
 
         Spacer(Modifier.height(24.dp))
-        Text("Description", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.description), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         Text(monoCrop.description, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 26.sp)
     }
 }
@@ -145,14 +147,14 @@ fun SowingWindowCard(sowingWindow: SowingWindow) {
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
-            SectionHeader(Icons.Rounded.CalendarMonth, "Sowing Schedule")
+            SectionHeader(Icons.Rounded.CalendarMonth, stringResource(R.string.sowing_schedule))
             Spacer(Modifier.height(24.dp))
             
-            TimelineItem("Safe Start", sowingWindow.startDate, MaterialTheme.colorScheme.secondary, false)
+            TimelineItem(stringResource(R.string.safe_start), sowingWindow.startDate, MaterialTheme.colorScheme.secondary, false)
             TimelineConnector(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.tertiary)
-            TimelineItem("Best Date (Optimal)", sowingWindow.optimalDate, MaterialTheme.colorScheme.tertiary, true)
+            TimelineItem(stringResource(R.string.best_date_optimal), sowingWindow.optimalDate, MaterialTheme.colorScheme.tertiary, true)
             TimelineConnector(MaterialTheme.colorScheme.tertiary, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
-            TimelineItem("Last Date", sowingWindow.endDate, MaterialTheme.colorScheme.error.copy(alpha = 0.7f), false)
+            TimelineItem(stringResource(R.string.last_date), sowingWindow.endDate, MaterialTheme.colorScheme.error.copy(alpha = 0.7f), false)
         }
     }
 }
@@ -185,14 +187,14 @@ fun FinancialForecastingCard(financialForecasting: FinancialForecasting) {
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
-            SectionHeader(Icons.Rounded.Payments, "Money Matters")
+            SectionHeader(Icons.Rounded.Payments, stringResource(R.string.money_matters))
             Spacer(Modifier.height(24.dp))
             
-            FinancialRow(Icons.Rounded.AccountBalanceWallet, "Your Investment", financialForecasting.totalEstimatedInvestment, MaterialTheme.colorScheme.primary)
-            FinancialRow(Icons.Rounded.Storefront, "Market Price Now", financialForecasting.marketPriceCurrent, MaterialTheme.colorScheme.secondary)
+            FinancialRow(Icons.Rounded.AccountBalanceWallet, stringResource(R.string.your_investment), financialForecasting.totalEstimatedInvestment, MaterialTheme.colorScheme.primary)
+            FinancialRow(Icons.Rounded.Storefront, stringResource(R.string.market_price_now), financialForecasting.marketPriceCurrent, MaterialTheme.colorScheme.secondary)
             
             val isUp = financialForecasting.priceTrend.contains("up", ignoreCase = true)
-            FinancialRow(if (isUp) Icons.AutoMirrored.Rounded.TrendingUp else Icons.AutoMirrored.Rounded.TrendingDown, "Price Trend", financialForecasting.priceTrend, if (isUp) Color(0xFF2E7D32) else Color(0xFFC62828))
+            FinancialRow(if (isUp) Icons.AutoMirrored.Rounded.TrendingUp else Icons.AutoMirrored.Rounded.TrendingDown, stringResource(R.string.price_trend), financialForecasting.priceTrend, if (isUp) Color(0xFF2E7D32) else Color(0xFFC62828))
             
             Spacer(Modifier.height(24.dp))
             
@@ -202,7 +204,7 @@ fun FinancialForecastingCard(financialForecasting: FinancialForecasting) {
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
             ) {
                 Column(modifier = Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Potential Revenue", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.ExtraBold)
+                    Text(stringResource(R.string.potential_revenue), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.ExtraBold)
                     Spacer(Modifier.height(8.dp))
                     Text(financialForecasting.totalRevenueEstimate, color = MaterialTheme.colorScheme.onPrimaryContainer, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black, textAlign = TextAlign.Center)
                 }
@@ -234,7 +236,7 @@ fun ReasonsCard(reasons: List<String>) {
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
-            SectionHeader(Icons.Rounded.AutoAwesome, "Why this is recommended")
+            SectionHeader(Icons.Rounded.AutoAwesome, stringResource(R.string.why_recommended))
             Spacer(Modifier.height(24.dp))
             
             reasons.forEach { reason ->
@@ -279,7 +281,7 @@ fun RiskFactorsCard(riskFactors: List<RiskFactor>) {
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.15f))
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
-            SectionHeader(Icons.Rounded.Warning, "Risks to Watch For", MaterialTheme.colorScheme.error)
+            SectionHeader(Icons.Rounded.Warning, stringResource(R.string.risks_to_watch_for), MaterialTheme.colorScheme.error)
             Spacer(Modifier.height(24.dp))
             riskFactors.forEachIndexed { index, risk ->
                 RiskItem(risk)
@@ -297,13 +299,13 @@ fun RiskItem(risk: RiskFactor) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
             Text(risk.risk, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
             Spacer(Modifier.width(12.dp))
-            val (color, label) = when (risk.impact) {
-                RiskImpact.LOW -> Color(0xFF43A047) to "Low Risk"
-                RiskImpact.MEDIUM -> Color(0xFFFB8C00) to "Medium"
-                RiskImpact.HIGH -> Color(0xFFE53935) to "High Danger"
+            val (color, labelId) = when (risk.impact) {
+                RiskImpact.LOW -> Color(0xFF43A047) to R.string.low_risk
+                RiskImpact.MEDIUM -> Color(0xFFFB8C00) to R.string.medium_risk
+                RiskImpact.HIGH -> Color(0xFFE53935) to R.string.high_danger
             }
             Surface(color = color.copy(alpha = 0.1f), shape = RoundedCornerShape(8.dp), border = BorderStroke(1.dp, color.copy(alpha = 0.3f))) {
-                Text(label, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.ExtraBold)
+                Text(stringResource(labelId), modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.ExtraBold)
             }
         }
         Spacer(Modifier.height(12.dp))
@@ -314,7 +316,7 @@ fun RiskItem(risk: RiskFactor) {
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("How to Mitigate", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.outline, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.how_to_mitigate), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.outline, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(4.dp))
                 Text(risk.mitigation, style = MaterialTheme.typography.bodyMedium, lineHeight = 22.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

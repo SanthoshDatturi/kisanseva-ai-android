@@ -62,7 +62,7 @@ fun OTPScreen(phone: String, onSuccessfulVerification: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text("${stringResource(id = R.string.otp_sent_to)} $phone")
+            Text(stringResource(R.string.otp_sent_to, phone))
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
                 value = otp,

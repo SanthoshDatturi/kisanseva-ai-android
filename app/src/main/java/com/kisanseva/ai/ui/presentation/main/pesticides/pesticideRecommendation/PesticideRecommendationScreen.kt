@@ -52,10 +52,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.kisanseva.ai.R
 import com.kisanseva.ai.domain.model.PesticideInfo
 import com.kisanseva.ai.domain.model.PesticideStage
 import java.time.LocalDateTime
@@ -74,10 +76,10 @@ fun PesticideRecommendationScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Recommendations", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.recommendations), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
             )
@@ -91,8 +93,7 @@ fun PesticideRecommendationScreen(
                     modifier = Modifier.align(Alignment.Center).padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(uiState.error ?: "Unknown error", color = MaterialTheme.colorScheme.error)
-                    // Removed loadRecommendation retry since refreshRecommendation is automatic in init
+                    Text(uiState.error ?: stringResource(R.string.unknown_error), color = MaterialTheme.colorScheme.error)
                 }
             } else {
                 uiState.recommendation?.let { recommendation ->
@@ -127,14 +128,14 @@ fun PesticideRecommendationScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Detected Problem", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                                    Text(stringResource(R.string.detected_problem), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(recommendation.diseaseDetails, style = MaterialTheme.typography.bodyLarge)
                             }
                         }
 
-                        Text("Recommended Pesticides", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.recommended_pesticides), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
 
                         recommendationsToShow.forEach { pesticide ->
                             PesticideCard(
@@ -153,7 +154,7 @@ fun PesticideRecommendationScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.Lightbulb, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary)
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("General Advice", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                                    Text(stringResource(R.string.general_advice), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(recommendation.generalAdvice, style = MaterialTheme.typography.bodyMedium)
@@ -231,18 +232,18 @@ fun PesticideCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                InfoItem(Icons.Default.Scale, "Dosage", pesticide.dosage, Modifier.weight(1f))
-                InfoItem(Icons.Default.Hardware, "Method", pesticide.applicationMethod, Modifier.weight(1f))
+                InfoItem(Icons.Default.Scale, stringResource(R.string.dosage), pesticide.dosage, Modifier.weight(1f))
+                InfoItem(Icons.Default.Hardware, stringResource(R.string.method), pesticide.applicationMethod, Modifier.weight(1f))
             }
 
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.padding(top = 16.dp)) {
-                    Text("Explanation", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.explanation), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
                     Text(pesticide.explanation, style = MaterialTheme.typography.bodySmall)
                     
                     Spacer(modifier = Modifier.height(8.dp))
                     
-                    Text("Precautions", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.precautions), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
                     pesticide.precautions.forEach { 
                         Row(modifier = Modifier.padding(vertical = 2.dp)) {
                             Text("• ", fontWeight = FontWeight.Bold)
@@ -265,7 +266,7 @@ fun PesticideCard(
                                 pesticide.appliedDate
                             }
                         }
-                        Text("Applied on: $formattedDate", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium, color = Color(0xFF2E7D32))
+                        Text(stringResource(R.string.applied_on_format, formattedDate), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium, color = Color(0xFF2E7D32))
                     }
                 }
             }
@@ -278,7 +279,7 @@ fun PesticideCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TextButton(onClick = { expanded = !expanded }) {
-                    Text(if (expanded) "Show Less" else "Show More")
+                    Text(if (expanded) stringResource(R.string.show_less) else stringResource(R.string.show_more))
                     Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, contentDescription = null)
                 }
 
@@ -286,7 +287,7 @@ fun PesticideCard(
                     when (pesticide.stage) {
                         PesticideStage.RECOMMENDED -> {
                             Button(onClick = { onUpdateStage(PesticideStage.SELECTED, null) }) {
-                                Text("Select This")
+                                Text(stringResource(R.string.select_this))
                             }
                         }
                         PesticideStage.SELECTED -> {
@@ -294,7 +295,7 @@ fun PesticideCard(
                                 onClick = { onUpdateStage(PesticideStage.RECOMMENDED, null) },
                                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                             ) {
-                                Text("Unselect")
+                                Text(stringResource(R.string.unselect))
                             }
                             Button(
                                 onClick = { showDatePicker = true },
@@ -302,7 +303,7 @@ fun PesticideCard(
                             ) {
                                 Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Mark Applied")
+                                Text(stringResource(R.string.mark_applied))
                             }
                         }
                         PesticideStage.APPLIED -> {
@@ -317,14 +318,14 @@ fun PesticideCard(
     if (showDatePicker) {
         AlertDialog(
             onDismissRequest = { showDatePicker = false },
-            title = { Text("When did you apply this?") },
-            text = { Text("Select the date of application for accurate tracking.") },
+            title = { Text(stringResource(R.string.apply_date_dialog_title)) },
+            text = { Text(stringResource(R.string.apply_date_dialog_message)) },
             confirmButton = {
                 TextButton(onClick = {
                     onUpdateStage(PesticideStage.APPLIED, getTodayDate())
                     showDatePicker = false
                 }) {
-                    Text("Today")
+                    Text(stringResource(R.string.today))
                 }
             },
             dismissButton = {
@@ -342,7 +343,7 @@ fun PesticideCard(
                         calendar.get(Calendar.DAY_OF_MONTH)
                     ).show()
                 }) {
-                    Text("Select Date")
+                    Text(stringResource(R.string.select_date))
                 }
             }
         )

@@ -4,17 +4,25 @@
     <string name="continue_">Continue</string>
     <string name="profile">Profile</string>
     <string name="name">Name</string>
+    <string name="back">Back</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="description">Description</string>
+    <string name="welcome_to">Welcome To</string>
 
     <!-- Onboarding and Authentication -->
     <string name="select_language">Select Language</string>
+    <string name="choose_language_desc">Choose your preferred language to continue</string>
     <string name="phone_number">Phone Number</string>
     <string name="login">Login</string>
-    <!-- For Don't escape character \ should always be present (Don\'t)-->
+    <string name="login_welcome">Welcome back! Enter your phone number to login</string>
     <string name="no_account">Don\'t have an account? Sign up</string>
-    <string name="otp_sent_to">Enter OTP sent to</string>
+    <string name="otp_sent_to">Enter OTP sent to %1$s</string>
     <string name="otp">OTP</string>
     <string name="verify_otp">Verify OTP</string>
     <string name="sign_up">Sign Up</string>
+    <string name="signup_welcome">Create an account to start managing your farm</string>
     <string name="have_account">Already have an account? Log in</string>
 
     <!-- API Error Messages -->
@@ -34,7 +42,7 @@
     <string name="farms">Farms</string>
     <string name="pesticides">Pesticides</string>
     <string name="chats">Chats</string>
-    <string name="cultivating_rop">Cultivating Crop</string>
+    <string name="cultivating_crop">Cultivating Crop</string>
     <string name="alerts">Alerts</string>
     <string name="settings">Settings</string>
     <string name="language">Language</string>
@@ -47,9 +55,162 @@
     <string name="logout">Logout</string>
     <string name="logout_confirmation_title">Confirm Logout</string>
     <string name="logout_confirmation_message">Are you sure you want to log out?</string>
-    <string name="confirm">Confirm</string>
-    <string name="cancel">Cancel</string>
+    <string name="application_preferences">Application Preferences</string>
+    <string name="switch_language_desc">Switch app language</string>
 
     <!-- Farm -->
     <string name="add_farm_profile">Add Farm Profile</string>
+    <string name="farm_details">Farm Details</string>
+    <string name="my_crops">My Crops</string>
+    <string name="land_information">Land Information</string>
+    <string name="total_area">Total Area</string>
+    <string name="cultivated_area">Cultivated Area</string>
+    <string name="location">Location</string>
+    <string name="village">Village</string>
+    <string name="mandal">Mandal</string>
+    <string name="district">District</string>
+    <string name="resources">Resources</string>
+    <string name="water_source">Water Source</string>
+    <string name="soil_type">Soil Type</string>
+    <string name="crop_history">Crop History</string>
+    <string name="acres_format">%1$s Acres</string>
+    <string name="soil_format">%1$s Soil</string>
+    <string name="view_details">View Details</string>
+    <string name="select_farm">Select Farm</string>
+    <string name="select_crop">Select Crop</string>
+
+    <!-- Crop Recommendation -->
+    <string name="crop_recommendation">Crop Recommendation</string>
+    <string name="crop_recommendation_desc">Discover the best crops for your farm</string>
+    <string name="crop_details">Crop Details</string>
+    <string name="crop_recommendations">Crop Recommendations</string>
+    <string name="single_crop">Single Crop</string>
+    <string name="mixed_cropping">Mixed Cropping</string>
+    <string name="intercropping_plan">Intercropping Plan</string>
+
+    <!-- Cultivating Crop / Intercropping -->
+    <string name="intercropped">Intercropped</string>
+    <string name="management_tools">Management Tools</string>
+    <string name="intercropping_guide">Intercropping Guide</string>
+    <string name="intercropping_guide_desc">View mixed crop arrangement</string>
+    <string name="cultivation_calendar">Cultivation Calendar</string>
+    <string name="cultivation_calendar_desc">Track growth and tasks</string>
+    <string name="investment_analysis">Investment Analysis</string>
+    <string name="investment_analysis_desc">Costs and profit estimates</string>
+    <string name="soil_health_advice">Soil Health Advice</string>
+    <string name="soil_health_advice_desc">Maintain soil fertility</string>
+    <string name="select_crop_for_cultivation">Select crop for cultivation</string>
+    <string name="overview">Overview</string>
+    <string name="mixed_cultivation_format">%1$d Crops Mixed Cultivation</string>
+    <string name="arrangement_plan">Arrangement Plan</string>
+    <string name="key_benefits">Key Benefits</string>
+
+    <!-- Cultivation Calendar -->
+    <string name="no_tasks_found">No tasks found for this calendar.</string>
+    <string name="status_label">Status: %1$s</string>
+    <string name="priority_low">Low</string>
+    <string name="priority_medium">Medium</string>
+    <string name="priority_high">High</string>
+    <string name="priority_critical">Critical</string>
+
+    <!-- Alerts -->
+    <string name="go_to_alert">Go to Alert</string>
+    <string name="alert_id_label">Alert ID: %1$s</string>
+
+    <!-- Chat -->
+    <string name="opening_camera">Opening camera...</string>
+    <string name="getting_location">Getting location...</string>
+    <string name="location_permission_denied">Location permission denied</string>
+    <string name="location_not_found">Location not found</string>
+    <string name="captured_location">Captured Location: (%1$s, %2$s)</string>
+    <string name="share_location">Share Location</string>
+    <string name="add_attachment">Add attachment</string>
+    <string name="remove_image">Remove image</string>
+    <string name="message_placeholder">Type a message...</string>
+    <string name="delete_chat_title">Delete Chat</string>
+    <string name="delete_chat_message">Are you sure you want to delete this chat session?</string>
+    <string name="new_chat">New Chat</string>
+
+    <!-- Weather -->
+    <string name="current_weather">Current Weather</string>
+    <string name="weather_unavailable">Weather data unavailable</string>
+    <string name="humidity">Humidity</string>
+    <string name="wind">Wind</string>
+    <string name="pressure">Pressure</string>
+    <string name="no_cultivating_crops">No cultivating crops found.</string>
+
+    <!-- Financial Analysis -->
+    <string name="financial_analysis">Financial Analysis</string>
+    <string name="expense_details">Expense Details</string>
+    <string name="sustainability_insight">Sustainability Insight</string>
+    <string name="break_even_message">To break even, your minimum yield should be %1$s. Any yield above this will contribute directly to your net profit.</string>
+    <string name="estimated_net_profit">ESTIMATED NET PROFIT</string>
+    <string name="total_cost">Total Cost</string>
+    <string name="roi">ROI</string>
+
+    <!-- Pesticides -->
+    <string name="previous_pesticides">Previous Pesticides</string>
+    <string name="upload_crop_issues">Upload Crop Issues</string>
+    <string name="upload_crop_issues_desc">Tap to add images or voice note</string>
+    <string name="add_description">Add Description</string>
+    <string name="description_placeholder">Describe the pests or diseases you see...</string>
+    <string name="get_solution">Get Solution</string>
+    <string name="recommendations">Recommendations</string>
+    <string name="detected_problem">Detected Problem</string>
+    <string name="recommended_pesticides">Recommended Pesticides</string>
+    <string name="general_advice">General Advice</string>
+    <string name="dosage">Dosage</string>
+    <string name="method">Method</string>
+    <string name="explanation">Explanation</string>
+    <string name="precautions">Precautions</string>
+    <string name="applied_on_format">Applied on: %1$s</string>
+    <string name="show_less">Show Less</string>
+    <string name="show_more">Show More</string>
+    <string name="select_this">Select This</string>
+    <string name="unselect">Unselect</string>
+    <string name="mark_applied">Mark Applied</string>
+    <string name="apply_date_dialog_title">When did you apply this?</string>
+    <string name="apply_date_dialog_message">Select the date of application for accurate tracking.</string>
+    <string name="today">Today</string>
+    <string name="select_date">Select Date</string>
+
+    <!-- Soil Health -->
+    <string name="no_soil_recommendations">No soil health recommendations available.</string>
+    <string name="immediate_actions">Immediate Actions</string>
+    <string name="long_term_improvements">Long-term Improvements</string>
+
+    <!-- Components -->
+    <string name="pause">Pause</string>
+    <string name="play">Play</string>
+    <string name="cancel_recording">Cancel Recording</string>
+    <string name="stop_recording">Stop Recording</string>
+    <string name="clear_recording">Clear Recording</string>
+    <string name="start_recording">Start Recording</string>
+    <string name="state_selected">Selected</string>
+    <string name="state_planted">Planted</string>
+    <string name="state_growing">Growing</string>
+    <string name="state_harvested">Harvested</string>
+    <string name="state_complete">Complete</string>
+    <string name="days">Days</string>
+    <string name="yield_per_acre_label">Yield/Acre</string>
+    <string name="confidence">Confidence</string>
+    <string name="sowing_schedule">Sowing Schedule</string>
+    <string name="safe_start">Safe Start</string>
+    <string name="best_date_optimal">Best Date (Optimal)</string>
+    <string name="last_date">Last Date</string>
+    <string name="money_matters">Money Matters</string>
+    <string name="your_investment">Your Investment</string>
+    <string name="market_price_now">Market Price Now</string>
+    <string name="price_trend">Price Trend</string>
+    <string name="potential_revenue">Potential Revenue</string>
+    <string name="why_recommended">Why this is recommended</string>
+    <string name="risks_to_watch_for">Risks to Watch For</string>
+    <string name="low_risk">Low Risk</string>
+    <string name="medium_risk">Medium</string>
+    <string name="high_danger">High Danger</string>
+    <string name="how_to_mitigate">How to Mitigate</string>
+    <string name="preparing_farm">Preparing Your Farm</string>
+    <string name="setting_up_details">Setting up cultivation details...</string>
+    <string name="max_images_error">You can\'t add more than 5 images.</string>
+    <string name="limit_images_info">You can only add %1$d more images. The first %1$d images will be added.</string>
 </resources>

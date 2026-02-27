@@ -42,10 +42,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.kisanseva.ai.R
 import com.kisanseva.ai.domain.model.Investment
 import com.kisanseva.ai.domain.model.InvestmentBreakdown
 import com.kisanseva.ai.domain.model.Profitability
@@ -63,10 +65,10 @@ fun InvestmentBreakdownScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Financial Analysis", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.financial_analysis), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
             )
@@ -112,7 +114,7 @@ fun InvestmentContent(breakdown: InvestmentBreakdown) {
         // Investment Breakdown List
         item {
             SectionHeader(
-                title = "Expense Details",
+                title = stringResource(R.string.expense_details),
                 icon = Icons.Default.PieChart,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -136,7 +138,7 @@ fun InvestmentContent(breakdown: InvestmentBreakdown) {
                         Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary)
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = "Sustainability Insight",
+                            text = stringResource(R.string.sustainability_insight),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onTertiaryContainer
@@ -144,7 +146,7 @@ fun InvestmentContent(breakdown: InvestmentBreakdown) {
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "To break even, your minimum yield should be ${breakdown.profitability.breakEvenYield}. Any yield above this will contribute directly to your net profit.",
+                        text = stringResource(R.string.break_even_message, breakdown.profitability.breakEvenYield),
                         style = MaterialTheme.typography.bodyLarge,
                         lineHeight = 24.sp,
                         color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f)
@@ -171,7 +173,7 @@ fun ProfitabilityCard(profitability: Profitability) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "ESTIMATED NET PROFIT",
+                text = stringResource(R.string.estimated_net_profit),
                 color = Color.White.copy(alpha = 0.7f),
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
@@ -193,13 +195,13 @@ fun ProfitabilityCard(profitability: Profitability) {
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 MetricItem(
-                    label = "Total Cost",
+                    label = stringResource(R.string.total_cost),
                     value = currencyFormatter.format(profitability.totalCost),
                     icon = Icons.Default.AccountBalanceWallet
                 )
                 Box(modifier = Modifier.width(1.dp).height(40.dp).background(Color.White.copy(alpha = 0.2f)))
                 MetricItem(
-                    label = "ROI",
+                    label = stringResource(R.string.roi),
                     value = "${profitability.roiPercentage}%",
                     icon = Icons.Default.TrendingUp
                 )

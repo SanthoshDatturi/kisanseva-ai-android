@@ -7,18 +7,22 @@
     <string name="back">பின்செல்</string>
     <string name="confirm">உறுதிப்படுத்து</string>
     <string name="cancel">ரத்துசெய்</string>
+    <string name="delete">நீக்கு</string>
     <string name="description">விளக்கம்</string>
-    <string name="retry">மீண்டும் முயற்சி செய்</string>
+    <string name="welcome_to">வரவேற்கிறோம்</string>
 
     <!-- Onboarding and Authentication -->
     <string name="select_language">மொழியைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="choose_language_desc">தொடர உங்களுக்கு விருப்பமான மொழியைத் தேர்ந்தெடுக்கவும்</string>
     <string name="phone_number">தொலைபேசி எண்</string>
     <string name="login">உள்நுழைய</string>
+    <string name="login_welcome">மீண்டும் வருக! உள்நுழைய உங்கள் தொலைபேசி எண்ணை உள்ளிடவும்</string>
     <string name="no_account">கணக்கு இல்லையா? பதிவு செய்யவும்</string>
     <string name="otp_sent_to">%1$s-க்கு அனுப்பப்பட்ட OTP ஐ உள்ளிடவும்</string>
     <string name="otp">OTP</string>
     <string name="verify_otp">OTP ஐச் சரிபார்க்கவும்</string>
     <string name="sign_up">பதிவு செய்யவும்</string>
+    <string name="signup_welcome">உங்கள் பண்ணையை நிர்வகிக்கத் தொடங்க கணக்கை உருவாக்கவும்</string>
     <string name="have_account">ஏற்கனவே கணக்கு உள்ளதா? உள்நுழைய</string>
 
     <!-- API Error Messages -->
@@ -26,14 +30,14 @@
     <string name="no_internet">இணைய இணைப்பு இல்லை.</string>
     <string name="unknown_error">தெரியாத பிழை, பிறகு முயற்சிக்கவும்.</string>
 
-    <!-- Auth API Errors -->
+    <!--    Auth API Errors -->
     <string name="invalid_phone_number">தவறான தொலைபேசி எண்</string>
     <string name="invalid_otp">தவறான OTP</string>
     <string name="user_not_found">பயனர் காணப்படவில்லை</string>
     <string name="user_already_exists">பயனர் ஏற்கனவே உள்ளார்</string>
     <string name="name_required">பெயர் தேவை</string>
 
-    <!-- Navigation -->
+    <!--  Navigation -->
     <string name="home">முகப்பு</string>
     <string name="farms">பண்ணைகள்</string>
     <string name="pesticides">பூச்சிக்கொல்லிகள்</string>
@@ -51,44 +55,41 @@
     <string name="logout">வெளியேறு</string>
     <string name="logout_confirmation_title">வெளியேறுவதை உறுதிப்படுத்தவும்</string>
     <string name="logout_confirmation_message">நிச்சயமாக வெளியேற வேண்டுமா?</string>
+    <string name="application_preferences">பயன்பாட்டு விருப்பத்தேர்வுகள்</string>
+    <string name="switch_language_desc">பயன்பாட்டு மொழியை மாற்றவும்</string>
 
     <!-- Farm -->
     <string name="add_farm_profile">பண்ணை சுயவிவரத்தைச் சேர்க்கவும்</string>
-    <string name="recommended_crop_details">பரிந்துரைக்கப்பட்ட பயிர் விவரங்கள்</string>
-    <string name="select_for_cultivation">சாகுபடிக்கு தேர்ந்தெடுக்கவும்</string>
-    <string name="crop_recommendation">பயிர் பரிந்துரை</string>
-    <string name="discover_best_crops_desc">உங்கள் பண்ணைக்கு சிறந்த பயிர்களைக் கண்டறியவும்</string>
-    <string name="farm_tab">பண்ணை</string>
-    <string name="crops_tab">பயிர்கள்</string>
+    <string name="farm_details">பண்ணை விவரங்கள்</string>
+    <string name="my_crops">எனது பயிர்கள்</string>
+    <string name="land_information">நிலத் தகவல்</string>
+    <string name="total_area">மொத்த பரப்பளவு</string>
+    <string name="cultivated_area">சாகுபடி செய்யப்பட்ட பரப்பு</string>
+    <string name="location">இருப்பிடம்</string>
+    <string name="village">கிராமம்</string>
+    <string name="mandal">மண்டலம்</string>
+    <string name="district">மாவட்டம்</string>
+    <string name="resources">ஆதாரங்கள்</string>
+    <string name="water_source">நீர் ஆதாரம்</string>
+    <string name="soil_type">மண் வகை</string>
     <string name="crop_history">பயிர் வரலாறு</string>
-    <string name="no_cultivating_crops_found">பயிரிடும் பயிர்கள் எதுவும் காணப்படவில்லை.</string>
+    <string name="acres_format">%1$s ஏக்கர்</string>
+    <string name="soil_format">%1$s மண்</string>
     <string name="view_details">விவரங்களைக் காண்க</string>
-    <string name="acres_label">%1$s ஏக்கர்</string>
-    <string name="soil_type_label">%1$s மண்</string>
+    <string name="select_farm">பண்ணையைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="select_crop">பயிரைத் தேர்ந்தெடுக்கவும்</string>
 
-    <!-- Recommendations -->
+    <!-- Crop Recommendation -->
+    <string name="crop_recommendation">பயிர் பரிந்துரை</string>
+    <string name="crop_recommendation_desc">உங்கள் பண்ணைக்கு சிறந்த பயிர்களைக் கண்டறியவும்</string>
+    <string name="crop_details">பயிர் விவரங்கள்</string>
     <string name="crop_recommendations">பயிர் பரிந்துரைகள்</string>
-    <string name="mono_crop">ஒற்றைப் பயிர்</string>
-    <string name="intercrop">ஊடுபயிர்</string>
-    <string name="rank_label">தரவரிசை: %1$d</string>
+    <string name="single_crop">ஒற்றைப் பயிர்</string>
+    <string name="mixed_cropping">கலப்பு பயிர் சாகுபடி</string>
+    <string name="intercropping_plan">ஊடுபயிர் திட்டம்</string>
 
-    <!-- Audio -->
-    <string name="play">இயக்கு</string>
-    <string name="pause">நிறுத்து</string>
-    <string name="start_recording">பதிவைத் தொடங்கு</string>
-    <string name="stop_recording">பதிவை நிறுத்து</string>
-    <string name="cancel_recording">பதிவை ரத்து செய்</string>
-    <string name="clear_recording">பதிவை அழி</string>
-
-    <!-- Crop States -->
-    <string name="state_selected">தேர்ந்தெடுக்கப்பட்டது</string>
-    <string name="state_planted">நடப்பட்டது</string>
-    <string name="state_growing">வளர்கிறது</string>
-    <string name="state_harvested">அறுவடை செய்யப்பட்டது</string>
-    <string name="state_completed">முடிந்தது</string>
+    <!-- Cultivating Crop / Intercropping -->
     <string name="intercropped">ஊடுபயிரிடப்பட்டது</string>
-
-    <!-- Management Tools -->
     <string name="management_tools">மேலாண்மை கருவிகள்</string>
     <string name="intercropping_guide">ஊடுபயிர் வழிகாட்டி</string>
     <string name="intercropping_guide_desc">கலப்பு பயிர் அமைப்பைக் காண்க</string>
@@ -98,18 +99,11 @@
     <string name="investment_analysis_desc">செலவு மற்றும் லாப மதிப்பீடுகள்</string>
     <string name="soil_health_advice">மண் ஆரோக்கிய ஆலோசனை</string>
     <string name="soil_health_advice_desc">மண் வளத்தைப் பராமரிக்கவும்</string>
-
-    <!-- Intercropping Details -->
+    <string name="select_crop_for_cultivation">சாகுபடிக்கு பயிரைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="overview">மேலோட்டம்</string>
+    <string name="mixed_cultivation_format">%1$d பயிர்களின் கலப்பு சாகுபடி</string>
     <string name="arrangement_plan">ஏற்பாடு திட்டம்</string>
     <string name="key_benefits">முக்கிய நன்மைகள்</string>
-    <string name="intercropping_type">ஊடுபயிர் வகை</string>
-    <string name="total_crops_label">மொத்த பயிர்கள்: %1$d</string>
-    <string name="planting_pattern">நடவு முறை</string>
-    <string name="variety_label">வகை: %1$s</string>
-    <string name="intercrop_details">ஊடுபயிர் விவரங்கள்</string>
-    <string name="type_label">வகை: %1$s</string>
-    <string name="arrangement_label">ஏற்பாடு: %1$s</string>
-    <string name="crop_details_title">%1$s பயிர் விவரங்கள்</string>
 
     <!-- Cultivation Calendar -->
     <string name="no_tasks_found">இந்த காலண்டரில் பணிகள் எதுவும் காணப்படவில்லை.</string>
@@ -119,56 +113,104 @@
     <string name="priority_high">அதிக</string>
     <string name="priority_critical">முக்கியமானது</string>
 
-    <!-- Financial Analysis / Investment -->
+    <!-- Alerts -->
+    <string name="go_to_alert">எச்சரிக்கைக்குச் செல்லவும்</string>
+    <string name="alert_id_label">எச்சரிக்கை ஐடி: %1$s</string>
+
+    <!-- Chat -->
+    <string name="opening_camera">கேமரா திறக்கப்படுகிறது...</string>
+    <string name="getting_location">இருப்பிடம் பெறப்படுகிறது...</string>
+    <string name="location_permission_denied">இருப்பிட அனுமதி மறுக்கப்பட்டது</string>
+    <string name="location_not_found">இருப்பிடம் காணப்படவில்லை</string>
+    <string name="captured_location">பிடிக்கப்பட்ட இருப்பிடம்: (%1$s, %2$s)</string>
+    <string name="share_location">இருப்பிடத்தைப் பகிரவும்</string>
+    <string name="add_attachment">இணைப்பைச் சேர்</string>
+    <string name="remove_image">படத்தை நீக்கு</string>
+    <string name="message_placeholder">செய்தியைத் தட்டச்சு செய்க...</string>
+    <string name="delete_chat_title">அரட்டையை நீக்கு</string>
+    <string name="delete_chat_message">இந்த அரட்டை அமர்வை நீக்க விரும்புகிறீர்களா?</string>
+    <string name="new_chat">புதிய அரட்டை</string>
+
+    <!-- Weather -->
+    <string name="current_weather">தற்போதைய வானிலை</string>
+    <string name="weather_unavailable">வானிலை தரவு கிடைக்கவில்லை</string>
+    <string name="humidity">ஈரப்பதம்</string>
+    <string name="wind">காற்று</string>
+    <string name="pressure">அழுத்தம்</string>
+    <string name="no_cultivating_crops">பயிரிடும் பயிர்கள் எதுவும் காணப்படவில்லை.</string>
+
+    <!-- Financial Analysis -->
     <string name="financial_analysis">நிதி பகுப்பாய்வு</string>
     <string name="expense_details">செலவு விவரங்கள்</string>
     <string name="sustainability_insight">நிலைத்தன்மை நுண்ணறிவு</string>
-    <string name="break_even_desc">சரிசம நிலையை அடைய, உங்கள் குறைந்தபட்ச மகசூல் %1$s ஆக இருக்க வேண்டும். இதற்கு மேலான எந்தவொரு மகசூலும் உங்கள் நிகர லாபத்திற்கு நேரடியாக பங்களிக்கும்.</string>
+    <string name="break_even_message">சமநிலையை அடைய, உங்கள் குறைந்தபட்ச மகசூல் %1$s ஆக இருக்க வேண்டும். இதற்கு மேலான மகசூல் உங்கள் நிகர லாபத்திற்கு நேரடியாக பங்களிக்கும்.</string>
     <string name="estimated_net_profit">மதிப்பிடப்பட்ட நிகர லாபம்</string>
     <string name="total_cost">மொத்த செலவு</string>
-    <string name="roi_label">ROI</string>
-
-    <!-- Gallery -->
-    <string name="max_images_reached">உங்களால் 5-க்கும் மேற்பட்ட படங்களைச் சேர்க்க முடியாது.</string>
-    <string name="image_limit_reached">உங்களால் இன்னும் %1$d படங்களை மட்டுமே சேர்க்க முடியும். முதல் %1$d படங்கள் சேர்க்கப்படும்.</string>
-
-    <!-- Language -->
-    <string name="selected">தேர்ந்தெடுக்கப்பட்டது</string>
-
-    <!-- Chat -->
-    <string name="new_chat">புதிய அரட்டை</string>
-    <string name="delete_chat">அரட்டையை நீக்கு</string>
-    <string name="delete_chat_confirmation">இந்த அரட்டை அமர்வை நீக்க விரும்புகிறீர்களா?</string>
-    <string name="delete">நீக்கு</string>
-    <string name="type_a_message">செய்தியைத் தட்டச்சு செய்க...</string>
-    <string name="add_attachment">இணைப்பைச் சேர்</string>
-    <string name="remove_image">படத்தை நீக்கு</string>
-    <string name="share_location">இருப்பிடத்தைப் பகிரவும்</string>
-    <string name="location_permission_denied">இருப்பிட அனுமதி மறுக்கப்பட்டது</string>
-    <string name="getting_location">இருப்பிடத்தைப் பெறுகிறது...</string>
-    <string name="opening_camera">கேமராவைத் திறக்கிறது...</string>
-    <string name="farm_profile_received">பண்ணை சுயவிவரம் பெறப்பட்டது: %1$s</string>
-    <string name="location_not_found">இருப்பிடம் காணப்படவில்லை</string>
-    <string name="captured_location">பிடிக்கப்பட்ட இருப்பிடம்: (%1$.4f, %2$.4f)</string>
-    <string name="navigate">வழிநடத்து</string>
+    <string name="roi">ROI</string>
 
     <!-- Pesticides -->
-    <string name="select_farm">பண்ணையைத் தேர்ந்தெடுக்கவும்</string>
-    <string name="select_crop">பயிரைத் தேர்ந்தெடுக்கவும்</string>
-    <string name="upload_crop_issues">பயிர் சிக்கல்களைப் பதிவேற்றவும்</string>
-    <string name="upload_media_desc">படங்கள் அல்லது குரல் குறிப்பைச் சேர்க்க தட்டவும்</string>
     <string name="previous_pesticides">முந்தைய பூச்சிக்கொல்லிகள்</string>
+    <string name="upload_crop_issues">பயிர் சிக்கல்களைப் பதிவேற்றவும்</string>
+    <string name="upload_crop_issues_desc">படங்கள் அல்லது குரல் குறிப்பைச் சேர்க்க தட்டவும்</string>
+    <string name="add_description">விளக்கம் சேர்க்கவும்</string>
+    <string name="description_placeholder">நீங்கள் காணும் பூச்சிகள் அல்லது நோய்களை விவரிக்கவும்...</string>
+    <string name="get_solution">தீர்வு பெறுங்கள்</string>
     <string name="recommendations">பரிந்துரைகள்</string>
     <string name="detected_problem">கண்டறியப்பட்ட சிக்கல்</string>
     <string name="recommended_pesticides">பரிந்துரைக்கப்பட்ட பூச்சிக்கொல்லிகள்</string>
-    <string name="general_advice_title">பொதுவான ஆலோசனை</string>
+    <string name="general_advice">பொதுவான ஆலோசனை</string>
     <string name="dosage">அளவு</string>
-    <string name="application_method">முறை</string>
+    <string name="method">முறை</string>
     <string name="explanation">விளக்கம்</string>
     <string name="precautions">முன்னெச்சரிக்கைகள்</string>
+    <string name="applied_on_format">பயன்படுத்தப்பட்ட தேதி: %1$s</string>
+    <string name="show_less">குறைவாகக் காட்டு</string>
+    <string name="show_more">கூடுதலாகக் காட்டு</string>
+    <string name="select_this">இதைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="unselect">தேர்வை நீக்கவும்</string>
+    <string name="mark_applied">பயன்படுத்தப்பட்டதாகக் குறிக்கவும்</string>
+    <string name="apply_date_dialog_title">இதை எப்போது பயன்படுத்தினீர்கள்?</string>
+    <string name="apply_date_dialog_message">துல்லியமான கண்காணிப்புக்கு பயன்படுத்தப்பட்ட தேதியைத் தேர்ந்தெடுக்கவும்.</string>
+    <string name="today">இன்று</string>
+    <string name="select_date">தேதியைத் தேர்ந்தெடுக்கவும்</string>
 
-    <!-- Soil Health Advice -->
-    <string name="no_soil_health_recommendations">மண் ஆரோக்கிய பரிந்துரைகள் எதுவும் இல்லை.</string>
+    <!-- Soil Health -->
+    <string name="no_soil_recommendations">மண் ஆரோக்கிய பரிந்துரைகள் எதுவும் இல்லை.</string>
     <string name="immediate_actions">உடனடி நடவடிக்கைகள்</string>
     <string name="long_term_improvements">நீண்ட கால மேம்பாடுகள்</string>
+
+    <!-- Components -->
+    <string name="pause">நிறுத்து</string>
+    <string name="play">இயக்கு</string>
+    <string name="cancel_recording">பதிவை ரத்து செய்</string>
+    <string name="stop_recording">பதிவை நிறுத்து</string>
+    <string name="clear_recording">பதிவை அழி</string>
+    <string name="start_recording">பதிவைத் தொடங்கு</string>
+    <string name="state_selected">தேர்ந்தெடுக்கப்பட்டது</string>
+    <string name="state_planted">நடப்பட்டது</string>
+    <string name="state_growing">வளர்கிறது</string>
+    <string name="state_harvested">அறுவடை செய்யப்பட்டது</string>
+    <string name="state_complete">முடிந்தது</string>
+    <string name="days">நாட்கள்</string>
+    <string name="yield_per_acre_label">மகசூல்/ஏக்கர்</string>
+    <string name="confidence">நம்பிக்கை</string>
+    <string name="sowing_schedule">விதைப்பு அட்டவணை</string>
+    <string name="safe_start">பாதுகாப்பான தொடக்கம்</string>
+    <string name="best_date_optimal">சிறந்த தேதி (உகந்த)</string>
+    <string name="last_date">கடைசி தேதி</string>
+    <string name="money_matters">பணம் தொடர்பானவை</string>
+    <string name="your_investment">உங்கள் முதலீடு</string>
+    <string name="market_price_now">தற்போதைய சந்தை விலை</string>
+    <string name="price_trend">விலை போக்கு</string>
+    <string name="potential_revenue">சாத்தியமான வருவாய்</string>
+    <string name="why_recommended">இது ஏன் பரிந்துரைக்கப்படுகிறது</string>
+    <string name="risks_to_watch_for">கவனிக்க வேண்டிய அபாயங்கள்</string>
+    <string name="low_risk">குறைந்த அபாயம்</string>
+    <string name="medium_risk">நடுத்தர</string>
+    <string name="high_danger">அதிக ஆபத்து</string>
+    <string name="how_to_mitigate">எவ்வாறு குறைப்பது</string>
+    <string name="preparing_farm">உங்கள் பண்ணை தயாராகிறது</string>
+    <string name="setting_up_details">சாகுபடி விவரங்கள் அமைக்கப்படுகின்றன...</string>
+    <string name="max_images_error">உங்களால் 5-க்கும் மேற்பட்ட படங்களைச் சேர்க்க முடியாது.</string>
+    <string name="limit_images_info">உங்களால் இன்னும் %1$d படங்களை மட்டுமே சேர்க்க முடியும். முதல் %1$d படங்கள் சேர்க்கப்படும்.</string>
 </resources>

@@ -1,24 +1,28 @@
 <resources>
     <!-- General -->
-    <string name="app_name">కిసాన్ మిత్ర</string>
+    <string name="app_name">కిసాన్ సేవ AI</string>
     <string name="continue_">కొనసాగించు</string>
     <string name="profile">ప్రొఫైల్</string>
     <string name="name">పేరు</string>
     <string name="back">వెనుకకు</string>
     <string name="confirm">ధృవీకరించు</string>
     <string name="cancel">రద్దు చేయి</string>
+    <string name="delete">తొలగించు</string>
     <string name="description">వివరణ</string>
-    <string name="retry">మళ్ళీ ప్రయత్నించు</string>
+    <string name="welcome_to">స్వాగతం</string>
 
     <!-- Onboarding and Authentication -->
     <string name="select_language">భాషను ఎంచుకోండి</string>
+    <string name="choose_language_desc">కొనసాగించడానికి మీ ప్రాధాన్య భాషను ఎంచుకోండి</string>
     <string name="phone_number">ఫోన్ నంబర్</string>
     <string name="login">లాగిన్</string>
+    <string name="login_welcome">మళ్ళీ స్వాగతం! లాగిన్ చేయడానికి మీ ఫోన్ నంబర్‌ను నమోదు చేయండి</string>
     <string name="no_account">ఖాతా లేదా? సైన్ అప్ చేయండి</string>
     <string name="otp_sent_to">%1$sకి పంపిన OTPని నమోదు చేయండి</string>
     <string name="otp">OTP</string>
     <string name="verify_otp">OTPని ధృవీకరించు</string>
     <string name="sign_up">సైన్ అప్</string>
+    <string name="signup_welcome">మీ పొలాన్ని నిర్వహించడం ప్రారంభించడానికి ఒక ఖాతాను సృష్టించండి</string>
     <string name="have_account">ఇప్పటికే ఖాతా ఉందా? లాగిన్ చేయండి</string>
 
     <!-- API Error Messages -->
@@ -26,14 +30,14 @@
     <string name="no_internet">ఇంటర్నెట్ కనెక్షన్ లేదు.</string>
     <string name="unknown_error">తెలియని లోపం, దయచేసి తర్వాత మళ్ళీ ప్రయత్నించండి.</string>
 
-    <!-- Auth API Errors -->
+    <!--    Auth API Errors -->
     <string name="invalid_phone_number">చెల్లని ఫోన్ సంఖ్య</string>
     <string name="invalid_otp">చెల్లని OTP</string>
     <string name="user_not_found">వినియోగదారు కనుగొనబడలేదు</string>
     <string name="user_already_exists">వినియోగదారు ఇప్పటికే ఉన్నారు</string>
     <string name="name_required">పేరు అవసరం</string>
 
-    <!-- Navigation -->
+    <!--  Navigation -->
     <string name="home">హోమ్</string>
     <string name="farms">పొలాలు</string>
     <string name="pesticides">పురుగుమందులు</string>
@@ -51,44 +55,41 @@
     <string name="logout">లాగ్ అవుట్</string>
     <string name="logout_confirmation_title">లాగ్ అవుట్ ధృవీకరించు</string>
     <string name="logout_confirmation_message">మీరు ఖచ్చితంగా లాగ్ అవుట్ చేయాలనుకుంటున్నారా?</string>
+    <string name="application_preferences">అప్లికేషన్ ప్రాధాన్యతలు</string>
+    <string name="switch_language_desc">యాప్ భాషను మార్చండి</string>
 
     <!-- Farm -->
     <string name="add_farm_profile">ఫామ్ ప్రొఫైల్‌ను జోడించండి</string>
-    <string name="recommended_crop_details">సిఫార్సు చేయబడిన పంట వివరాలు</string>
-    <string name="select_for_cultivation">సాగు కోసం ఎంచుకోండి</string>
-    <string name="crop_recommendation">పంట సిఫార్సు</string>
-    <string name="discover_best_crops_desc">మీ పొలం కోసం ఉత్తమ పంటలను కనుగొనండి</string>
-    <string name="farm_tab">పొలం</string>
-    <string name="crops_tab">పంటలు</string>
+    <string name="farm_details">పొలం వివరాలు</string>
+    <string name="my_crops">నా పంటలు</string>
+    <string name="land_information">భూమి సమాచారం</string>
+    <string name="total_area">మొత్తం వైశాల్యం</string>
+    <string name="cultivated_area">సాగు చేసిన వైశాల్యం</string>
+    <string name="location">స్థానం</string>
+    <string name="village">గ్రామం</string>
+    <string name="mandal">మండలం</string>
+    <string name="district">జిల్లా</string>
+    <string name="resources">వనరులు</string>
+    <string name="water_source">నీటి వనరు</string>
+    <string name="soil_type">నేల రకం</string>
     <string name="crop_history">పంట చరిత్ర</string>
-    <string name="no_cultivating_crops_found">సాగు చేస్తున్న పంటలు ఏవీ కనుగొనబడలేదు.</string>
+    <string name="acres_format">%1$s ఎకరాలు</string>
+    <string name="soil_format">%1$s నేల</string>
     <string name="view_details">వివరాలను వీక్షించండి</string>
-    <string name="acres_label">%1$s ఎకరాలు</string>
-    <string name="soil_type_label">%1$s నేల</string>
+    <string name="select_farm">పొలాన్ని ఎంచుకోండి</string>
+    <string name="select_crop">పంటను ఎంచుకోండి</string>
 
-    <!-- Recommendations -->
+    <!-- Crop Recommendation -->
+    <string name="crop_recommendation">పంట సిఫార్సు</string>
+    <string name="crop_recommendation_desc">మీ పొలం కోసం ఉత్తమ పంటలను కనుగొనండి</string>
+    <string name="crop_details">పంట వివరాలు</string>
     <string name="crop_recommendations">పంట సిఫార్సులు</string>
-    <string name="mono_crop">ఏక పంట</string>
-    <string name="intercrop">అంతర పంట</string>
-    <string name="rank_label">ర్యాంక్: %1$d</string>
+    <string name="single_crop">ఏక పంట</string>
+    <string name="mixed_cropping">మిశ్రమ సాగు</string>
+    <string name="intercropping_plan">అంతర పంట ప్రణాళిక</string>
 
-    <!-- Audio -->
-    <string name="play">ప్లే</string>
-    <string name="pause">పాజ్</string>
-    <string name="start_recording">రికార్డింగ్ ప్రారంభించండి</string>
-    <string name="stop_recording">రికార్డింగ్ ఆపండి</string>
-    <string name="cancel_recording">రికార్డింగ్ రద్దు చేయండి</string>
-    <string name="clear_recording">రికార్డింగ్‌ను క్లియర్ చేయండి</string>
-
-    <!-- Crop States -->
-    <string name="state_selected">ఎంపిక చేయబడింది</string>
-    <string name="state_planted">నాటినది</string>
-    <string name="state_growing">పెరుగుతోంది</string>
-    <string name="state_harvested">కోత కోసినది</string>
-    <string name="state_completed">పూర్తయింది</string>
+    <!-- Cultivating Crop / Intercropping -->
     <string name="intercropped">అంతర పంట వేయబడింది</string>
-
-    <!-- Management Tools -->
     <string name="management_tools">నిర్వహణ సాధనాలు</string>
     <string name="intercropping_guide">అంతర పంట మార్గదర్శి</string>
     <string name="intercropping_guide_desc">మిశ్రమ పంట అమరికను వీక్షించండి</string>
@@ -98,18 +99,11 @@
     <string name="investment_analysis_desc">ఖర్చులు మరియు లాభాల అంచనాలు</string>
     <string name="soil_health_advice">నేల ఆరోగ్య సలహా</string>
     <string name="soil_health_advice_desc">నేల సారవంతాన్ని కాపాడుకోండి</string>
-
-    <!-- Intercropping Details -->
+    <string name="select_crop_for_cultivation">సాగు కోసం పంటను ఎంచుకోండి</string>
+    <string name="overview">అవలోకనం</string>
+    <string name="mixed_cultivation_format">%1$d పంటల మిశ్రమ సాగు</string>
     <string name="arrangement_plan">అమరిక ప్రణాళిక</string>
     <string name="key_benefits">ముఖ్య ప్రయోజనాలు</string>
-    <string name="intercropping_type">అంతర పంట రకం</string>
-    <string name="total_crops_label">మొత్తం పంటలు: %1$d</string>
-    <string name="planting_pattern">నాటడం నమూనా</string>
-    <string name="variety_label">రకం: %1$s</string>
-    <string name="intercrop_details">అంతర పంట వివరాలు</string>
-    <string name="type_label">రకం: %1$s</string>
-    <string name="arrangement_label">అమరిక: %1$s</string>
-    <string name="crop_details_title">%1$s పంట వివరాలు</string>
 
     <!-- Cultivation Calendar -->
     <string name="no_tasks_found">ఈ క్యాలెండర్ కోసం పనులు ఏవీ కనుగొనబడలేదు.</string>
@@ -119,56 +113,104 @@
     <string name="priority_high">ఎక్కువ</string>
     <string name="priority_critical">క్లిష్టమైనది</string>
 
-    <!-- Financial Analysis / Investment -->
+    <!-- Alerts -->
+    <string name="go_to_alert">హెచ్చరికకు వెళ్ళండి</string>
+    <string name="alert_id_label">హెచ్చరిక ID: %1$s</string>
+
+    <!-- Chat -->
+    <string name="opening_camera">కెమెరాను తెరుస్తోంది...</string>
+    <string name="getting_location">స్థానాన్ని పొందుతోంది...</string>
+    <string name="location_permission_denied">స్థాన అనుమతి నిరాకరించబడింది</string>
+    <string name="location_not_found">స్థానం కనుగొనబడలేదు</string>
+    <string name="captured_location">క్యాప్చర్ చేసిన స్థానం: (%1$s, %2$s)</string>
+    <string name="share_location">స్థానాన్ని భాగస్వామ్యం చేయండి</string>
+    <string name="add_attachment">అటాచ్‌మెంట్‌ను జోడించండి</string>
+    <string name="remove_image">చిత్రాన్ని తీసివేయండి</string>
+    <string name="message_placeholder">సందేశాన్ని టైప్ చేయండి...</string>
+    <string name="delete_chat_title">చాట్‌ను తొలగించండి</string>
+    <string name="delete_chat_message">మీరు ఖచ్చితంగా ఈ చాట్ సెషన్‌ను తొలగించాలనుకుంటున్నారా?</string>
+    <string name="new_chat">కొత్త చాట్</string>
+
+    <!-- Weather -->
+    <string name="current_weather">ప్రస్తుత వాతావరణం</string>
+    <string name="weather_unavailable">వాతావరణ సమాచారం అందుబాటులో లేదు</string>
+    <string name="humidity">తేమ</string>
+    <string name="wind">గాలి</string>
+    <string name="pressure">పీడనం</string>
+    <string name="no_cultivating_crops">సాగు చేస్తున్న పంటలు ఏవీ కనుగొనబడలేదు.</string>
+
+    <!-- Financial Analysis -->
     <string name="financial_analysis">ఆర్థిక విశ్లేషణ</string>
     <string name="expense_details">ఖర్చు వివరాలు</string>
     <string name="sustainability_insight">సుస్థిరత అంతర్దృష్టి</string>
-    <string name="break_even_desc">నష్ట నివారణకు, మీ కనీస దిగుబడి %1$s ఉండాలి. దీనికి మించిన దిగుబడి నేరుగా మీ నికర లాభానికి దోహదం చేస్తుంది.</string>
+    <string name="break_even_message">నష్ట నివారణకు, మీ కనీస దిగుబడి %1$s ఉండాలి. దీనికి మించిన దిగుబడి నేరుగా మీ నికర లాభానికి దోహదం చేస్తుంది.</string>
     <string name="estimated_net_profit">అంచనా వేయబడిన నికర లాభం</string>
     <string name="total_cost">మొత్తం ఖర్చు</string>
-    <string name="roi_label">ROI</string>
-
-    <!-- Gallery -->
-    <string name="max_images_reached">మీరు 5 కంటే ఎక్కువ చిత్రాలను జోడించలేరు.</string>
-    <string name="image_limit_reached">మీరు %1$d మరిన్ని చిత్రాలను మాత్రమే జోడించగలరు. మొదటి %1$d చిత్రాలు జోడించబడతాయి.</string>
-
-    <!-- Language -->
-    <string name="selected">ఎంపిక చేయబడింది</string>
-
-    <!-- Chat -->
-    <string name="new_chat">కొత్త చాట్</string>
-    <string name="delete_chat">చాట్‌ను తొలగించండి</string>
-    <string name="delete_chat_confirmation">మీరు ఖచ్చితంగా ఈ చాట్ సెషన్‌ను తొలగించాలనుకుంటున్నారా?</string>
-    <string name="delete">తొలగించు</string>
-    <string name="type_a_message">సందేశాన్ని టైప్ చేయండి...</string>
-    <string name="add_attachment">అటాచ్‌మెంట్‌ను జోడించండి</string>
-    <string name="remove_image">చిత్రాన్ని తీసివేయండి</string>
-    <string name="share_location">స్థానాన్ని భాగస్వామ్యం చేయండి</string>
-    <string name="location_permission_denied">స్థాన అనుమతి నిరాకరించబడింది</string>
-    <string name="getting_location">స్థానాన్ని పొందుతోంది...</string>
-    <string name="opening_camera">కెమెరాను తెరుస్తోంది...</string>
-    <string name="farm_profile_received">ఫామ్ ప్రొఫైల్ స్వీకరించబడింది: %1$s</string>
-    <string name="location_not_found">స్థానం కనుగొనబడలేదు</string>
-    <string name="captured_location">క్యాప్చర్ చేసిన స్థానం: (%1$.4f, %2$.4f)</string>
-    <string name="navigate">నావిగేట్ చేయండి</string>
+    <string name="roi">ROI</string>
 
     <!-- Pesticides -->
-    <string name="select_farm">పొలాన్ని ఎంచుకోండి</string>
-    <string name="select_crop">పంటను ఎంచుకోండి</string>
-    <string name="upload_crop_issues">పంట సమస్యలను అప్‌లోడ్ చేయండి</string>
-    <string name="upload_media_desc">చిత్రాలు లేదా వాయిస్ నోట్ జోడించడానికి నొక్కండి</string>
     <string name="previous_pesticides">మునుపటి పురుగుమందులు</string>
+    <string name="upload_crop_issues">పంట సమస్యలను అప్‌లోడ్ చేయండి</string>
+    <string name="upload_crop_issues_desc">చిత్రాలు లేదా వాయిస్ నోట్ జోడించడానికి నొక్కండి</string>
+    <string name="add_description">వివరణను జోడించండి</string>
+    <string name="description_placeholder">మీరు చూస్తున్న కీటకాలు లేదా వ్యాధులను వివరించండి...</string>
+    <string name="get_solution">పరిష్కారం పొందండి</string>
     <string name="recommendations">సిఫార్సులు</string>
     <string name="detected_problem">గుర్తించిన సమస్య</string>
     <string name="recommended_pesticides">సిఫార్సు చేయబడిన పురుగుమందులు</string>
-    <string name="general_advice_title">సాధారణ సలహా</string>
+    <string name="general_advice">సాధారణ సలహా</string>
     <string name="dosage">మోతాదు</string>
-    <string name="application_method">పద్ధతి</string>
+    <string name="method">పద్ధతి</string>
     <string name="explanation">వివరణ</string>
     <string name="precautions">ముందుజాగ్రత్తలు</string>
+    <string name="applied_on_format">అమలు చేసిన తేదీ: %1$s</string>
+    <string name="show_less">తక్కువ చూపించు</string>
+    <string name="show_more">మరిన్ని చూపించు</string>
+    <string name="select_this">దీనిని ఎంచుకోండి</string>
+    <string name="unselect">ఎంపికను తీసివేయండి</string>
+    <string name="mark_applied">అమలు చేసినట్లు గుర్తించండి</string>
+    <string name="apply_date_dialog_title">మీరు దీనిని ఎప్పుడు అమలు చేశారు?</string>
+    <string name="apply_date_dialog_message">సమాచారాన్ని ఖచ్చితంగా ట్రాక్ చేయడానికి అమలు చేసిన తేదీని ఎంచుకోండి.</string>
+    <string name="today">నేడు</string>
+    <string name="select_date">తేదీని ఎంచుకోండి</string>
 
-    <!-- Soil Health Advice -->
-    <string name="no_soil_health_recommendations">నేల ఆరోగ్య సిఫార్సులు ఏవీ అందుబాటులో లేవు.</string>
+    <!-- Soil Health -->
+    <string name="no_soil_recommendations">నేల ఆరోగ్య సిఫార్సులు ఏవీ అందుబాటులో లేవు.</string>
     <string name="immediate_actions">తక్షణ చర్యలు</string>
     <string name="long_term_improvements">దీర్ఘకాలిక మెరుగుదలలు</string>
+
+    <!-- Components -->
+    <string name="pause">పాజ్</string>
+    <string name="play">ప్లే</string>
+    <string name="cancel_recording">రికార్డింగ్ రద్దు చేయండి</string>
+    <string name="stop_recording">రికార్డింగ్ ఆపండి</string>
+    <string name="clear_recording">రికార్డింగ్‌ను క్లియర్ చేయండి</string>
+    <string name="start_recording">రికార్డింగ్ ప్రారంభించండి</string>
+    <string name="state_selected">ఎంపిక చేయబడింది</string>
+    <string name="state_planted">నాటినది</string>
+    <string name="state_growing">పెరుగుతోంది</string>
+    <string name="state_harvested">కోత కోసినది</string>
+    <string name="state_complete">పూర్తయింది</string>
+    <string name="days">రోజులు</string>
+    <string name="yield_per_acre_label">దిగుబడి/ఎకరం</string>
+    <string name="confidence">విశ్వాసం</string>
+    <string name="sowing_schedule">బువై షెడ్యూల్</string>
+    <string name="safe_start">సురక్షిత ప్రారంభం</string>
+    <string name="best_date_optimal">ఉత్తమ తేదీ (అనుకూలమైనది)</string>
+    <string name="last_date">చివరి తేదీ</string>
+    <string name="money_matters">ఆర్థిక విషయాలు</string>
+    <string name="your_investment">మీ పెట్టుబడి</string>
+    <string name="market_price_now">ప్రస్తుత మార్కెట్ ధర</string>
+    <string name="price_trend">ధర ధోరణి</string>
+    <string name="potential_revenue">సంభావ్య ఆదాయం</string>
+    <string name="why_recommended">ఇది ఎందుకు సిఫార్సు చేయబడింది</string>
+    <string name="risks_to_watch_for">గమనించవలసిన ప్రమాదాలు</string>
+    <string name="low_risk">తక్కువ ప్రమాదం</string>
+    <string name="medium_risk">మధ్యస్థం</string>
+    <string name="high_danger">అధిక ప్రమాదం</string>
+    <string name="how_to_mitigate">ఎలా తగ్గించాలి</string>
+    <string name="preparing_farm">మీ పొలాన్ని సిద్ధం చేస్తున్నాము</string>
+    <string name="setting_up_details">సాగు వివరాలను సెట్ చేస్తున్నాము...</string>
+    <string name="max_images_error">మీరు 5 కంటే ఎక్కువ చిత్రాలను జోడించలేరు.</string>
+    <string name="limit_images_info">మీరు %1$d మరిన్ని చిత్రాలను మాత్రమే జోడించగలరు. మొదటి %1$d చిత్రాలు జోడించబడతాయి.</string>
 </resources>

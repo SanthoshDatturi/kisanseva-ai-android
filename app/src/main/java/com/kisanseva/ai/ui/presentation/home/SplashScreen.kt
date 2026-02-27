@@ -1,4 +1,4 @@
-package com.kisanseva.ai.ui.presentation.main.home
+package com.kisanseva.ai.ui.presentation.home
 
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat

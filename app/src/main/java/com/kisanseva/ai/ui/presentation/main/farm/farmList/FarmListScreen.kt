@@ -36,9 +36,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.kisanseva.ai.R
 import com.kisanseva.ai.domain.model.FarmProfile
 import com.kisanseva.ai.ui.presentation.main.farm.farmList.components.AddFarmProfileCard
 import java.util.Locale
@@ -149,14 +151,14 @@ fun FarmListItem(
                 ) {
                     FarmDetailTag(
                         icon = Icons.Rounded.SquareFoot,
-                        label = "${farm.totalAreaAcres} Acres",
+                        label = stringResource(R.string.acres_format, farm.totalAreaAcres.toString()),
                         containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
                     )
                     FarmDetailTag(
                         icon = Icons.Rounded.Landscape,
-                        label = farm.soilType.name.lowercase().replaceFirstChar {
+                        label = stringResource(R.string.soil_format, farm.soilType.name.lowercase().replaceFirstChar {
                             if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
-                        } + " Soil",
+                        }),
                         containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
                     )
                 }
@@ -164,7 +166,7 @@ fun FarmListItem(
 
             Icon(
                 imageVector = Icons.Rounded.ChevronRight,
-                contentDescription = "View Details",
+                contentDescription = stringResource(R.string.view_details),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
             )
         }

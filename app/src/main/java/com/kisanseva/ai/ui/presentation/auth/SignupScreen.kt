@@ -63,7 +63,7 @@ fun SignupScreen(onNavigateToLoginScreen: () -> Unit, onNavigateToOTPScreen: (St
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = "Create an account to start managing your farm",
+                text = stringResource(R.string.signup_welcome),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)

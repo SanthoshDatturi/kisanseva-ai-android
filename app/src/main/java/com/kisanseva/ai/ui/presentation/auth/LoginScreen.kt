@@ -60,7 +60,7 @@ fun LoginScreen(onNavigateToSignUpScreen: () -> Unit, onNavigateToOTPScreen: (St
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = "Welcome back! Enter your phone number to login",
+                text = stringResource(R.string.login_welcome),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)

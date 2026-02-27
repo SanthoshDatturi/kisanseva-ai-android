@@ -59,11 +59,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import com.kisanseva.ai.R
 import com.kisanseva.ai.domain.model.CultivatingCrop
 import com.kisanseva.ai.domain.model.FarmProfile
 import com.kisanseva.ai.domain.model.PesticideInfo
@@ -109,7 +111,7 @@ fun PesticidesScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    "Select Farm",
+                    stringResource(R.string.select_farm),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -136,7 +138,7 @@ fun PesticidesScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
-                        "Select Crop",
+                        stringResource(R.string.select_crop),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -178,7 +180,7 @@ fun PesticidesScreen(
         if (uiState.previousPesticides.isNotEmpty()) {
             item {
                 Text(
-                    "Previous Pesticides",
+                    stringResource(R.string.previous_pesticides),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.primary,
@@ -239,13 +241,13 @@ fun ActionArea(
                         }
                         Spacer(Modifier.height(16.dp))
                         Text(
-                            "Upload Crop Issues",
+                            stringResource(R.string.upload_crop_issues),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            "Tap to add images or voice note",
+                            stringResource(R.string.upload_crop_issues_desc),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -336,7 +338,7 @@ fun ActionArea(
                 ) {
                     Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         Text(
-                            "Add Description",
+                            stringResource(R.string.add_description),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.primary
@@ -346,7 +348,7 @@ fun ActionArea(
                             value = viewModel.description,
                             onValueChange = viewModel::onDescriptionChange,
                             modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("Describe the pests or diseases you see...", style = MaterialTheme.typography.bodyLarge) },
+                            placeholder = { Text(stringResource(R.string.description_placeholder), style = MaterialTheme.typography.bodyLarge) },
                             minLines = 4,
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
@@ -388,7 +390,7 @@ fun ActionArea(
                                 if (uiState.isLoading) {
                                     CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                                 } else {
-                                    Text("Get Solution", fontWeight = FontWeight.ExtraBold, style = MaterialTheme.typography.titleMedium)
+                                    Text(stringResource(R.string.get_solution), fontWeight = FontWeight.ExtraBold, style = MaterialTheme.typography.titleMedium)
                                     Spacer(Modifier.width(12.dp))
                                     Icon(Icons.AutoMirrored.Filled.Send, null, Modifier.size(20.dp))
                                 }

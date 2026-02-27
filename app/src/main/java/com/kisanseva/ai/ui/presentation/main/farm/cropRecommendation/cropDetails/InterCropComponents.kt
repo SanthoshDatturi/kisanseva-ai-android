@@ -2,26 +2,49 @@ package com.kisanseva.ai.ui.presentation.main.farm.cropRecommendation.cropDetail
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.rounded.Agriculture
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Hub
+import androidx.compose.material.icons.rounded.Schema
+import androidx.compose.material.icons.rounded.Straighten
+import androidx.compose.material.icons.rounded.ViewStream
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.kisanseva.ai.R
 import com.kisanseva.ai.domain.model.InterCropRecommendation
 import com.kisanseva.ai.domain.model.SpecificArrangement
 import com.kisanseva.ai.util.UrlUtils
@@ -55,7 +78,7 @@ fun InterCropHeader(interCrop: InterCropRecommendation) {
 
         if (interCrop.description.isNotEmpty()) {
             Spacer(modifier = Modifier.height(24.dp))
-            Text("Overview", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.overview), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
             Text(interCrop.description, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 28.sp)
         }
@@ -111,7 +134,7 @@ fun InterCropSummaryCard(
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = "$noOfCrops Crops Mixed Cultivation",
+                            text = stringResource(R.string.mixed_cultivation_format, noOfCrops),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
@@ -132,7 +155,7 @@ fun InterCropArrangementCard(arrangement: String, specificArrangements: List<Spe
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
-            SectionHeader(Icons.Rounded.Schema, "Arrangement Plan")
+            SectionHeader(Icons.Rounded.Schema, stringResource(R.string.arrangement_plan))
             Spacer(Modifier.height(16.dp))
             
             Surface(
@@ -245,8 +268,8 @@ fun BenefitsCard(benefits: List<String>) {
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.25f))
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
-            SectionHeader(Icons.Rounded.AutoAwesome, "Key Benefits", MaterialTheme.colorScheme.tertiary)
-            Spacer(Modifier.height(20.dp))
+            SectionHeader(Icons.Rounded.AutoAwesome, stringResource(R.string.key_benefits), MaterialTheme.colorScheme.tertiary)
+            Spacer(modifier = Modifier.height(20.dp))
             benefits.forEach { benefit ->
                 Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.Top) {
                     Icon(

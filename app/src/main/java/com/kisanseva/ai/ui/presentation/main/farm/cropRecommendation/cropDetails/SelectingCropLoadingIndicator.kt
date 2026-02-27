@@ -22,8 +22,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.kisanseva.ai.R
 
 @Composable
 fun SelectingCropLoadingIndicator() {
@@ -71,7 +73,7 @@ fun SelectingCropLoadingIndicator() {
                 Spacer(modifier = Modifier.height(24.dp))
                 
                 Text(
-                    text = "Preparing Your Farm",
+                    text = stringResource(R.string.preparing_farm),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Black,
                     color = MaterialTheme.colorScheme.onSurface
@@ -80,7 +82,7 @@ fun SelectingCropLoadingIndicator() {
                 Spacer(modifier = Modifier.height(8.dp))
                 
                 Text(
-                    text = "Setting up cultivation details...",
+                    text = stringResource(R.string.setting_up_details),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.outline,
                     fontWeight = FontWeight.Medium

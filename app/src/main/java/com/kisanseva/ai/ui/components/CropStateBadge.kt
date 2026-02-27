@@ -20,9 +20,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.kisanseva.ai.R
 import com.kisanseva.ai.domain.model.CropState
 import com.kisanseva.ai.ui.presentation.main.farm.cropRecommendation.cropDetails.fadingShadow
 
@@ -32,13 +34,14 @@ data class CropStateInfo(
     val color: Color
 )
 
+@Composable
 fun CropState.toInfo(): CropStateInfo {
     return when (this) {
-        CropState.SELECTED -> CropStateInfo("Selected", Icons.Default.CheckCircle, Color(0xFF5A7E7E))
-        CropState.PLANTED -> CropStateInfo("Planted", Icons.Default.Agriculture, Color(0xFF795548))
-        CropState.GROWING -> CropStateInfo("Growing", Icons.AutoMirrored.Filled.TrendingUp, Color(0xFF4CAF50))
-        CropState.HARVESTED -> CropStateInfo("Harvested", Icons.Default.Inventory, Color(0xFFFF9800))
-        CropState.COMPLETE -> CropStateInfo("Complete", Icons.Default.Verified, Color(0xFF009688))
+        CropState.SELECTED -> CropStateInfo(stringResource(R.string.state_selected), Icons.Default.CheckCircle, Color(0xFF5A7E7E))
+        CropState.PLANTED -> CropStateInfo(stringResource(R.string.state_planted), Icons.Default.Agriculture, Color(0xFF795548))
+        CropState.GROWING -> CropStateInfo(stringResource(R.string.state_growing), Icons.AutoMirrored.Filled.TrendingUp, Color(0xFF4CAF50))
+        CropState.HARVESTED -> CropStateInfo(stringResource(R.string.state_harvested), Icons.Default.Inventory, Color(0xFFFF9800))
+        CropState.COMPLETE -> CropStateInfo(stringResource(R.string.state_complete), Icons.Default.Verified, Color(0xFF009688))
     }
 }
 

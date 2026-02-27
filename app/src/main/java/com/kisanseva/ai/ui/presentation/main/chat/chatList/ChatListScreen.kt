@@ -38,8 +38,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.kisanseva.ai.R
 import com.kisanseva.ai.domain.model.ChatType
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,8 +56,8 @@ fun ChatListScreen(
     if (showDeleteDialog != null) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = null },
-            title = { Text("Delete Chat") },
-            text = { Text("Are you sure you want to delete this chat session?") },
+            title = { Text(stringResource(R.string.delete_chat_title)) },
+            text = { Text(stringResource(R.string.delete_chat_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -64,12 +66,12 @@ fun ChatListScreen(
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
                 ) {
-                    Text("Delete")
+                    Text(stringResource(R.string.delete))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = null }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -81,7 +83,7 @@ fun ChatListScreen(
             FloatingActionButton(onClick = {
                 onNavigateToChat(null, ChatType.GENERAL, null)
             }) {
-                Icon(Icons.Default.Add, contentDescription = "New Chat")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.new_chat))
             }
         }
     ) { padding ->
@@ -133,7 +135,7 @@ fun ChatListScreen(
                                 ) {
                                     Icon(
                                         Icons.Default.Delete,
-                                        contentDescription = "Delete Chat",
+                                        contentDescription = stringResource(R.string.delete),
                                         tint = Color.White
                                     )
                                 }

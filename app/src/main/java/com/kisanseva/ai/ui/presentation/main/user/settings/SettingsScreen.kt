@@ -71,7 +71,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                text = "Application Preferences",
+                text = stringResource(R.string.application_preferences),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 modifier = Modifier
@@ -81,7 +81,7 @@ fun SettingsScreen(
 
             ActionItem(
                 title = stringResource(id = R.string.language),
-                subtitle = "Switch app language",
+                subtitle = stringResource(R.string.switch_language_desc),
                 icon = Icons.Default.Language,
                 color = MaterialTheme.colorScheme.primary,
                 onClick = onNavigateToLanguage

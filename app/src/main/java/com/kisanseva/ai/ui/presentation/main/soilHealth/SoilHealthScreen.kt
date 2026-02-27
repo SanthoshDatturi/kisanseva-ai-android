@@ -20,11 +20,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.kisanseva.ai.R
 import com.kisanseva.ai.domain.model.ImmediateAction
 import com.kisanseva.ai.domain.model.SoilHealthRecommendations
 
@@ -39,10 +41,10 @@ fun SoilHealthScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Soil Health Advice", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.soil_health_advice), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
             )
@@ -67,7 +69,7 @@ fun SoilHealthScreen(
                 }
                 uiState.recommendations.isEmpty() -> {
                     Text(
-                        text = "No soil health recommendations available.",
+                        text = stringResource(R.string.no_soil_recommendations),
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
@@ -119,7 +121,7 @@ fun SoilRecommendationItem(recommendation: SoilHealthRecommendations) {
 
         // Immediate Actions Section
         Column {
-            SectionHeader(icon = Icons.Default.FlashOn, title = "Immediate Actions", color = Color(0xFFE91E63))
+            SectionHeader(icon = Icons.Default.FlashOn, title = stringResource(R.string.immediate_actions), color = Color(0xFFE91E63))
             Spacer(modifier = Modifier.height(12.dp))
             recommendation.immediateActions.forEach { action ->
                 ImmediateActionCard(action)
@@ -129,7 +131,7 @@ fun SoilRecommendationItem(recommendation: SoilHealthRecommendations) {
 
         // Long Term Improvements Section
         Column {
-            SectionHeader(icon = Icons.Default.Autorenew, title = "Long-term Improvements", color = Color(0xFF4CAF50))
+            SectionHeader(icon = Icons.Default.Autorenew, title = stringResource(R.string.long_term_improvements), color = Color(0xFF4CAF50))
             Spacer(modifier = Modifier.height(12.dp))
             Card(
                 modifier = Modifier.fillMaxWidth(),

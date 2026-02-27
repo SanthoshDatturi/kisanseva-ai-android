@@ -21,9 +21,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.kisanseva.ai.domain.model.websocketModels.CropSelectionResponse
+import com.kisanseva.ai.R
 
 @Composable
 fun CropSelectionButton(onSelect: () -> Unit) {
@@ -60,7 +61,7 @@ fun CropSelectionButton(onSelect: () -> Unit) {
             Spacer(modifier = Modifier.width(12.dp))
 
             Text(
-                text = "Select crop for cultivation",
+                text = stringResource(R.string.select_crop_for_cultivation),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
