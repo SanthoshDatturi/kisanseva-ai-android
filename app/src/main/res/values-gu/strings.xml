@@ -29,6 +29,12 @@
     <string name="internal_server_error">આંતરિક સર્વર ભૂલ, કૃપા કરીને પછીથી ફરી પ્રયાસ કરો.</string>
     <string name="no_internet">ઇન્ટરનેટ કનેક્શન નથી.</string>
     <string name="unknown_error">અજ્ઞાત ભૂલ, કૃપા કરીને પછીથી ફરી પ્રયાસ કરો.</string>
+    <string name="the_request_timed_out">વિનંતીનો સમય સમાપ્ત થઈ ગયો.</string>
+    <string name="youve_hit_your_rate_limit">તમે તમારી દર મર્યાદા વટાવી દીધી છે.</string>
+    <string name="file_too_large">ફાઇલ ખૂબ મોટી છે.</string>
+    <string name="server_error">સર્વર ભૂલ.</string>
+    <string name="error_serialization">ડેટા પ્રોસેસિંગ ભૂલ.</string>
+    <string name="error_disk_full">ભૂલ: ડિસ્ક ભરાઈ ગઈ છે.</string>
 
     <!--    Auth API Errors -->
     <string name="invalid_phone_number">અમાન્ય ફોન નંબર</string>

@@ -29,6 +29,12 @@
     <string name="internal_server_error">ਅੰਦਰੂਨੀ ਸਰਵਰ ਗਲਤੀ, ਕਿਰਪਾ ਕਰਕੇ ਬਾਅਦ ਵਿੱਚ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
     <string name="no_internet">ਕੋਈ ਇੰਟਰਨੈਟ ਕਨੈਕਸ਼ਨ ਨਹੀਂ ਹੈ।</string>
     <string name="unknown_error">ਅਣਜਾਣ ਗਲਤੀ, ਕਿਰਪਾ ਕਰਕੇ ਬਾਅਦ ਵਿੱਚ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
+    <string name="the_request_timed_out">ਬੇਨਤੀ ਦਾ ਸਮਾਂ ਸਮਾਪਤ ਹੋ ਗਿਆ।</string>
+    <string name="youve_hit_your_rate_limit">ਤੁਸੀਂ ਆਪਣੀ ਦਰ ਦੀ ਸੀਮਾ ਪਾਰ ਕਰ ਲਈ ਹੈ।</string>
+    <string name="file_too_large">ਫਾਈਲ ਬਹੁਤ ਵੱਡੀ ਹੈ।</string>
+    <string name="server_error">ਸਰਵਰ ਗਲਤੀ।</string>
+    <string name="error_serialization">ਡਾਟਾ ਪ੍ਰੋਸੈਸਿੰਗ ਗਲਤੀ।</string>
+    <string name="error_disk_full">ਗਲਤੀ: ਡਿਸਕ ਭਰ ਗਈ ਹੈ।</string>
 
     <!--    Auth API Errors -->
     <string name="invalid_phone_number">ਅਵੈਧ ਫੋਨ ਨੰਬਰ</string>

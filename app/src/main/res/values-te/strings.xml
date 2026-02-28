@@ -29,6 +29,12 @@
     <string name="internal_server_error">అంతర్గత సర్వర్ లోపం, దయచేసి తర్వాత మళ్ళీ ప్రయత్నించండి.</string>
     <string name="no_internet">ఇంటర్నెట్ కనెక్షన్ లేదు.</string>
     <string name="unknown_error">తెలియని లోపం, దయచేసి తర్వాత మళ్ళీ ప్రయత్నించండి.</string>
+    <string name="the_request_timed_out">అభ్యర్థన సమయం ముగిసింది.</string>
+    <string name="youve_hit_your_rate_limit">మీరు మీ రేటు పరిమితిని చేరుకున్నారు.</string>
+    <string name="file_too_large">ఫైల్ పరిమాణం చాలా పెద్దది.</string>
+    <string name="server_error">సర్వర్ లోపం.</string>
+    <string name="error_serialization">డేటా ప్రాసెసింగ్ లోపం.</string>
+    <string name="error_disk_full">లోపం: డిస్క్ నిండిపోయింది.</string>
 
     <!--    Auth API Errors -->
     <string name="invalid_phone_number">చెల్లని ఫోన్ సంఖ్య</string>
@@ -55,7 +61,7 @@
     <string name="logout">లాగ్ అవుట్</string>
     <string name="logout_confirmation_title">లాగ్ అవుట్ ధృవీకరించు</string>
     <string name="logout_confirmation_message">మీరు ఖచ్చితంగా లాగ్ అవుట్ చేయాలనుకుంటున్నారా?</string>
-    <string name="application_preferences">అప్లికేషన్ ప్రాధాన్యతలు</string>
+    <string name="application_preferences">అప్లికేషన్ ప్రాధ్యాన్యతలు</string>
     <string name="switch_language_desc">యాప్ భాషను మార్చండి</string>
 
     <!-- Farm -->

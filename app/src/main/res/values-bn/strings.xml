@@ -29,6 +29,12 @@
     <string name="internal_server_error">অভ্যন্তরীণ সার্ভার ত্রুটি, দয়া করে পরে আবার চেষ্টা করুন।</string>
     <string name="no_internet">কোন ইন্টারনেট সংযোগ নেই।</string>
     <string name="unknown_error">অজানা ত্রুটি, দয়া করে পরে আবার চেষ্টা করুন।</string>
+    <string name="the_request_timed_out">অনুরোধের সময় শেষ হয়ে গেছে।</string>
+    <string name="youve_hit_your_rate_limit">আপনি আপনার হারের সীমা অতিক্রম করেছেন।</string>
+    <string name="file_too_large">ফাইলটি অনেক বড়।</string>
+    <string name="server_error">সার্ভার ত্রুটি।</string>
+    <string name="error_serialization">ডেটা প্রসেসিং ত্রুটি।</string>
+    <string name="error_disk_full">ত্রুটি: ডিস্ক পূর্ণ।</string>
 
     <!-- Auth API Errors -->
     <string name="invalid_phone_number">অমান্য ফোন নম্বর</string>

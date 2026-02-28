@@ -29,6 +29,12 @@
     <string name="internal_server_error">Internal server error, Please try again later.</string>
     <string name="no_internet">No internet connection.</string>
     <string name="unknown_error">Unknown error, Please try again later.</string>
+    <string name="the_request_timed_out">The request timed out.</string>
+    <string name="youve_hit_your_rate_limit">You\'ve hit your rate limit.</string>
+    <string name="file_too_large">File too large.</string>
+    <string name="server_error">Server error.</string>
+    <string name="error_serialization">Error serialization.</string>
+    <string name="error_disk_full">Error: Disk full.</string>
 
     <!--    Auth API Errors -->
     <string name="invalid_phone_number">Invalid phone number</string>

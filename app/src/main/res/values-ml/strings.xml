@@ -29,6 +29,12 @@
     <string name="internal_server_error">ഇന്റേണൽ സെർവർ തകരാർ, ദയവായി പിന്നീട് ശ്രമിക്കുക.</string>
     <string name="no_internet">ഇന്റർനെറ്റ് കണക്ഷൻ ഇല്ല.</string>
     <string name="unknown_error">അജ്ഞാതമായ തകരാർ, ദയവായി പിന്നീട് ശ്രമിക്കുക.</string>
+    <string name="the_request_timed_out">അഭ്യർത്ഥന സമയം കഴിഞ്ഞു.</string>
+    <string name="youve_hit_your_rate_limit">നിങ്ങൾ നിങ്ങളുടെ പരിധിയിൽ എത്തിയിരിക്കുന്നു.</string>
+    <string name="file_too_large">ഫയൽ വളരെ വലുതാണ്.</string>
+    <string name="server_error">സെർവർ തകരാർ.</string>
+    <string name="error_serialization">ഡാറ്റ പ്രോസസ്സിംഗ് പിശക്.</string>
+    <string name="error_disk_full">പിശക്: ഡിസ്ക് നിറഞ്ഞു.</string>
 
     <!--    Auth API Errors -->
     <string name="invalid_phone_number">അസാധുവായ ഫോൺ നമ്പർ</string>

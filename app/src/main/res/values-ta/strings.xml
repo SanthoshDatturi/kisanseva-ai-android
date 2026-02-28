@@ -29,6 +29,12 @@
     <string name="internal_server_error">உள் சேவையகப் பிழை, பிறகு முயற்சிக்கவும்.</string>
     <string name="no_internet">இணைய இணைப்பு இல்லை.</string>
     <string name="unknown_error">தெரியாத பிழை, பிறகு முயற்சிக்கவும்.</string>
+    <string name="the_request_timed_out">கோரிக்கை காலாவதியானது.</string>
+    <string name="youve_hit_your_rate_limit">உங்கள் வரம்பை நீங்கள் மீறிவிட்டீர்கள்.</string>
+    <string name="file_too_large">கோப்பு மிகப்பெரியது.</string>
+    <string name="server_error">சேவையகப் பிழை.</string>
+    <string name="error_serialization">தரவுச் செயலாக்கப் பிழை.</string>
+    <string name="error_disk_full">பிழை: வட்டு நிரம்பியுள்ளது.</string>
 
     <!--    Auth API Errors -->
     <string name="invalid_phone_number">தவறான தொலைபேசி எண்</string>

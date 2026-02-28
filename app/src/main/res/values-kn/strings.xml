@@ -29,6 +29,12 @@
     <string name="internal_server_error">ಆಂತರಿಕ ಸರ್ವರ್ ದೋಷ, ದಯವಿಟ್ಟು ನಂತರ ಪ್ರಯತ್ನಿಸಿ.</string>
     <string name="no_internet">ಇಂಟರ್ನೆಟ್ ಸಂಪರ್ಕವಿಲ್ಲ.</string>
     <string name="unknown_error">ಅಜ್ಞಾತ ದೋಷ, ದಯವಿಟ್ಟು ನಂತರ ಪ್ರಯತ್ನಿಸಿ.</string>
+    <string name="the_request_timed_out">ವಿನಂತಿಯ ಸಮಯ ಮೀರಿದೆ.</string>
+    <string name="youve_hit_your_rate_limit">ನಿಮ್ಮ ದರದ ಮಿತಿಯನ್ನು ನೀವು ತಲುಪಿದ್ದೀರಿ.</string>
+    <string name="file_too_large">ಫೈಲ್ ತುಂಬಾ ದೊಡ್ಡದಾಗಿದೆ.</string>
+    <string name="server_error">ಸರ್ವರ್ ದೋಷ.</string>
+    <string name="error_serialization">ಡೇಟಾ ಪ್ರಕ್ರಿಯೆಗೊಳಿಸುವ ದೋಷ.</string>
+    <string name="error_disk_full">ದೋಷ: ಡಿಸ್ಕ್ ಭರ್ತಿಯಾಗಿದೆ.</string>
 
     <!--    Auth API Errors -->
     <string name="invalid_phone_number">ಅಮಾನ್ಯ ಫೋನ್ ಸಂಖ್ಯೆ</string>

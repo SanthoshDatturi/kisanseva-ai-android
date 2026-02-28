@@ -29,6 +29,12 @@
     <string name="internal_server_error">अंतर्गत सर्व्हर त्रुटी, कृपया नंतर पुन्हा प्रयत्न करा.</string>
     <string name="no_internet">इंटरनेट कनेक्शन नाही.</string>
     <string name="unknown_error">अज्ञात त्रुटी, कृपया नंतर पुन्हा प्रयत्न करा.</string>
+    <string name="the_request_timed_out">विनंतीची वेळ संपली.</string>
+    <string name="youve_hit_your_rate_limit">तुम्ही तुमची मर्यादा गाठली आहे.</string>
+    <string name="file_too_large">फाइल खूप मोठी आहे.</string>
+    <string name="server_error">सर्व्हर त्रुटी.</string>
+    <string name="error_serialization">डेटा प्रोसेसिंग त्रुटी.</string>
+    <string name="error_disk_full">त्रुटी: डिस्क भरली आहे.</string>
 
     <!-- Auth API Errors -->
     <string name="invalid_phone_number">अवैध फोन नंबर</string>
@@ -192,7 +198,7 @@
     <string name="state_harvested">काढणी केलेले</string>
     <string name="state_complete">पूर्ण</string>
     <string name="days">दिवस</string>
-    <string name="yield_per_acre_label">उत्पादन/एकर</string>
+    <string name="yield_per_acre_label">उत्पादन/एककर</string>
     <string name="confidence">विश्वासार्हता</string>
     <string name="sowing_schedule">बुवाई वेळापत्रक</string>
     <string name="safe_start">सुरक्षित सुरुवात</string>
