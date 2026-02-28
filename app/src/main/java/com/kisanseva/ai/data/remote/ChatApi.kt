@@ -27,7 +27,7 @@ class ChatApi(
         withContext(Dispatchers.IO) {
             try {
                 val httpRequest = Request.Builder()
-                    .url(chatUrl)
+                    .url("$chatUrl/")
                     .post(json.encodeToString(CreateChatRequest.serializer(), request).toRequestBody("application/json".toMediaType()))
                     .build()
                 client.newCall(httpRequest).execute().use { response ->
