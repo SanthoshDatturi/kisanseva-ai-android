@@ -10,17 +10,15 @@ import com.kisanseva.ai.data.local.entity.MonoCropEntity
 import com.kisanseva.ai.data.remote.CropRecommendationApi
 import com.kisanseva.ai.data.remote.websocket.Actions
 import com.kisanseva.ai.data.remote.websocket.WebSocketController
+import com.kisanseva.ai.domain.error.DataError
 import com.kisanseva.ai.domain.model.CropRecommendationRequestData
 import com.kisanseva.ai.domain.model.CropRecommendationResponse
-import com.kisanseva.ai.domain.model.CultivatingCrop
 import com.kisanseva.ai.domain.model.InterCropRecommendation
-import com.kisanseva.ai.domain.model.IntercroppingDetails
 import com.kisanseva.ai.domain.model.MonoCrop
 import com.kisanseva.ai.domain.model.SelectCropRequestData
-import com.kisanseva.ai.domain.model.websocketModels.CropSelectionResponse
 import com.kisanseva.ai.domain.repository.CropRecommendationRepository
 import com.kisanseva.ai.domain.repository.CultivatingCropRepository
-import com.kisanseva.ai.exception.ApiException
+import com.kisanseva.ai.domain.state.Result
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
@@ -73,14 +71,24 @@ class CropRecommendationRepositoryImpl(
         }
     }
 
-    override suspend fun refreshCropRecommendationByFarmId(farmId: String) {
-        val remoteData = cropRecommendationApi.getCropRecommendationByFarmId(farmId)
-        cacheRecommendation(remoteData)
+    override suspend fun refreshCropRecommendationByFarmId(farmId: String): Result<Unit, DataError.Network> {
+        return when (val result = cropRecommendationApi.getCropRecommendationByFarmId(farmId)) {
+            is Result.Error -> Result.Error(result.error)
+            is Result.Success -> {
+                cacheRecommendation(result.data)
+                Result.Success(Unit)
+            }
+        }
     }
 
-    override suspend fun refreshCropRecommendationById(recommendationId: String) {
-        val remoteData = cropRecommendationApi.getCropRecommendationById(recommendationId)
-        cacheRecommendation(remoteData)
+    override suspend fun refreshCropRecommendationById(recommendationId: String): Result<Unit, DataError.Network> {
+        return when (val result = cropRecommendationApi.getCropRecommendationById(recommendationId)) {
+            is Result.Error -> Result.Error(result.error)
+            is Result.Success -> {
+                cacheRecommendation(result.data)
+                Result.Success(Unit)
+            }
+        }
     }
 
     override suspend fun requestCropRecommendation(farmId: String) {
@@ -108,30 +116,39 @@ class CropRecommendationRepositoryImpl(
         }
     }
 
-    override suspend fun selectCropForCultivation(cropId: String, farmId: String, cropRecommendationResponseId: String) {
-        try {
-            val selectedCrop: CultivatingCrop = cultivatingCropRepository.getCultivatingCropById(cropId).first() ?: throw ApiException(404, "Crop not found")
-            cultivatingCropRepository.saveCultivatingCrop(selectedCrop)
-        } catch (e: Exception) {
-            // Check if it's an intercropping details or needs web socket
-             try {
-                val interCroppingDetails: IntercroppingDetails = cultivatingCropRepository
-                    .getIntercroppingDetailsById(cropId).first() ?: throw ApiException(404, "Intercropping details not found")
-                cultivatingCropRepository.saveIntercroppingDetails(interCroppingDetails)
-            } catch (e2: Exception) {
-                webSocketController.sendMessage(
-                    Actions.SELECT_CROP_FROM_RECOMMENDATION,
-                    SelectCropRequestData(
-                        selectedCropId = cropId,
-                        farmId = farmId,
-                        cropRecommendationResponseId = cropRecommendationResponseId
-                    )
-                )
-                webSocketController.messages
-                    .filter { it.action == Actions.SELECT_CROP_FROM_RECOMMENDATION }
-                    .mapNotNull { it.data as? CropSelectionResponse }
-                    .first()
+    override suspend fun selectCropForCultivation(
+        cropId: String,
+        farmId: String,
+        cropRecommendationResponseId: String
+    ): Result<Unit, DataError.Network> {
+        return try {
+            val selectedCrop = cultivatingCropRepository.getCultivatingCropById(cropId).first()
+            if (selectedCrop != null) {
+                cultivatingCropRepository.saveCultivatingCrop(selectedCrop)
+                Result.Success(Unit)
+            } else {
+                val interCroppingDetails = cultivatingCropRepository.getIntercroppingDetailsById(cropId).first()
+                if (interCroppingDetails != null) {
+                    cultivatingCropRepository.saveIntercroppingDetails(interCroppingDetails)
+                    Result.Success(Unit)
+                } else {
+                    if (webSocketController.isConnected()) {
+                        webSocketController.sendMessage(
+                            Actions.SELECT_CROP_FROM_RECOMMENDATION,
+                            SelectCropRequestData(
+                                selectedCropId = cropId,
+                                farmId = farmId,
+                                cropRecommendationResponseId = cropRecommendationResponseId
+                            )
+                        )
+                        Result.Success(Unit)
+                    } else {
+                        Result.Error(DataError.Network.NO_INTERNET)
+                    }
+                }
             }
+        } catch (_: Exception) {
+            Result.Error(DataError.Network.UNKNOWN)
         }
     }
 

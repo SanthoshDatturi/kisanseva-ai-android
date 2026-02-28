@@ -1,5 +1,6 @@
 package com.kisanseva.ai.ui.presentation.main.farm.cropRecommendation.cropDetails
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -19,13 +20,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,10 +35,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kisanseva.ai.R
 import kotlinx.coroutines.flow.collectLatest
 
@@ -50,7 +51,8 @@ fun RecommendedMonoCropDetailsScreen(
     onNavigateToCultivatingCrop: (String) -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    val uiState by viewModel.state.collectAsState()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     val listState = rememberLazyListState()
 
     var isBottomBarVisible by remember { mutableStateOf(true) }
@@ -66,6 +68,12 @@ fun RecommendedMonoCropDetailsScreen(
                 }
                 return Offset.Zero
             }
+        }
+    }
+
+    LaunchedEffect(true) {
+        viewModel.errorChannel.collectLatest { error ->
+            Toast.makeText(context, error.asString(context), Toast.LENGTH_LONG).show()
         }
     }
 
@@ -96,41 +104,35 @@ fun RecommendedMonoCropDetailsScreen(
         }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            when {
-                uiState.isRefreshing && uiState.monoCrop == null -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
+            if (uiState.isRefreshing && uiState.monoCrop == null) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
-                uiState.error != null && uiState.monoCrop == null -> {
-                    Text(uiState.error!!, color = MaterialTheme.colorScheme.error, modifier = Modifier.align(Alignment.Center))
-                }
-                uiState.monoCrop != null -> {
-                    uiState.monoCrop?.let { monoCrop ->
-                        LazyColumn(
-                            state = listState,
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(24.dp)
-                        ) {
-                            item { MonoCropHeader(monoCrop = monoCrop) }
-                            item { SowingWindowCard(sowingWindow = monoCrop.sowingWindow) }
-                            item { FinancialForecastingCard(financialForecasting = monoCrop.financialForecasting) }
-                            item { ReasonsCard(reasons = monoCrop.reasons) }
-                            item { RiskFactorsCard(riskFactors = monoCrop.riskFactors) }
-                        }
-                    }
-                    AnimatedVisibility(
-                        visible = isBottomBarVisible,
-                        enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
-                        exit = fadeOut() + slideOutVertically(targetOffsetY = { it }),
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(horizontal = 20.dp, vertical = 0.dp)
-                            .navigationBarsPadding()
+            } else if (uiState.monoCrop != null) {
+                uiState.monoCrop?.let { monoCrop ->
+                    LazyColumn(
+                        state = listState,
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(24.dp)
                     ) {
-                        CropSelectionButton {
-                            viewModel.selectCropForCultivation()
-                        }
+                        item { MonoCropHeader(monoCrop = monoCrop) }
+                        item { SowingWindowCard(sowingWindow = monoCrop.sowingWindow) }
+                        item { FinancialForecastingCard(financialForecasting = monoCrop.financialForecasting) }
+                        item { ReasonsCard(reasons = monoCrop.reasons) }
+                        item { RiskFactorsCard(riskFactors = monoCrop.riskFactors) }
+                    }
+                }
+                AnimatedVisibility(
+                    visible = isBottomBarVisible,
+                    enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it }),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(horizontal = 20.dp, vertical = 0.dp)
+                        .navigationBarsPadding()
+                ) {
+                    CropSelectionButton {
+                        viewModel.selectCropForCultivation()
                     }
                 }
             }

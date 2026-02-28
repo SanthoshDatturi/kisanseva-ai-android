@@ -9,6 +9,9 @@ import com.kisanseva.ai.domain.model.IntercroppingDetails
 import com.kisanseva.ai.domain.model.MonoCrop
 import com.kisanseva.ai.domain.repository.CropRecommendationRepository
 import com.kisanseva.ai.domain.repository.CultivatingCropRepository
+import com.kisanseva.ai.domain.state.Result
+import com.kisanseva.ai.ui.presentation.UiText
+import com.kisanseva.ai.ui.presentation.asUiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +26,6 @@ import javax.inject.Inject
 data class RecommendedInterCropUiState(
     val interCrop: InterCropRecommendation? = null,
     val isRefreshing: Boolean = false,
-    val error: String? = null,
     val isSelectingCrop: Boolean = false
 )
 
@@ -44,6 +46,9 @@ class RecommendedInterCropViewModel @Inject constructor(
     private val _event = MutableSharedFlow<InterCropEvent>()
     val event = _event.asSharedFlow()
 
+    private val _errorChannel = MutableSharedFlow<UiText>()
+    val errorChannel = _errorChannel.asSharedFlow()
+
     private val interCropId: String = checkNotNull(savedStateHandle.get<String>("interCropId"))
     private val farmId: String = checkNotNull(savedStateHandle.get<String>("farmId"))
     private val cropRecommendationResponseId: String = checkNotNull(savedStateHandle.get<String>("cropRecommendationResponseId"))
@@ -58,7 +63,7 @@ class RecommendedInterCropViewModel @Inject constructor(
         viewModelScope.launch {
             cropRecommendationRepository.getInterCropById(interCropId)
                 .catch { e ->
-                    _uiState.update { it.copy(error = e.localizedMessage ?: "An error occurred") }
+                    _errorChannel.emit(UiText.DynamicString(e.localizedMessage ?: "An error occurred"))
                 }
                 .collectLatest { interCrop ->
                     _uiState.update { it.copy(interCrop = interCrop) }
@@ -68,38 +73,41 @@ class RecommendedInterCropViewModel @Inject constructor(
 
     fun refreshInterCropDetails() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isRefreshing = true, error = null) }
-            try {
-                cropRecommendationRepository.refreshCropRecommendationById(cropRecommendationResponseId)
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        error = e.localizedMessage ?: "Failed to refresh intercrop details"
-                    )
+            _uiState.update { it.copy(isRefreshing = true) }
+            when (val result = cropRecommendationRepository.refreshCropRecommendationById(cropRecommendationResponseId)) {
+                is Result.Error -> {
+                    _errorChannel.emit(result.error.asUiText())
                 }
-            } finally {
-                _uiState.update { it.copy(isRefreshing = false) }
+                is Result.Success -> Unit
             }
+            _uiState.update { it.copy(isRefreshing = false) }
         }
     }
 
     fun selectCropForCultivation() {
         viewModelScope.launch {
             _uiState.update { it.copy(isSelectingCrop = true) }
-            try {
-                val interCrop = uiState.value.interCrop
-                    ?: throw IllegalStateException("Intercrop details not available to select.")
-
-                cropRecommendationRepository.selectCropForCultivation(
-                    cropId = interCropId,
-                    farmId = farmId,
-                    cropRecommendationResponseId = cropRecommendationResponseId
-                )
-                saveCultivatingInterCrop(interCrop)
+            val interCrop = uiState.value.interCrop
+            if (interCrop == null) {
+                _errorChannel.emit(UiText.DynamicString("Intercrop details not available to select."))
                 _uiState.update { it.copy(isSelectingCrop = false) }
-                _event.emit(InterCropEvent.NavigateToInterCroppingDetails(interCrop.id))
-            } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.localizedMessage ?: "An unknown error occurred.", isSelectingCrop = false) }
+                return@launch
+            }
+
+            when (val result = cropRecommendationRepository.selectCropForCultivation(
+                cropId = interCropId,
+                farmId = farmId,
+                cropRecommendationResponseId = cropRecommendationResponseId
+            )) {
+                is Result.Error -> {
+                    _errorChannel.emit(result.error.asUiText())
+                    _uiState.update { it.copy(isSelectingCrop = false) }
+                }
+                is Result.Success -> {
+                    saveCultivatingInterCrop(interCrop)
+                    _uiState.update { it.copy(isSelectingCrop = false) }
+                    _event.emit(InterCropEvent.NavigateToInterCroppingDetails(interCrop.id))
+                }
             }
         }
     }

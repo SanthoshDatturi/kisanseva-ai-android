@@ -10,10 +10,12 @@ import com.kisanseva.ai.data.mapper.toCurrentWeatherCacheEntity
 import com.kisanseva.ai.data.mapper.toForecastCacheEntity
 import com.kisanseva.ai.data.mapper.toReverseGeocodingCacheEntity
 import com.kisanseva.ai.data.remote.WeatherApi
+import com.kisanseva.ai.domain.error.DataError
 import com.kisanseva.ai.domain.model.CurrentWeatherResponse
 import com.kisanseva.ai.domain.model.ForecastResponse
 import com.kisanseva.ai.domain.model.GeocodingResponse
 import com.kisanseva.ai.domain.repository.WeatherRepository
+import com.kisanseva.ai.domain.state.Result
 import javax.inject.Inject
 
 class WeatherRepositoryImpl @Inject constructor(
@@ -26,42 +28,63 @@ class WeatherRepositoryImpl @Inject constructor(
     private val weatherCacheDuration = 3600 * 1000 // 1 hour
     private val geocodingCacheDuration = 24 * 3600 * 1000 // 24 hours
 
-    override suspend fun getCurrentWeather(lat: Double, lon: Double): CurrentWeatherResponse {
+    override suspend fun getCurrentWeather(lat: Double, lon: Double): Result<CurrentWeatherResponse, DataError.Network> {
         val cacheId = "$lat,$lon"
         val cached = currentWeatherCacheDao.get(cacheId)
 
         if (cached != null && (System.currentTimeMillis() - cached.timestamp < weatherCacheDuration)) {
-            return fromCurrentWeatherCacheEntity(cached)
+            return Result.Success(fromCurrentWeatherCacheEntity(cached))
         }
 
-        val remoteData = weatherApi.getCurrentWeather(lat, lon)
-        currentWeatherCacheDao.insert(toCurrentWeatherCacheEntity(remoteData, lat, lon))
-        return remoteData
+        return when (val result = weatherApi.getCurrentWeather(lat, lon)) {
+            is Result.Error -> {
+                if (cached != null) Result.Success(fromCurrentWeatherCacheEntity(cached))
+                else Result.Error(result.error)
+            }
+            is Result.Success -> {
+                currentWeatherCacheDao.insert(toCurrentWeatherCacheEntity(result.data, lat, lon))
+                Result.Success(result.data)
+            }
+        }
     }
 
-    override suspend fun getWeatherForecast(lat: Double, lon: Double): ForecastResponse {
+    override suspend fun getWeatherForecast(lat: Double, lon: Double): Result<ForecastResponse, DataError.Network> {
         val cacheId = "$lat,$lon"
         val cached = forecastCacheDao.get(cacheId)
 
         if (cached != null && (System.currentTimeMillis() - cached.timestamp < weatherCacheDuration)) {
-            return fromForecastCacheEntity(cached)
+            return Result.Success(fromForecastCacheEntity(cached))
         }
 
-        val remoteData = weatherApi.getWeatherForecast(lat, lon)
-        forecastCacheDao.insert(toForecastCacheEntity(remoteData, lat, lon))
-        return remoteData
+        return when (val result = weatherApi.getWeatherForecast(lat, lon)) {
+            is Result.Error -> {
+                if (cached != null) Result.Success(fromForecastCacheEntity(cached))
+                else Result.Error(result.error)
+            }
+            is Result.Success -> {
+                forecastCacheDao.insert(toForecastCacheEntity(result.data, lat, lon))
+                Result.Success(result.data)
+            }
+        }
     }
 
-    override suspend fun getReverseGeocoding(lat: Double, lon: Double): List<GeocodingResponse> {
+    override suspend fun getReverseGeocoding(lat: Double, lon: Double): Result<List<GeocodingResponse>, DataError.Network> {
         val cacheId = "$lat,$lon"
         val cached = reverseGeocodingCacheDao.get(cacheId)
 
         if (cached != null && (System.currentTimeMillis() - cached.timestamp < geocodingCacheDuration)) {
-            return fromReverseGeocodingCacheEntity(cached)
+            return Result.Success(fromReverseGeocodingCacheEntity(cached))
         }
 
-        val remoteData = weatherApi.getReverseGeocoding(lat, lon)
-        reverseGeocodingCacheDao.insert(toReverseGeocodingCacheEntity(remoteData, lat, lon))
-        return remoteData
+        return when (val result = weatherApi.getReverseGeocoding(lat, lon)) {
+            is Result.Error -> {
+                if (cached != null) Result.Success(fromReverseGeocodingCacheEntity(cached))
+                else Result.Error(result.error)
+            }
+            is Result.Success -> {
+                reverseGeocodingCacheDao.insert(toReverseGeocodingCacheEntity(result.data, lat, lon))
+                Result.Success(result.data)
+            }
+        }
     }
 }

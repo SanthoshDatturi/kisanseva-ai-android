@@ -1,5 +1,6 @@
 package com.kisanseva.ai.ui.presentation.main.cultivatingCrop.interCroppingDetails
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,18 +19,21 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kisanseva.ai.R
 import com.kisanseva.ai.ui.presentation.main.farm.cropRecommendation.cropDetails.BenefitsCard
 import com.kisanseva.ai.ui.presentation.main.farm.cropRecommendation.cropDetails.InterCropArrangementCard
 import com.kisanseva.ai.ui.presentation.main.farm.cropRecommendation.cropDetails.InterCropSummaryCard
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,7 +41,14 @@ fun InterCroppingDetailsScreen(
     viewModel: IntercroppingDetailsViewModel = hiltViewModel(),
     onBackClick: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    LaunchedEffect(true) {
+        viewModel.errorChannel.collectLatest { error ->
+            Toast.makeText(context, error.asString(context), Toast.LENGTH_LONG).show()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -58,47 +69,36 @@ fun InterCroppingDetailsScreen(
         }
     ) { paddingValues ->
 
-        when {
-            uiState.isRefreshing && uiState.intercroppingDetails == null -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
+        if (uiState.isRefreshing && uiState.intercroppingDetails == null) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
-            uiState.error != null && uiState.intercroppingDetails == null -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = uiState.error!!,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-            uiState.intercroppingDetails != null -> {
-                uiState.intercroppingDetails?.let { details ->
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(24.dp)
-                    ) {
-                        item {
-                            InterCropSummaryCard(
-                                intercropType = details.intercropType,
-                                noOfCrops = details.noOfCrops
-                            )
-                        }
+        } else {
+            uiState.intercroppingDetails?.let { details ->
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+                    item {
+                        InterCropSummaryCard(
+                            intercropType = details.intercropType,
+                            noOfCrops = details.noOfCrops
+                        )
+                    }
 
-                        item {
-                            InterCropArrangementCard(
-                                arrangement = details.arrangement,
-                                specificArrangements = details.specificArrangement
-                            )
-                        }
+                    item {
+                        InterCropArrangementCard(
+                            arrangement = details.arrangement,
+                            specificArrangements = details.specificArrangement
+                        )
+                    }
 
-                        if (details.benefits.isNotEmpty()) {
-                            item {
-                                BenefitsCard(benefits = details.benefits)
-                            }
+                    if (details.benefits.isNotEmpty()) {
+                        item {
+                            BenefitsCard(benefits = details.benefits)
                         }
                     }
                 }

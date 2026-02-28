@@ -6,8 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.kisanseva.ai.domain.model.PesticideRecommendationResponse
 import com.kisanseva.ai.domain.model.PesticideStage
 import com.kisanseva.ai.domain.repository.PesticideRecommendationRepository
+import com.kisanseva.ai.domain.state.Result
+import com.kisanseva.ai.ui.presentation.UiText
+import com.kisanseva.ai.ui.presentation.asUiText
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
@@ -20,7 +25,6 @@ import javax.inject.Inject
 data class PesticideRecommendationUiState(
     val isRefreshing: Boolean = false,
     val recommendation: PesticideRecommendationResponse? = null,
-    val error: String? = null,
     val isUpdating: Boolean = false
 )
 
@@ -35,6 +39,9 @@ class PesticideRecommendationViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(PesticideRecommendationUiState())
     val uiState = _uiState.asStateFlow()
 
+    private val _errorChannel = MutableSharedFlow<UiText>()
+    val errorChannel = _errorChannel.asSharedFlow()
+
     init {
         observeRecommendation()
         refreshRecommendation()
@@ -44,7 +51,7 @@ class PesticideRecommendationViewModel @Inject constructor(
         viewModelScope.launch {
             repository.getRecommendationById(recommendationId)
                 .catch { e ->
-                    _uiState.update { it.copy(error = e.localizedMessage) }
+                    _errorChannel.emit(UiText.DynamicString(e.localizedMessage ?: "An unknown error occurred"))
                 }
                 .collectLatest { response ->
                     _uiState.update { it.copy(recommendation = response) }
@@ -54,33 +61,32 @@ class PesticideRecommendationViewModel @Inject constructor(
 
     fun refreshRecommendation() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isRefreshing = true, error = null) }
-            try {
-                repository.refreshRecommendationById(recommendationId)
-            } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.localizedMessage) }
-            } finally {
-                _uiState.update { it.copy(isRefreshing = false) }
+            _uiState.update { it.copy(isRefreshing = true) }
+            when (val result = repository.refreshRecommendationById(recommendationId)) {
+                is Result.Error -> {
+                    _errorChannel.emit(result.error.asUiText())
+                }
+                is Result.Success -> Unit
             }
+            _uiState.update { it.copy(isRefreshing = false) }
         }
     }
 
     fun updateStage(pesticideId: String, stage: PesticideStage, appliedDate: String? = null) {
         viewModelScope.launch {
             _uiState.update { it.copy(isUpdating = true) }
-            try {
-                repository.updatePesticideStage(
-                    recommendationId = recommendationId,
-                    pesticideId = pesticideId,
-                    stage = stage,
-                    appliedDate = appliedDate
-                )
-                // Local cache will be updated by repository, and Flow will emit new value
-            } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.localizedMessage) }
-            } finally {
-                _uiState.update { it.copy(isUpdating = false) }
+            when (val result = repository.updatePesticideStage(
+                recommendationId = recommendationId,
+                pesticideId = pesticideId,
+                stage = stage,
+                appliedDate = appliedDate
+            )) {
+                is Result.Error -> {
+                    _errorChannel.emit(result.error.asUiText())
+                }
+                is Result.Success -> Unit
             }
+            _uiState.update { it.copy(isUpdating = false) }
         }
     }
 

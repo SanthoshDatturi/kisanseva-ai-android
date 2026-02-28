@@ -35,16 +35,46 @@ fun DataError.asUiText(): UiText {
             R.string.unknown_error
         )
 
+        DataError.Network.NOT_FOUND -> UiText.StringResource(
+            R.string.unknown_error
+        )
+
+        DataError.Network.UNAUTHORIZED -> UiText.StringResource(
+            R.string.unknown_error
+        )
+
+        DataError.Network.FORBIDDEN -> UiText.StringResource(
+            R.string.unknown_error
+        )
+
+        DataError.Network.CONFLICT -> UiText.StringResource(
+            R.string.unknown_error
+        )
+
+        DataError.Network.USER_NOT_FOUND -> UiText.StringResource(
+            R.string.user_not_found
+        )
+
+        DataError.Network.INVALID_OTP -> UiText.StringResource(
+            R.string.invalid_otp
+        )
+
+        DataError.Network.USER_ALREADY_EXISTS -> UiText.StringResource(
+            R.string.user_already_exists
+        )
+
         DataError.Local.DISK_FULL -> UiText.StringResource(
             R.string.error_disk_full
         )
 
-        else -> {
-            UiText.StringResource(
-                R.string.unknown_error
-            )
-        }
-    } as UiText
+        DataError.Local.PERMISSION_DENIED -> UiText.StringResource(
+            R.string.unknown_error
+        )
+
+        DataError.Local.UNKNOWN -> UiText.StringResource(
+            R.string.unknown_error
+        )
+    }
 }
 
 fun Result.Error<*, DataError>.asErrorUiText(): UiText {

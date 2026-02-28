@@ -11,10 +11,15 @@ sealed interface DataError: RootError {
         UNKNOWN,
         NOT_FOUND,
         UNAUTHORIZED,
-        FORBIDDEN
+        FORBIDDEN,
+        CONFLICT,
+        USER_NOT_FOUND,
+        INVALID_OTP,
+        USER_ALREADY_EXISTS
     }
     enum class Local: DataError {
         DISK_FULL,
-        PERMISSION_DENIED
+        PERMISSION_DENIED,
+        UNKNOWN
     }
 }

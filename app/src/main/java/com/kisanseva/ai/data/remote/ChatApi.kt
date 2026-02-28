@@ -1,9 +1,10 @@
 package com.kisanseva.ai.data.remote
 
+import com.kisanseva.ai.domain.error.DataError
 import com.kisanseva.ai.domain.model.ChatSession
 import com.kisanseva.ai.domain.model.CreateChatRequest
 import com.kisanseva.ai.domain.model.Message
-import com.kisanseva.ai.exception.ApiException
+import com.kisanseva.ai.domain.state.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
@@ -13,6 +14,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.IOException
 
 class ChatApi(
     private val client: OkHttpClient,
@@ -21,56 +23,69 @@ class ChatApi(
 ) {
     private val chatUrl = "$baseUrl/chats"
 
-    suspend fun createChatSession(request: CreateChatRequest): ChatSession =
+    suspend fun createChatSession(request: CreateChatRequest): Result<ChatSession, DataError.Network> =
         withContext(Dispatchers.IO) {
-            val httpRequest = Request.Builder()
-                .url(chatUrl)
-                .post(json.encodeToString(CreateChatRequest.serializer(), request).toRequestBody("application/json".toMediaType()))
-                .build()
-            client.newCall(httpRequest).execute().use { response ->
-                if (!response.isSuccessful) {
-                    throw ApiException(response.code, response.message)
+            try {
+                val httpRequest = Request.Builder()
+                    .url(chatUrl)
+                    .post(json.encodeToString(CreateChatRequest.serializer(), request).toRequestBody("application/json".toMediaType()))
+                    .build()
+                client.newCall(httpRequest).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        return@withContext Result.Error(response.code.toNetworkError())
+                    }
+                    val responseBody = response.body.string()
+                    Result.Success(json.decodeFromString(ChatSession.serializer(), responseBody))
                 }
-                val responseBody = response.body.string()
-                return@withContext json.decodeFromString(ChatSession.serializer(), responseBody)
+            } catch (_: IOException) {
+                Result.Error(DataError.Network.NO_INTERNET)
+            } catch (_: Exception) {
+                Result.Error(DataError.Network.UNKNOWN)
             }
         }
 
-    suspend fun getChatSessions(timestamp: Double? = null): List<ChatSession> =
+    suspend fun getChatSessions(timestamp: Double? = null): Result<List<ChatSession>, DataError.Network> =
         withContext(Dispatchers.IO) {
-            val urlBuilder = "$chatUrl/".toHttpUrl().newBuilder()
-            
-            timestamp?.let { urlBuilder.addQueryParameter("timestamp", it.toString()) }
-            
-            val httpRequest = Request.Builder()
-                .url(urlBuilder.build())
-                .get()
-                .build()
-            client.newCall(httpRequest).execute().use { response ->
-                if (!response.isSuccessful) {
-                    throw ApiException(response.code, response.message)
+            try {
+                val urlBuilder = "$chatUrl/".toHttpUrl().newBuilder()
+                timestamp?.let { urlBuilder.addQueryParameter("timestamp", it.toString()) }
+                val httpRequest = Request.Builder()
+                    .url(urlBuilder.build())
+                    .get()
+                    .build()
+                client.newCall(httpRequest).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        return@withContext Result.Error(response.code.toNetworkError())
+                    }
+                    val responseBody = response.body.string()
+                    Result.Success(json.decodeFromString(ListSerializer(ChatSession.serializer()), responseBody))
                 }
-                val responseBody = response.body.string()
-                return@withContext json.decodeFromString(
-                    ListSerializer(ChatSession.serializer()),
-                    responseBody
-                )
+            } catch (_: IOException) {
+                Result.Error(DataError.Network.NO_INTERNET)
+            } catch (_: Exception) {
+                Result.Error(DataError.Network.UNKNOWN)
             }
         }
 
-    suspend fun getChatSession(chatId: String): ChatSession =
+    suspend fun getChatSession(chatId: String): Result<ChatSession, DataError.Network> =
         withContext(Dispatchers.IO) {
-            val url = "$chatUrl/$chatId"
-            val httpRequest = Request.Builder()
-                .url(url)
-                .get()
-                .build()
-            client.newCall(httpRequest).execute().use { response ->
-                if (!response.isSuccessful) {
-                    throw ApiException(response.code, response.message)
+            try {
+                val url = "$chatUrl/$chatId"
+                val httpRequest = Request.Builder()
+                    .url(url)
+                    .get()
+                    .build()
+                client.newCall(httpRequest).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        return@withContext Result.Error(response.code.toNetworkError())
+                    }
+                    val responseBody = response.body.string()
+                    Result.Success(json.decodeFromString(ChatSession.serializer(), responseBody))
                 }
-                val responseBody = response.body.string()
-                return@withContext json.decodeFromString(ChatSession.serializer(), responseBody)
+            } catch (_: IOException) {
+                Result.Error(DataError.Network.NO_INTERNET)
+            } catch (_: Exception) {
+                Result.Error(DataError.Network.UNKNOWN)
             }
         }
 
@@ -78,41 +93,48 @@ class ChatApi(
         chatId: String,
         timestamp: Double? = null,
         limit: Int? = null
-    ): List<Message> =
+    ): Result<List<Message>, DataError.Network> =
         withContext(Dispatchers.IO) {
-            val urlBuilder = "$chatUrl/$chatId/messages".toHttpUrl().newBuilder()
-            
-            timestamp?.let { urlBuilder.addQueryParameter("timestamp", it.toString()) }
-            limit?.let { urlBuilder.addQueryParameter("limit", it.toString()) }
-            
-            val httpRequest = Request.Builder()
-                .url(urlBuilder.build())
-                .get()
-                .build()
-            client.newCall(httpRequest).execute().use { response ->
-                if (!response.isSuccessful) {
-                    throw ApiException(response.code, response.message)
+            try {
+                val urlBuilder = "$chatUrl/$chatId/messages".toHttpUrl().newBuilder()
+                timestamp?.let { urlBuilder.addQueryParameter("timestamp", it.toString()) }
+                limit?.let { urlBuilder.addQueryParameter("limit", it.toString()) }
+                val httpRequest = Request.Builder()
+                    .url(urlBuilder.build())
+                    .get()
+                    .build()
+                client.newCall(httpRequest).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        return@withContext Result.Error(response.code.toNetworkError())
+                    }
+                    val responseBody = response.body.string()
+                    Result.Success(json.decodeFromString(ListSerializer(Message.serializer()), responseBody))
                 }
-                val responseBody = response.body.string()
-                return@withContext json.decodeFromString(
-                    ListSerializer(Message.serializer()),
-                    responseBody
-                )
+            } catch (_: IOException) {
+                Result.Error(DataError.Network.NO_INTERNET)
+            } catch (_: Exception) {
+                Result.Error(DataError.Network.UNKNOWN)
             }
         }
 
-    suspend fun deleteChatSession(chatId: String) {
+    suspend fun deleteChatSession(chatId: String): Result<Unit, DataError.Network> =
         withContext(Dispatchers.IO) {
-            val url = "$chatUrl/$chatId"
-            val httpRequest = Request.Builder()
-                .url(url)
-                .delete()
-                .build()
-            client.newCall(httpRequest).execute().use { response ->
-                if (!response.isSuccessful) {
-                    throw ApiException(response.code, response.message)
+            try {
+                val url = "$chatUrl/$chatId"
+                val httpRequest = Request.Builder()
+                    .url(url)
+                    .delete()
+                    .build()
+                client.newCall(httpRequest).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        return@withContext Result.Error(response.code.toNetworkError())
+                    }
+                    Result.Success(Unit)
                 }
+            } catch (_: IOException) {
+                Result.Error(DataError.Network.NO_INTERNET)
+            } catch (_: Exception) {
+                Result.Error(DataError.Network.UNKNOWN)
             }
         }
-    }
 }

@@ -1,5 +1,6 @@
 package com.kisanseva.ai.ui.presentation.main.pesticides
 
+import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -51,7 +52,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,11 +59,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.kisanseva.ai.R
 import com.kisanseva.ai.domain.model.CultivatingCrop
@@ -82,12 +84,19 @@ fun PesticidesScreen(
     viewModel: PesticideViewModel = hiltViewModel(),
     onNavigateToPesticideRecommendation: (String) -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     val galleryLauncher = rememberGalleryLauncher(
         currentImageCount = uiState.imageParts.size,
         onImageSelected = viewModel::addImage
     )
+
+    LaunchedEffect(true) {
+        viewModel.errorChannel.collectLatest { error ->
+            Toast.makeText(context, error.asString(context), Toast.LENGTH_LONG).show()
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->

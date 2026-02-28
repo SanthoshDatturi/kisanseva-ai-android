@@ -56,7 +56,6 @@ import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -70,6 +69,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.google.android.gms.location.LocationServices
 import com.kisanseva.ai.R
@@ -94,7 +94,7 @@ fun ChatScreen(
     viewModel: ChatViewModel = hiltViewModel(),
     onNavigateToFarmProfile: (String) -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context: Context = LocalContext.current
 
     val galleryLauncher = rememberGalleryLauncher(
@@ -113,6 +113,12 @@ fun ChatScreen(
             viewModel.bottomSheetState(true)
         } else {
             Toast.makeText(context, context.getString(R.string.location_permission_denied), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(true) {
+        viewModel.errorChannel.collectLatest { error ->
+            Toast.makeText(context, error.asString(context), Toast.LENGTH_LONG).show()
         }
     }
 
@@ -193,14 +199,6 @@ fun ChatScreen(
         ) {
             if (uiState.isRefreshing && uiState.messages.isEmpty()) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-            }
-
-            uiState.error?.let { error ->
-                Text(
-                    text = error,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
             }
 
             LazyColumn(

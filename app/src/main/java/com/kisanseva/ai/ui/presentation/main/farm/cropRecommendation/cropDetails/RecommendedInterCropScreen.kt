@@ -1,5 +1,6 @@
 package com.kisanseva.ai.ui.presentation.main.farm.cropRecommendation.cropDetails
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -10,7 +11,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,13 +23,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,10 +38,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kisanseva.ai.R
 import com.kisanseva.ai.domain.model.InterCropRecommendation
 import kotlinx.coroutines.flow.collectLatest
@@ -55,7 +55,8 @@ fun RecommendedInterCropScreen(
     onNavigateToInterCroppingDetails: (String) -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     val listState = rememberLazyListState()
 
     var isBottomBarVisible by remember { mutableStateOf(true) }
@@ -71,6 +72,12 @@ fun RecommendedInterCropScreen(
                 }
                 return Offset.Zero
             }
+        }
+    }
+
+    LaunchedEffect(true) {
+        viewModel.errorChannel.collectLatest { error ->
+            Toast.makeText(context, error.asString(context), Toast.LENGTH_LONG).show()
         }
     }
 
@@ -101,34 +108,29 @@ fun RecommendedInterCropScreen(
         }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            when {
-                uiState.isRefreshing && uiState.interCrop == null -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
+            if (uiState.isRefreshing && uiState.interCrop == null) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
-                uiState.error != null && uiState.interCrop == null -> {
-                    Text(uiState.error!!, color = MaterialTheme.colorScheme.error, modifier = Modifier.align(Alignment.Center))
+            } else if (uiState.interCrop != null) {
+                uiState.interCrop?.let { interCrop ->
+                    InterCropContent(interCrop = interCrop, listState = listState)
                 }
-                uiState.interCrop != null -> {
-                    uiState.interCrop?.let { interCrop ->
-                        InterCropContent(interCrop = interCrop, listState = listState)
-                    }
-                    AnimatedVisibility(
-                        visible = isBottomBarVisible,
-                        enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
-                        exit = fadeOut() + slideOutVertically(targetOffsetY = { it }),
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(horizontal = 20.dp, vertical = 0.dp)
-                            .navigationBarsPadding()
-                    ) {
-                        CropSelectionButton {
-                            viewModel.selectCropForCultivation()
-                        }
+                AnimatedVisibility(
+                    visible = isBottomBarVisible,
+                    enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it }),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(horizontal = 20.dp, vertical = 0.dp)
+                        .navigationBarsPadding()
+                ) {
+                    CropSelectionButton {
+                        viewModel.selectCropForCultivation()
                     }
                 }
             }
+
             if (uiState.isSelectingCrop) {
                 SelectingCropLoadingIndicator()
             }

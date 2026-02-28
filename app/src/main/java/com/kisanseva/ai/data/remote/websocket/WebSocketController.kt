@@ -3,6 +3,8 @@ package com.kisanseva.ai.data.remote.websocket
 import android.util.Log
 import com.kisanseva.ai.BuildConfig
 import com.kisanseva.ai.data.local.DataStoreManager
+import com.kisanseva.ai.data.remote.toNetworkError
+import com.kisanseva.ai.domain.error.DataError
 import com.kisanseva.ai.domain.model.CropRecommendationResponse
 import com.kisanseva.ai.domain.model.PesticideRecommendationResponse
 import com.kisanseva.ai.domain.model.websocketModels.BaseWebSocketRequest
@@ -12,7 +14,6 @@ import com.kisanseva.ai.domain.model.websocketModels.FarmSurveyAgentResponse
 import com.kisanseva.ai.domain.model.websocketModels.GeneralChatResponse
 import com.kisanseva.ai.domain.model.websocketModels.TextToSpeechUrlResponseData
 import com.kisanseva.ai.domain.model.websocketModels.WebSocketError
-import com.kisanseva.ai.exception.ApiException
 import com.kisanseva.ai.util.ConnectivityObserver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -66,8 +67,8 @@ class WebSocketController @Inject constructor(
     private val _messages = MutableSharedFlow<BaseWebSocketResponse<*>>(replay = 1)
     val messages: Flow<BaseWebSocketResponse<*>> = _messages
 
-    private val _errors = MutableSharedFlow<ApiException>()
-    val errors: Flow<ApiException> = _errors
+    private val _errors = MutableSharedFlow<DataError.Network>()
+    val errors: Flow<DataError.Network> = _errors
 
     init {
         scope.launch {
@@ -103,7 +104,7 @@ class WebSocketController @Inject constructor(
                         val rawResponse = json.decodeFromString<RawBaseWebSocketResponse>(text)
 
                         if (rawResponse.error != null) {
-                            _errors.emit(ApiException(rawResponse.error.statusCode, rawResponse.error.message))
+                            _errors.emit(rawResponse.error.statusCode.toNetworkError())
                             return@launch
                         }
 
@@ -144,7 +145,7 @@ class WebSocketController @Inject constructor(
 
                     } catch (e: Exception) {
                         Log.e(TAG, "Error parsing message", e)
-                        _errors.emit(ApiException(500, e.message ?: "Error parsing message"))
+                        _errors.emit(DataError.Network.SERIALIZATION)
                     }
                 }
             }
@@ -168,7 +169,7 @@ class WebSocketController @Inject constructor(
                 isConnecting = false
                 Log.e(TAG, "Error: ${t.message}", t)
                 scope.launch {
-                    _errors.emit(ApiException(response?.code ?: 500, t.message ?: "WebSocket failure"))
+                    _errors.emit(response?.code?.toNetworkError() ?: DataError.Network.UNKNOWN)
                 }
                 reconnect()
             }
@@ -182,7 +183,7 @@ class WebSocketController @Inject constructor(
             val token = dataStoreManager.token.first()
             if (token == null) {
                 isConnecting = false
-                _errors.emit(ApiException(401, "Not authenticated"))
+                _errors.emit(DataError.Network.UNAUTHORIZED)
                 return@launch
             }
             val request = Request.Builder()
@@ -209,7 +210,10 @@ class WebSocketController @Inject constructor(
 
     fun sendJsonMessage(jsonMessage: String) {
         if (webSocket == null) {
-            throw ApiException(503, "WebSocket not connected")
+            scope.launch {
+                _errors.emit(DataError.Network.NO_INTERNET)
+            }
+            return
         }
         Log.d(TAG, "Sending: $jsonMessage")
         webSocket?.send(jsonMessage)

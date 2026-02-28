@@ -1,11 +1,26 @@
 package com.kisanseva.ai.ui.presentation.auth
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -18,6 +33,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kisanseva.ai.R
 import com.kisanseva.ai.ui.components.LoadingButton
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun LoginScreen(onNavigateToSignUpScreen: () -> Unit, onNavigateToOTPScreen: (String) -> Unit) {
@@ -25,26 +41,24 @@ fun LoginScreen(onNavigateToSignUpScreen: () -> Unit, onNavigateToOTPScreen: (St
     val viewModel: AuthViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(true) {
+        viewModel.errorChannel.collectLatest { error ->
+            Toast.makeText(context, error.asString(context), Toast.LENGTH_LONG).show()
+        }
+    }
 
     LaunchedEffect(uiState) {
-        when (val state = uiState) {
+        when (uiState) {
             is AuthUIState.OTPSent -> {
                 onNavigateToOTPScreen(phone)
-                viewModel.resetState()
-            }
-            is AuthUIState.Error -> {
-                val message = context.getString(mapErrorCodeToStringResource(state.code))
-                snackbarHostState.showSnackbar(message)
                 viewModel.resetState()
             }
             else -> Unit
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { innerPadding ->
+    Scaffold { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()

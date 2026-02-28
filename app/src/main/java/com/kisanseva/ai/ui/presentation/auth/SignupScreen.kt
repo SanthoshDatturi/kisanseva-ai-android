@@ -19,6 +19,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kisanseva.ai.R
 import com.kisanseva.ai.ui.components.LoadingButton
 import com.kisanseva.ai.ui.presentation.language.composable.languageOptions
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun SignupScreen(onNavigateToLoginScreen: () -> Unit, onNavigateToOTPScreen: (String) -> Unit) {
@@ -28,26 +29,24 @@ fun SignupScreen(onNavigateToLoginScreen: () -> Unit, onNavigateToOTPScreen: (St
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val language by viewModel.language.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(true) {
+        viewModel.errorChannel.collectLatest { error ->
+            Toast.makeText(context, error.asString(context), Toast.LENGTH_LONG).show()
+        }
+    }
 
     LaunchedEffect(uiState) {
-        when (val state = uiState) {
+        when (uiState) {
             is AuthUIState.OTPSent -> {
                 onNavigateToOTPScreen(phone)
-                viewModel.resetState()
-            }
-            is AuthUIState.Error -> {
-                val message = context.getString(mapErrorCodeToStringResource(state.code))
-                snackbarHostState.showSnackbar(message)
                 viewModel.resetState()
             }
             else -> Unit
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { innerPadding ->
+    Scaffold { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -104,7 +103,7 @@ fun SignupScreen(onNavigateToLoginScreen: () -> Unit, onNavigateToOTPScreen: (St
                     viewModel.sendOtp(
                         phone = phone,
                         name = name,
-                        language = languageOptions.filter { it.code == language }[0].displayName
+                        language = languageOptions.find { it.code == language }?.displayName ?: "English"
                     )
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp)

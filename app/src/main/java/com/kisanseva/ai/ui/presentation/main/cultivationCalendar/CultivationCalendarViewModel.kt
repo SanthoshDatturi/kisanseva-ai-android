@@ -5,8 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kisanseva.ai.domain.model.CultivationCalendar
 import com.kisanseva.ai.domain.repository.CultivatingCalendarRepository
+import com.kisanseva.ai.domain.state.Result
+import com.kisanseva.ai.ui.presentation.UiText
+import com.kisanseva.ai.ui.presentation.asUiText
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
@@ -16,8 +21,7 @@ import javax.inject.Inject
 
 data class CultivationCalendarUiState(
     val calendar: CultivationCalendar? = null,
-    val isRefreshing: Boolean = false,
-    val error: String? = null
+    val isRefreshing: Boolean = false
 )
 
 @HiltViewModel
@@ -28,6 +32,9 @@ class CultivationCalendarViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(CultivationCalendarUiState())
     val uiState = _uiState.asStateFlow()
+
+    private val _errorChannel = MutableSharedFlow<UiText>()
+    val errorChannel = _errorChannel.asSharedFlow()
 
     private val cropId: String? = savedStateHandle.get<String>("cropId")
     private val calendarId: String? = savedStateHandle.get<String>("calendarId")
@@ -45,7 +52,7 @@ class CultivationCalendarViewModel @Inject constructor(
                 else -> return@launch
             }
             flow.catch { e ->
-                _uiState.update { it.copy(error = e.localizedMessage ?: "An error occurred") }
+                _errorChannel.emit(UiText.DynamicString(e.localizedMessage ?: "An error occurred"))
             }.collectLatest { calendar ->
                 _uiState.update { it.copy(calendar = calendar) }
             }
@@ -54,22 +61,21 @@ class CultivationCalendarViewModel @Inject constructor(
 
     fun refreshCalendar() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isRefreshing = true, error = null) }
-            try {
-                when {
-                    calendarId != null -> repository.refreshCalendarById(calendarId)
-                    cropId != null -> repository.refreshCalendarByCropId(cropId)
-                    else -> throw IllegalArgumentException("Neither cropId nor calendarId provided")
+            _uiState.update { it.copy(isRefreshing = true) }
+            val result = when {
+                calendarId != null -> repository.refreshCalendarById(calendarId)
+                cropId != null -> repository.refreshCalendarByCropId(cropId)
+                else -> {
+                    _errorChannel.emit(UiText.DynamicString("Neither cropId nor calendarId provided"))
+                    null
                 }
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        error = e.localizedMessage ?: "An unknown error occurred"
-                    )
-                }
-            } finally {
-                _uiState.update { it.copy(isRefreshing = false) }
             }
+            
+            if (result is Result.Error) {
+                _errorChannel.emit(result.error.asUiText())
+            }
+            
+            _uiState.update { it.copy(isRefreshing = false) }
         }
     }
 }

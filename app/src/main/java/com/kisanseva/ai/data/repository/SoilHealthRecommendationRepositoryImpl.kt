@@ -3,8 +3,10 @@ package com.kisanseva.ai.data.repository
 import com.kisanseva.ai.data.local.dao.SoilHealthRecommendationDao
 import com.kisanseva.ai.data.local.entity.SoilHealthRecommendationEntity
 import com.kisanseva.ai.data.remote.SoilHealthRecommendationApi
+import com.kisanseva.ai.domain.error.DataError
 import com.kisanseva.ai.domain.model.SoilHealthRecommendations
 import com.kisanseva.ai.domain.repository.SoilHealthRecommendationRepository
+import com.kisanseva.ai.domain.state.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -21,19 +23,34 @@ class SoilHealthRecommendationRepositoryImpl(
         return dao.getRecommendationsByCropId(cropId).map { list -> list.map { entityToDomain(it) } }
     }
 
-    override suspend fun refreshRecommendationById(id: String) {
-        val remote = api.getRecommendationById(id)
-        dao.insertRecommendation(domainToEntity(remote))
+    override suspend fun refreshRecommendationById(id: String): Result<Unit, DataError.Network> {
+        return when (val result = api.getRecommendationById(id)) {
+            is Result.Error -> Result.Error<Unit, DataError.Network>(result.error)
+            is Result.Success -> {
+                dao.insertRecommendation(domainToEntity(result.data))
+                Result.Success<Unit, DataError.Network>(Unit)
+            }
+        }
     }
 
-    override suspend fun refreshRecommendationsByCropId(cropId: String) {
-        val remote = api.getRecommendationsByCropId(cropId)
-        remote.forEach { dao.insertRecommendation(domainToEntity(it)) }
+    override suspend fun refreshRecommendationsByCropId(cropId: String): Result<Unit, DataError.Network> {
+        return when (val result = api.getRecommendationsByCropId(cropId)) {
+            is Result.Error -> Result.Error<Unit, DataError.Network>(result.error)
+            is Result.Success -> {
+                result.data.forEach { dao.insertRecommendation(domainToEntity(it)) }
+                Result.Success<Unit, DataError.Network>(Unit)
+            }
+        }
     }
 
-    override suspend fun deleteRecommendation(id: String) {
-        api.deleteRecommendation(id)
-        dao.deleteRecommendationById(id)
+    override suspend fun deleteRecommendation(id: String): Result<Unit, DataError.Network> {
+        return when (val result = api.deleteRecommendation(id)) {
+            is Result.Error -> Result.Error<Unit, DataError.Network>(result.error)
+            is Result.Success -> {
+                dao.deleteRecommendationById(id)
+                Result.Success<Unit, DataError.Network>(Unit)
+            }
+        }
     }
 
     private fun domainToEntity(domain: SoilHealthRecommendations): SoilHealthRecommendationEntity {

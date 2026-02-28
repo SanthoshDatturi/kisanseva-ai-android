@@ -3,8 +3,10 @@ package com.kisanseva.ai.data.repository
 import com.kisanseva.ai.data.local.dao.CultivatingCalendarDao
 import com.kisanseva.ai.data.local.entity.CultivatingCalendarEntity
 import com.kisanseva.ai.data.remote.CultivatingCalendarApi
+import com.kisanseva.ai.domain.error.DataError
 import com.kisanseva.ai.domain.model.CultivationCalendar
 import com.kisanseva.ai.domain.repository.CultivatingCalendarRepository
+import com.kisanseva.ai.domain.state.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -25,19 +27,34 @@ class CultivatingCalendarRepositoryImpl(
         }
     }
 
-    override suspend fun refreshCalendarById(calendarId: String) {
-        val remoteCalendar = calendarApi.getCalendarById(calendarId)
-        calendarDao.insertCalendar(domainToEntity(remoteCalendar))
+    override suspend fun refreshCalendarById(calendarId: String): Result<Unit, DataError.Network> {
+        return when (val result = calendarApi.getCalendarById(calendarId)) {
+            is Result.Error -> Result.Error<Unit, DataError.Network>(result.error)
+            is Result.Success -> {
+                calendarDao.insertCalendar(domainToEntity(result.data))
+                Result.Success<Unit, DataError.Network>(Unit)
+            }
+        }
     }
 
-    override suspend fun refreshCalendarByCropId(cropId: String) {
-        val remoteCalendar = calendarApi.getCalendarByCropId(cropId)
-        calendarDao.insertCalendar(domainToEntity(remoteCalendar))
+    override suspend fun refreshCalendarByCropId(cropId: String): Result<Unit, DataError.Network> {
+        return when (val result = calendarApi.getCalendarByCropId(cropId)) {
+            is Result.Error -> Result.Error<Unit, DataError.Network>(result.error)
+            is Result.Success -> {
+                calendarDao.insertCalendar(domainToEntity(result.data))
+                Result.Success<Unit, DataError.Network>(Unit)
+            }
+        }
     }
 
-    override suspend fun deleteCalendar(calendarId: String) {
-        calendarApi.deleteCalendar(calendarId)
-        calendarDao.deleteCalendarById(calendarId)
+    override suspend fun deleteCalendar(calendarId: String): Result<Unit, DataError.Network> {
+        return when (val result = calendarApi.deleteCalendar(calendarId)) {
+            is Result.Error -> Result.Error<Unit, DataError.Network>(result.error)
+            is Result.Success -> {
+                calendarDao.deleteCalendarById(calendarId)
+                Result.Success<Unit, DataError.Network>(Unit)
+            }
+        }
     }
 
     private fun domainToEntity(calendar: CultivationCalendar): CultivatingCalendarEntity {

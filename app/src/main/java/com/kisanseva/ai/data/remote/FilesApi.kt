@@ -1,9 +1,11 @@
 package com.kisanseva.ai.data.remote
 
+import com.kisanseva.ai.domain.error.DataError
 import com.kisanseva.ai.domain.model.FileDeleteRequest
 import com.kisanseva.ai.domain.model.FileUploadResponse
 import com.kisanseva.ai.domain.model.FileType
 import com.kisanseva.ai.domain.model.TextToSpeechRequest
+import com.kisanseva.ai.domain.state.Result
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
@@ -25,65 +27,84 @@ class FilesApi(
         fileType: FileType,
         mimeType: String,
         pathPrefix: String
-    ): FileUploadResponse {
-        val requestBodyBuilder = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart(
-                "file",
-                blobName,
-                fileStream.readBytes().toRequestBody(mimeType.toMediaType())
-            )
-            .addFormDataPart("blob_name", blobName)
-            .addFormDataPart("file_type", fileType.value)
-            .addFormDataPart("path_prefix", pathPrefix)
+    ): Result<FileUploadResponse, DataError.Network> {
+        return try {
+            val requestBodyBuilder = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart(
+                    "file",
+                    blobName,
+                    fileStream.readBytes().toRequestBody(mimeType.toMediaType())
+                )
+                .addFormDataPart("blob_name", blobName)
+                .addFormDataPart("file_type", fileType.value)
+                .addFormDataPart("path_prefix", pathPrefix)
 
-        val request = Request.Builder()
-            .url("$baseUrl/files/")
-            .post(requestBodyBuilder.build())
-            .build()
+            val request = Request.Builder()
+                .url("$baseUrl/files/")
+                .post(requestBodyBuilder.build())
+                .build()
 
-        val response = client.newCall(request).await()
-        if (!response.isSuccessful) {
-            throw IOException("Unexpected code $response")
+            val response = client.newCall(request).await()
+            if (!response.isSuccessful) {
+                return Result.Error(response.code.toNetworkError())
+            }
+            val responseBody = response.body.string()
+            Result.Success(json.decodeFromString(FileUploadResponse.serializer(), responseBody))
+        } catch (_: IOException) {
+            Result.Error(DataError.Network.NO_INTERNET)
+        } catch (_: Exception) {
+            Result.Error(DataError.Network.UNKNOWN)
         }
-        val responseBody = response.body.string()
-        return json.decodeFromString(FileUploadResponse.serializer(), responseBody)
     }
 
     suspend fun textToSpeech(
         request: TextToSpeechRequest
-    ): FileUploadResponse {
-        val requestBody = json.encodeToString(TextToSpeechRequest.serializer(), request)
-            .toRequestBody("application/json".toMediaType())
+    ): Result<FileUploadResponse, DataError.Network> {
+        return try {
+            val requestBody = json.encodeToString(TextToSpeechRequest.serializer(), request)
+                .toRequestBody("application/json".toMediaType())
 
-        val httpRequest = Request.Builder()
-            .url("$baseUrl/files/text-to-speech")
-            .post(requestBody)
-            .build()
+            val httpRequest = Request.Builder()
+                .url("$baseUrl/files/text-to-speech")
+                .post(requestBody)
+                .build()
 
-        val response = client.newCall(httpRequest).await()
+            val response = client.newCall(httpRequest).await()
 
-        if (!response.isSuccessful) {
-            throw IOException("Unexpected code $response")
+            if (!response.isSuccessful) {
+                return Result.Error(response.code.toNetworkError())
+            }
+
+            val responseBody = response.body.string()
+            Result.Success(json.decodeFromString(FileUploadResponse.serializer(), responseBody))
+        } catch (_: IOException) {
+            Result.Error(DataError.Network.NO_INTERNET)
+        } catch (_: Exception) {
+            Result.Error(DataError.Network.UNKNOWN)
         }
-
-        val responseBody = response.body.string()
-        return json.decodeFromString(FileUploadResponse.serializer(), responseBody)
     }
 
-    suspend fun deleteFile(request: FileDeleteRequest) {
-        val requestBody = json.encodeToString(FileDeleteRequest.serializer(), request)
-            .toRequestBody("application/json".toMediaType())
+    suspend fun deleteFile(request: FileDeleteRequest): Result<Unit, DataError.Network> {
+        return try {
+            val requestBody = json.encodeToString(FileDeleteRequest.serializer(), request)
+                .toRequestBody("application/json".toMediaType())
 
-        val httpRequest = Request.Builder()
-            .url("$baseUrl/files/")
-            .delete(requestBody)
-            .build()
+            val httpRequest = Request.Builder()
+                .url("$baseUrl/files/")
+                .delete(requestBody)
+                .build()
 
-        val response = client.newCall(httpRequest).await()
+            val response = client.newCall(httpRequest).await()
 
-        if (!response.isSuccessful) {
-            throw IOException("Unexpected code $response")
+            if (!response.isSuccessful) {
+                return Result.Error(response.code.toNetworkError())
+            }
+            Result.Success(Unit)
+        } catch (_: IOException) {
+            Result.Error(DataError.Network.NO_INTERNET)
+        } catch (_: Exception) {
+            Result.Error(DataError.Network.UNKNOWN)
         }
     }
 }

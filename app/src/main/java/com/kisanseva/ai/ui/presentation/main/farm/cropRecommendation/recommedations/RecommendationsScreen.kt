@@ -1,5 +1,6 @@
 package com.kisanseva.ai.ui.presentation.main.farm.cropRecommendation.recommedations
 
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -7,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,7 +21,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,7 +35,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -47,10 +46,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -59,6 +58,7 @@ import com.kisanseva.ai.domain.model.InterCropRecommendation
 import com.kisanseva.ai.domain.model.MonoCrop
 import com.kisanseva.ai.ui.presentation.main.farm.cropRecommendation.cropDetails.RankDisplay
 import com.kisanseva.ai.util.UrlUtils
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @OptIn(
@@ -73,9 +73,16 @@ fun RecommendationsScreen(
     onInterCropClick: (String, String, String) -> Unit,
     onBackClick: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState(pageCount = { 2 })
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    LaunchedEffect(true) {
+        viewModel.errorChannel.collectLatest { error ->
+            Toast.makeText(context, error.asString(context), Toast.LENGTH_LONG).show()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -126,47 +133,30 @@ fun RecommendationsScreen(
                 )
             }
 
-            when {
-                uiState.isRefreshing && uiState.monoCrops.isEmpty() && uiState.interCrops.isEmpty() -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        LoadingIndicator(modifier = Modifier.size(60.dp))
-                    }
+            if (uiState.isRefreshing && uiState.monoCrops.isEmpty() && uiState.interCrops.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    LoadingIndicator(modifier = Modifier.size(60.dp))
                 }
-                uiState.error != null && uiState.monoCrops.isEmpty() && uiState.interCrops.isEmpty() -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
-                            Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.error)
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = uiState.error!!,
-                                color = MaterialTheme.colorScheme.error,
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.bodyLarge
+            } else {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) { page ->
+                    when (page) {
+                        0 -> MonoCropList(uiState.monoCrops) { cropId ->
+                            onMonoCropClick(
+                                cropId,
+                                uiState.farmId,
+                                uiState.cropRecommendationResponseId!!
                             )
                         }
-                    }
-                }
-                else -> {
-                    HorizontalPager(
-                        state = pagerState,
-                        modifier = Modifier
-                            .fillMaxSize()
-                    ) { page ->
-                        when (page) {
-                            0 -> MonoCropList(uiState.monoCrops) { cropId ->
-                                onMonoCropClick(
-                                    cropId,
-                                    uiState.farmId,
-                                    uiState.cropRecommendationResponseId!!
-                                )
-                            }
-                            1 -> InterCropList(uiState.interCrops) { cropId ->
-                                onInterCropClick(
-                                    cropId,
-                                    uiState.farmId,
-                                    uiState.cropRecommendationResponseId!!
-                                )
-                            }
+                        1 -> InterCropList(uiState.interCrops) { cropId ->
+                            onInterCropClick(
+                                cropId,
+                                uiState.farmId,
+                                uiState.cropRecommendationResponseId!!
+                            )
                         }
                     }
                 }

@@ -5,9 +5,11 @@ import com.kisanseva.ai.data.local.dao.InterCroppingDetailsDao
 import com.kisanseva.ai.data.local.entity.CultivatingCropEntity
 import com.kisanseva.ai.data.local.entity.InterCroppingDetailsEntity
 import com.kisanseva.ai.data.remote.CultivatingCropApi
+import com.kisanseva.ai.domain.error.DataError
 import com.kisanseva.ai.domain.model.CultivatingCrop
 import com.kisanseva.ai.domain.model.IntercroppingDetails
 import com.kisanseva.ai.domain.repository.CultivatingCropRepository
+import com.kisanseva.ai.domain.state.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -41,29 +43,54 @@ class CultivatingCropRepositoryImpl(
         }
     }
 
-    override suspend fun refreshCultivatingCropsByFarmId(farmId: String) {
-        val remoteCrops = cultivatingCropApi.getCultivatingCropsByFarmId(farmId)
-        remoteCrops.forEach { cultivatingCropDao.insertCultivatingCrop(cultivatingCropToEntity(it)) }
+    override suspend fun refreshCultivatingCropsByFarmId(farmId: String): Result<Unit, DataError.Network> {
+        return when (val result = cultivatingCropApi.getCultivatingCropsByFarmId(farmId)) {
+            is Result.Error -> Result.Error<Unit, DataError.Network>(result.error)
+            is Result.Success -> {
+                result.data.forEach { cultivatingCropDao.insertCultivatingCrop(cultivatingCropToEntity(it)) }
+                Result.Success<Unit, DataError.Network>(Unit)
+            }
+        }
     }
 
-    override suspend fun refreshAllCultivatingCrops() {
-        val remoteCrops = cultivatingCropApi.getAllCultivatingCrops()
-        remoteCrops.forEach { cultivatingCropDao.insertCultivatingCrop(cultivatingCropToEntity(it)) }
+    override suspend fun refreshAllCultivatingCrops(): Result<Unit, DataError.Network> {
+        return when (val result = cultivatingCropApi.getAllCultivatingCrops()) {
+            is Result.Error -> Result.Error<Unit, DataError.Network>(result.error)
+            is Result.Success -> {
+                result.data.forEach { cultivatingCropDao.insertCultivatingCrop(cultivatingCropToEntity(it)) }
+                Result.Success<Unit, DataError.Network>(Unit)
+            }
+        }
     }
 
-    override suspend fun refreshCultivatingCropById(cultivatingCropId: String) {
-        val remoteCrop = cultivatingCropApi.getCultivatingCropById(cultivatingCropId)
-        cultivatingCropDao.insertCultivatingCrop(cultivatingCropToEntity(remoteCrop))
+    override suspend fun refreshCultivatingCropById(cultivatingCropId: String): Result<Unit, DataError.Network> {
+        return when (val result = cultivatingCropApi.getCultivatingCropById(cultivatingCropId)) {
+            is Result.Error -> Result.Error<Unit, DataError.Network>(result.error)
+            is Result.Success -> {
+                cultivatingCropDao.insertCultivatingCrop(cultivatingCropToEntity(result.data))
+                Result.Success<Unit, DataError.Network>(Unit)
+            }
+        }
     }
 
-    override suspend fun refreshIntercroppingDetailsById(intercroppingDetailsId: String) {
-        val remoteDetails = cultivatingCropApi.getIntercroppingDetailsById(intercroppingDetailsId)
-        interCroppingDetailsDao.insertOrUpdate(interCroppingDetailsToEntity(remoteDetails))
+    override suspend fun refreshIntercroppingDetailsById(intercroppingDetailsId: String): Result<Unit, DataError.Network> {
+        return when (val result = cultivatingCropApi.getIntercroppingDetailsById(intercroppingDetailsId)) {
+            is Result.Error -> Result.Error<Unit, DataError.Network>(result.error)
+            is Result.Success -> {
+                interCroppingDetailsDao.insertOrUpdate(interCroppingDetailsToEntity(result.data))
+                Result.Success<Unit, DataError.Network>(Unit)
+            }
+        }
     }
 
-    override suspend fun deleteCultivatingCrop(cultivatingCropId: String) {
-        cultivatingCropApi.deleteCultivatingCrop(cultivatingCropId)
-        cultivatingCropDao.deleteCultivatingCropById(cultivatingCropId)
+    override suspend fun deleteCultivatingCrop(cultivatingCropId: String): Result<Unit, DataError.Network> {
+        return when (val result = cultivatingCropApi.deleteCultivatingCrop(cultivatingCropId)) {
+            is Result.Error -> Result.Error<Unit, DataError.Network>(result.error)
+            is Result.Success -> {
+                cultivatingCropDao.deleteCultivatingCropById(cultivatingCropId)
+                Result.Success<Unit, DataError.Network>(Unit)
+            }
+        }
     }
 
     override suspend fun saveCultivatingCrop(crop: CultivatingCrop) {

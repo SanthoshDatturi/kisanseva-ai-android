@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kisanseva.ai.data.local.DataStoreManager
 import com.kisanseva.ai.data.remote.websocket.WebSocketController
-import com.kisanseva.ai.exception.ApiException
+import com.kisanseva.ai.domain.error.DataError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,14 +26,13 @@ class AppViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val token = dataStoreManager.token.first() // Get the first emitted value
-            Log.d("Token", token ?: "Token is null")
+            val token = dataStoreManager.token.first()
             _isLoggedIn.value = token != null
         }
         observeWebSocketErrors()
     }
 
-    private val _webSocketError = MutableSharedFlow<ApiException>()
+    private val _webSocketError = MutableSharedFlow<DataError.Network>()
     val webSocketError = _webSocketError.asSharedFlow()
 
 

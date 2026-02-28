@@ -5,11 +5,13 @@ import com.kisanseva.ai.data.local.entity.PesticideRecommendationEntity
 import com.kisanseva.ai.data.remote.PesticideRecommendationApi
 import com.kisanseva.ai.data.remote.websocket.Actions
 import com.kisanseva.ai.data.remote.websocket.WebSocketController
+import com.kisanseva.ai.domain.error.DataError
 import com.kisanseva.ai.domain.model.PesticideRecommendationRequestData
 import com.kisanseva.ai.domain.model.PesticideRecommendationResponse
 import com.kisanseva.ai.domain.model.PesticideStage
 import com.kisanseva.ai.domain.model.PesticideStageUpdateRequest
 import com.kisanseva.ai.domain.repository.PesticideRecommendationRepository
+import com.kisanseva.ai.domain.state.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
@@ -31,19 +33,34 @@ class PesticideRecommendationRepositoryImpl(
         return dao.getRecommendationsByCropId(cropId).map { list -> list.map { mapToDomain(it) } }
     }
 
-    override suspend fun refreshRecommendationsByCropId(cropId: String) {
-        val remote = api.getRecommendationsByCropId(cropId)
-        remote.forEach { dao.insertRecommendation(mapToEntity(it)) }
+    override suspend fun refreshRecommendationsByCropId(cropId: String): Result<Unit, DataError.Network> {
+        return when (val result = api.getRecommendationsByCropId(cropId)) {
+            is Result.Error -> Result.Error<Unit, DataError.Network>(result.error)
+            is Result.Success -> {
+                result.data.forEach { dao.insertRecommendation(mapToEntity(it)) }
+                Result.Success<Unit, DataError.Network>(Unit)
+            }
+        }
     }
 
-    override suspend fun refreshRecommendationById(recommendationId: String) {
-        val remote = api.getRecommendationById(recommendationId)
-        dao.insertRecommendation(mapToEntity(remote))
+    override suspend fun refreshRecommendationById(recommendationId: String): Result<Unit, DataError.Network> {
+        return when (val result = api.getRecommendationById(recommendationId)) {
+            is Result.Error -> Result.Error<Unit, DataError.Network>(result.error)
+            is Result.Success -> {
+                dao.insertRecommendation(mapToEntity(result.data))
+                Result.Success<Unit, DataError.Network>(Unit)
+            }
+        }
     }
 
-    override suspend fun deleteRecommendation(recommendationId: String) {
-        api.deleteRecommendation(recommendationId)
-        dao.deleteRecommendation(recommendationId)
+    override suspend fun deleteRecommendation(recommendationId: String): Result<Unit, DataError.Network> {
+        return when (val result = api.deleteRecommendation(recommendationId)) {
+            is Result.Error -> Result.Error<Unit, DataError.Network>(result.error)
+            is Result.Success -> {
+                dao.deleteRecommendation(recommendationId)
+                Result.Success<Unit, DataError.Network>(Unit)
+            }
+        }
     }
 
     override suspend fun requestPesticideRecommendation(
@@ -77,23 +94,27 @@ class PesticideRecommendationRepositoryImpl(
         pesticideId: String,
         stage: PesticideStage,
         appliedDate: String?
-    ) {
-        api.updatePesticideStage(
+    ): Result<Unit, DataError.Network> {
+        return when (val result = api.updatePesticideStage(
             recommendationId,
             PesticideStageUpdateRequest(pesticideId, stage, appliedDate)
-        )
-        
-        // Update local cache
-        val local = dao.getRecommendationById(recommendationId).firstOrNull()
-        if (local != null) {
-            val updatedRecommendations = local.recommendations.map {
-                if (it.id == pesticideId) {
-                    it.copy(stage = stage, appliedDate = appliedDate)
-                } else {
-                    it
+        )) {
+            is Result.Error -> Result.Error<Unit, DataError.Network>(result.error)
+            is Result.Success -> {
+                // Update local cache
+                val local = dao.getRecommendationById(recommendationId).firstOrNull()
+                if (local != null) {
+                    val updatedRecommendations = local.recommendations.map {
+                        if (it.id == pesticideId) {
+                            it.copy(stage = stage, appliedDate = appliedDate)
+                        } else {
+                            it
+                        }
+                    }
+                    dao.insertRecommendation(local.copy(recommendations = updatedRecommendations))
                 }
+                Result.Success<Unit, DataError.Network>(Unit)
             }
-            dao.insertRecommendation(local.copy(recommendations = updatedRecommendations))
         }
     }
 

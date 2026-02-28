@@ -1,8 +1,10 @@
 package com.kisanseva.ai.domain.repository
 
+import com.kisanseva.ai.domain.error.DataError
 import com.kisanseva.ai.domain.model.FileUploadResponse
 import com.kisanseva.ai.domain.model.FileType
 import com.kisanseva.ai.domain.model.TextToSpeechRequest
+import com.kisanseva.ai.domain.state.Result
 import java.io.InputStream
 
 interface FilesRepository {
@@ -13,11 +15,11 @@ interface FilesRepository {
         fileType: FileType,
         mimeType: String,
         pathPrefix: String
-    ): FileUploadResponse
+    ): Result<FileUploadResponse, DataError.Network>
 
     suspend fun textToSpeech(
         request: TextToSpeechRequest
-    ): FileUploadResponse
+    ): Result<FileUploadResponse, DataError.Network>
 
-    suspend fun deleteFile(url: String, fileType: FileType? = null)
+    suspend fun deleteFile(url: String, fileType: FileType? = null): Result<Unit, DataError.Network>
 }

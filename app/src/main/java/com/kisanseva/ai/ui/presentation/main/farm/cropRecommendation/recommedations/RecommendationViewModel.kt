@@ -6,8 +6,12 @@ import androidx.lifecycle.viewModelScope
 import com.kisanseva.ai.domain.model.InterCropRecommendation
 import com.kisanseva.ai.domain.model.MonoCrop
 import com.kisanseva.ai.domain.repository.CropRecommendationRepository
+import com.kisanseva.ai.domain.state.Result
+import com.kisanseva.ai.ui.presentation.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
@@ -21,7 +25,6 @@ data class RecommendationUiState(
     val monoCrops: List<MonoCrop> = emptyList(),
     val interCrops: List<InterCropRecommendation> = emptyList(),
     val isRefreshing: Boolean = false,
-    val error: String? = null,
     val farmId: String,
     val cropRecommendationResponseId: String? = null
 )
@@ -37,6 +40,9 @@ class RecommendationViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(RecommendationUiState(farmId = farmId))
     val uiState = _uiState.asStateFlow()
 
+    private val _errorChannel = MutableSharedFlow<UiText>()
+    val errorChannel = _errorChannel.asSharedFlow()
+
     init {
         observeRecommendations()
         refreshRecommendations()
@@ -46,9 +52,7 @@ class RecommendationViewModel @Inject constructor(
         viewModelScope.launch {
             cropRecommendationRepository.getLatestCropRecommendation(farmId)
                 .catch { e ->
-                    _uiState.update {
-                        it.copy(error = e.localizedMessage ?: "An error occurred")
-                    }
+                    _errorChannel.emit(UiText.DynamicString(e.localizedMessage ?: "An error occurred"))
                 }
                 .collectLatest { recommendation ->
                     if (recommendation != null) {
@@ -66,12 +70,14 @@ class RecommendationViewModel @Inject constructor(
 
     fun refreshRecommendations() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isRefreshing = true, error = null) }
-            try {
-                cropRecommendationRepository.refreshCropRecommendationByFarmId(farmId)
-                _uiState.update { it.copy(isRefreshing = false) }
-            } catch (e: Exception) {
-                requestAndListenForRecommendations()
+            _uiState.update { it.copy(isRefreshing = true) }
+            when (cropRecommendationRepository.refreshCropRecommendationByFarmId(farmId)) {
+                is Result.Error -> {
+                    requestAndListenForRecommendations()
+                }
+                is Result.Success -> {
+                    _uiState.update { it.copy(isRefreshing = false) }
+                }
             }
         }
     }
@@ -95,21 +101,13 @@ class RecommendationViewModel @Inject constructor(
                         }
                     }
                     .catch { e ->
-                        _uiState.update {
-                            it.copy(
-                                isRefreshing = false,
-                                error = e.localizedMessage ?: "An error occurred"
-                            )
-                        }
+                        _errorChannel.emit(UiText.DynamicString(e.localizedMessage ?: "An error occurred"))
+                        _uiState.update { it.copy(isRefreshing = false) }
                     }
                     .launchIn(viewModelScope)
             } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isRefreshing = false,
-                        error = e.localizedMessage ?: "Failed to request recommendation"
-                    )
-                }
+                _errorChannel.emit(UiText.DynamicString(e.localizedMessage ?: "Failed to request recommendation"))
+                _uiState.update { it.copy(isRefreshing = false) }
             }
         }
     }

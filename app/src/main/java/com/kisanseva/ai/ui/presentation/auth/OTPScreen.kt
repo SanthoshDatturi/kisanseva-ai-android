@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,6 +28,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kisanseva.ai.R
 import com.kisanseva.ai.ui.components.LoadingButton
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun OTPScreen(phone: String, onSuccessfulVerification: () -> Unit) {
@@ -37,26 +36,24 @@ fun OTPScreen(phone: String, onSuccessfulVerification: () -> Unit) {
     val viewModel: AuthViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(true) {
+        viewModel.errorChannel.collectLatest { error ->
+            Toast.makeText(context, error.asString(context), Toast.LENGTH_LONG).show()
+        }
+    }
 
     LaunchedEffect(uiState) {
-        when (val state = uiState) {
+        when (uiState) {
             is AuthUIState.OTPVerified -> {
                 onSuccessfulVerification()
-                viewModel.resetState()
-            }
-            is AuthUIState.Error -> {
-                val message = context.getString(mapErrorCodeToStringResource(state.code))
-                snackbarHostState.showSnackbar(message)
                 viewModel.resetState()
             }
             else -> Unit
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { innerPadding ->
+    Scaffold { innerPadding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(innerPadding).padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,

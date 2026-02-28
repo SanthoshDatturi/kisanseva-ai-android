@@ -1,6 +1,7 @@
 package com.kisanseva.ai.ui.presentation.main.pesticides.pesticideRecommendation
 
 import android.app.DatePickerDialog
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,7 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,10 +57,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kisanseva.ai.R
 import com.kisanseva.ai.domain.model.PesticideInfo
 import com.kisanseva.ai.domain.model.PesticideStage
+import kotlinx.coroutines.flow.collectLatest
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
@@ -70,8 +73,15 @@ fun PesticideRecommendationScreen(
     viewModel: PesticideRecommendationViewModel = hiltViewModel(),
     onBack: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+
+    LaunchedEffect(true) {
+        viewModel.errorChannel.collectLatest { error ->
+            Toast.makeText(context, error.asString(context), Toast.LENGTH_LONG).show()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -86,79 +96,68 @@ fun PesticideRecommendationScreen(
         }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            when {
-                uiState.isRefreshing && uiState.recommendation == null -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
-                uiState.error != null && uiState.recommendation == null -> {
-                    Column(
-                        modifier = Modifier.align(Alignment.Center).padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(uiState.error ?: stringResource(R.string.unknown_error), color = MaterialTheme.colorScheme.error)
+            if (uiState.isRefreshing && uiState.recommendation == null) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else if (uiState.recommendation != null) {
+                uiState.recommendation?.let { recommendation ->
+                    val allPesticides = recommendation.recommendations.sortedBy { it.rank }
+                    
+                    val recommendationsToShow = remember(allPesticides) {
+                        val applied = allPesticides.filter { it.stage == PesticideStage.APPLIED }
+                        applied.ifEmpty {
+                            val selected =
+                                allPesticides.filter { it.stage == PesticideStage.SELECTED }
+                            selected.ifEmpty {
+                                allPesticides
+                            }
+                        }
                     }
-                }
-                uiState.recommendation != null -> {
-                    uiState.recommendation?.let { recommendation ->
-                        val allPesticides = recommendation.recommendations.sortedBy { it.rank }
-                        
-                        val recommendationsToShow = remember(allPesticides) {
-                            val applied = allPesticides.filter { it.stage == PesticideStage.APPLIED }
-                            applied.ifEmpty {
-                                val selected =
-                                    allPesticides.filter { it.stage == PesticideStage.SELECTED }
-                                selected.ifEmpty {
-                                    allPesticides
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(scrollState)
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // Disease Summary
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(stringResource(R.string.detected_problem), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                                 }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(recommendation.diseaseDetails, style = MaterialTheme.typography.bodyLarge)
                             }
                         }
 
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .verticalScroll(scrollState)
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        Text(stringResource(R.string.recommended_pesticides), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+
+                        recommendationsToShow.forEach { pesticide ->
+                            PesticideCard(
+                                pesticide = pesticide,
+                                onUpdateStage = { stage, date ->
+                                    viewModel.updateStage(pesticide.id, stage, date)
+                                },
+                                getTodayDate = viewModel::getTodayDate
+                            )
+                        }
+
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
                         ) {
-                            // Disease Summary
-                            Card(
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-                            ) {
-                                Column(modifier = Modifier.padding(16.dp)) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
-                                        Spacer(modifier = Modifier. width(8.dp))
-                                        Text(stringResource(R.string.detected_problem), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                                    }
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(recommendation.diseaseDetails, style = MaterialTheme.typography.bodyLarge)
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Lightbulb, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(stringResource(R.string.general_advice), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                                 }
-                            }
-
-                            Text(stringResource(R.string.recommended_pesticides), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-
-                            recommendationsToShow.forEach { pesticide ->
-                                PesticideCard(
-                                    pesticide = pesticide,
-                                    onUpdateStage = { stage, date ->
-                                        viewModel.updateStage(pesticide.id, stage, date)
-                                    },
-                                    getTodayDate = viewModel::getTodayDate
-                                )
-                            }
-
-                            Card(
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
-                            ) {
-                                Column(modifier = Modifier.padding(16.dp)) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Default.Lightbulb, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary)
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(stringResource(R.string.general_advice), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                                    }
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(recommendation.generalAdvice, style = MaterialTheme.typography.bodyMedium)
-                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(recommendation.generalAdvice, style = MaterialTheme.typography.bodyMedium)
                             }
                         }
                     }
@@ -263,7 +262,7 @@ fun PesticideCard(
                                 } else {
                                     dateStr
                                 }
-                            } catch (e: Exception) {
+                            } catch (_: Exception) {
                                 pesticide.appliedDate
                             }
                         }

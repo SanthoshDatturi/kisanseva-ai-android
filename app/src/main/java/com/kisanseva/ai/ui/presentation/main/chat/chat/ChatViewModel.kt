@@ -20,9 +20,11 @@ import com.kisanseva.ai.domain.model.websocketModels.ChatWebSocketEvent
 import com.kisanseva.ai.domain.model.websocketModels.Command
 import com.kisanseva.ai.domain.repository.ChatRepository
 import com.kisanseva.ai.domain.repository.FilesRepository
-import com.kisanseva.ai.exception.ApiException
+import com.kisanseva.ai.domain.state.Result
 import com.kisanseva.ai.system.audio.player.AudioPlayer
 import com.kisanseva.ai.system.storage.MediaStorageManager
+import com.kisanseva.ai.ui.presentation.UiText
+import com.kisanseva.ai.ui.presentation.asUiText
 import com.kisanseva.ai.ui.presentation.main.chat.chat.ChatEvent.HandleCommand
 import com.kisanseva.ai.util.UrlUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,7 +47,6 @@ data class ChatUiState(
     val messages: List<Message> = emptyList(),
     val isRefreshing: Boolean = false,
     val isSendingMessage: Boolean = false,
-    val error: String? = null,
     val chatType: ChatType = ChatType.GENERAL,
     val imageParts: List<Part> = emptyList(),
     val isRecording: Boolean = false,
@@ -74,6 +75,9 @@ class ChatViewModel @Inject constructor(
     private val _chatEvent = MutableSharedFlow<ChatEvent>()
     val chatEvent = _chatEvent.asSharedFlow()
 
+    private val _errorChannel = MutableSharedFlow<UiText>()
+    val errorChannel = _errorChannel.asSharedFlow()
+
     var message by mutableStateOf("")
         private set
 
@@ -98,24 +102,21 @@ class ChatViewModel @Inject constructor(
 
     private suspend fun createNewChat() {
         _uiState.update { it.copy(isRefreshing = true) }
-        try {
-            val session = chatRepository.createChatSession(chatType, dataId)
-            chatId = session.id
-            _uiState.update { it.copy(isRefreshing = false) }
-            
-            observeMessages(chatId!!)
-            refreshMessages(chatId!!)
-
-            if (chatType == ChatType.FARM_SURVEY) {
-                message = "..."
-                sendMessage()
+        when (val result = chatRepository.createChatSession(chatType, dataId)) {
+            is Result.Error -> {
+                _errorChannel.emit(result.error.asUiText())
+                _uiState.update { it.copy(isRefreshing = false) }
             }
-        } catch (e: Exception) {
-            _uiState.update {
-                it.copy(
-                    isRefreshing = false,
-                    error = e.localizedMessage ?: "Failed to create chat session"
-                )
+            is Result.Success -> {
+                chatId = result.data.id
+                _uiState.update { it.copy(isRefreshing = false) }
+                observeMessages(chatId!!)
+                refreshMessages(chatId!!)
+
+                if (chatType == ChatType.FARM_SURVEY) {
+                    message = "..."
+                    sendMessage()
+                }
             }
         }
     }
@@ -142,7 +143,7 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 if (chatId.isNullOrBlank()) {
-                    _uiState.update { it.copy(error = "Upload failed: Chat ID not found") }
+                    _errorChannel.emit(UiText.DynamicString("Upload failed: Chat ID not found"))
                     return@launch
                 }
                 val localFile = mediaStorageManager.saveImage(inputStream, mimeType = mimeType)
@@ -150,25 +151,31 @@ class ChatViewModel @Inject constructor(
                     fileData = FileData(mimeType = mimeType, localUri = localFile.absolutePath),
                 )
                 _uiState.update { it.copy(imageParts = it.imageParts + newPart) }
-                val response = filesRepository.uploadFile(
+                when (val result = filesRepository.uploadFile(
                     fileStream = localFile.inputStream(),
                     blobName = "${UUID.randomUUID()}",
                     fileType = FileType.AI_CHAT,
                     mimeType = mimeType,
                     pathPrefix = chatId!!
-                )
-                _uiState.update { state ->
-                    val updatedParts = state.imageParts.map {
-                        if (it.localId == newPart.localId) {
-                            it.copy(fileData = it.fileData?.copy(fileUri = response.url))
-                        } else {
-                            it
+                )) {
+                    is Result.Error -> {
+                        _errorChannel.emit(result.error.asUiText())
+                    }
+                    is Result.Success -> {
+                        _uiState.update { state ->
+                            val updatedParts = state.imageParts.map {
+                                if (it.localId == newPart.localId) {
+                                    it.copy(fileData = it.fileData?.copy(fileUri = result.data.url))
+                                } else {
+                                    it
+                                }
+                            }
+                            state.copy(imageParts = updatedParts)
                         }
                     }
-                    state.copy(imageParts = updatedParts)
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.localizedMessage ?: "An unknown error occurred") }
+                _errorChannel.emit(UiText.DynamicString(e.localizedMessage ?: "An unknown error occurred"))
             } finally {
                 _uiState.update { it.copy(isUploading = false) }
             }
@@ -208,7 +215,7 @@ class ChatViewModel @Inject constructor(
             viewModelScope.launch {
                 try {
                     if (chatId.isNullOrBlank()) {
-                        _uiState.update { it.copy(error = "Upload failed: Chat ID not found") }
+                        _errorChannel.emit(UiText.DynamicString("Upload failed: Chat ID not found"))
                         return@launch
                     }
                     val newPart = Part(
@@ -219,34 +226,41 @@ class ChatViewModel @Inject constructor(
                     )
                     _uiState.update { it.copy(audioPart = newPart) }
 
-                    val response = filesRepository.uploadFile(
+                    when (val result = filesRepository.uploadFile(
                         fileStream = audioFile.inputStream(),
                         blobName = "${UUID.randomUUID()}",
                         fileType = FileType.AI_CHAT,
                         mimeType = "audio/mp4",
                         pathPrefix = chatId!!
-                    )
-
-                    _uiState.update { state ->
-                        if (state.audioPart?.localId == newPart.localId) {
-                            state.copy(
-                                audioPart = state.audioPart.copy(
-                                    fileData = state.audioPart.fileData?.copy(
-                                        fileUri = response.url
+                    )) {
+                        is Result.Error -> {
+                            _errorChannel.emit(result.error.asUiText())
+                            mediaStorageManager.deleteFile(audioFile.absolutePath)
+                            _uiState.update {
+                                it.copy(audioPart = null)
+                            }
+                        }
+                        is Result.Success -> {
+                            _uiState.update { state ->
+                                if (state.audioPart?.localId == newPart.localId) {
+                                    state.copy(
+                                        audioPart = state.audioPart.copy(
+                                            fileData = state.audioPart.fileData?.copy(
+                                                fileUri = result.data.url
+                                            )
+                                        )
                                     )
-                                )
-                            )
-                        } else {
-                            state
+                                } else {
+                                    state
+                                }
+                            }
                         }
                     }
                 } catch (_: Exception) {
                     mediaStorageManager.deleteFile(audioFile.absolutePath)
+                    _errorChannel.emit(UiText.DynamicString("Audio upload failed"))
                     _uiState.update {
-                        it.copy(
-                            error = "Audio upload failed",
-                            audioPart = null
-                        )
+                        it.copy(audioPart = null)
                     }
                 }
             }
@@ -270,7 +284,7 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             chatRepository.getChatMessages(chatId)
                 .catch { e ->
-                    _uiState.update { it.copy(error = e.localizedMessage ?: "An unknown error occurred") }
+                    _errorChannel.emit(UiText.DynamicString(e.localizedMessage ?: "An unknown error occurred"))
                 }
                 .collectLatest { messages ->
                     _uiState.update { it.copy(messages = messages) }
@@ -280,18 +294,14 @@ class ChatViewModel @Inject constructor(
 
     fun refreshMessages(chatId: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isRefreshing = true, error = null) }
-            try {
-                chatRepository.refreshChatMessages(chatId)
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        error = e.localizedMessage ?: "An unknown error occurred"
-                    )
+            _uiState.update { it.copy(isRefreshing = true) }
+            when (val result = chatRepository.refreshChatMessages(chatId)) {
+                is Result.Error -> {
+                    _errorChannel.emit(result.error.asUiText())
                 }
-            } finally {
-                _uiState.update { it.copy(isRefreshing = false) }
+                is Result.Success -> Unit
             }
+            _uiState.update { it.copy(isRefreshing = false) }
         }
     }
 
@@ -312,7 +322,6 @@ class ChatViewModel @Inject constructor(
                             url?.let { audioPlayer.play(it) }
                         }
                     }
-                    // No need to manually update state as observeMessages will catch this through Room
                 }
                 when (event) {
                     is ChatWebSocketEvent.FarmSurveyEventChat -> {
@@ -359,41 +368,27 @@ class ChatViewModel @Inject constructor(
             content = userMessageContent,
         )
 
-        // Optimistic update handled by repository saving it and Flow emitting it
         viewModelScope.launch {
             chatRepository.saveMessage(optimisticMessage)
             _uiState.update { it.copy(isSendingMessage = true) }
-        }
-
-        try {
+            
             val action = when (chatType) {
                 ChatType.FARM_SURVEY -> Actions.FARM_SURVEY_AGENT
                 ChatType.GENERAL -> Actions.GENERAL_CHAT
                 else -> Actions.GENERAL_CHAT
             }
-            viewModelScope.launch {
-                chatRepository.sendMessage(
-                    action = action,
-                    data = request
-                )
-            }
-            message = ""
-            _uiState.update {
-                it.copy(imageParts = emptyList(), audioPart = null, audioFile = null)
-            }
-        } catch (e: ApiException) {
-            _uiState.update {
-                it.copy(
-                    error = e.message,
-                    isSendingMessage = false
-                )
-            }
-        } catch (e: Exception) {
-            _uiState.update {
-                it.copy(
-                    error = e.localizedMessage ?: "An unknown error occurred",
-                    isSendingMessage = false
-                )
+            
+            when (val result = chatRepository.sendMessage(action = action, data = request)) {
+                is Result.Error -> {
+                    _errorChannel.emit(result.error.asUiText())
+                    _uiState.update { it.copy(isSendingMessage = false) }
+                }
+                is Result.Success -> {
+                    message = ""
+                    _uiState.update {
+                        it.copy(imageParts = emptyList(), audioPart = null, audioFile = null)
+                    }
+                }
             }
         }
     }

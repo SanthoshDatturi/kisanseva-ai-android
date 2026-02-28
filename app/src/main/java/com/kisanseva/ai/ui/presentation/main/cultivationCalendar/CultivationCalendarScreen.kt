@@ -1,5 +1,6 @@
 package com.kisanseva.ai.ui.presentation.main.cultivationCalendar
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,20 +37,23 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kisanseva.ai.R
 import com.kisanseva.ai.domain.model.CultivationTask
 import com.kisanseva.ai.domain.model.Priority
 import com.kisanseva.ai.domain.model.TaskState
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +61,14 @@ fun CultivationCalendarScreen(
     viewModel: CultivationCalendarViewModel = hiltViewModel(),
     onBackClick: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    LaunchedEffect(true) {
+        viewModel.errorChannel.collectLatest { error ->
+            Toast.makeText(context, error.asString(context), Toast.LENGTH_LONG).show()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -77,19 +88,11 @@ fun CultivationCalendarScreen(
                 .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.surface)
         ) {
-            when {
-                uiState.isRefreshing && uiState.calendar == null -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
-                uiState.error != null && uiState.calendar == null -> {
-                    Text(
-                        text = uiState.error!!,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(Alignment.Center).padding(16.dp)
-                    )
-                }
-                uiState.calendar != null -> {
-                    val tasks = uiState.calendar!!.tasks
+            if (uiState.isRefreshing && uiState.calendar == null) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else {
+                uiState.calendar?.let { calendar ->
+                    val tasks = calendar.tasks
                     if (tasks.isEmpty()) {
                         Text(
                             text = stringResource(R.string.no_tasks_found),

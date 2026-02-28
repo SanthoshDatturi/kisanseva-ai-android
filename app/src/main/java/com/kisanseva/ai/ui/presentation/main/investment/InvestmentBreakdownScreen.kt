@@ -1,5 +1,6 @@
 package com.kisanseva.ai.ui.presentation.main.investment
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -20,11 +21,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.PieChart
-import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,21 +37,24 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kisanseva.ai.R
 import com.kisanseva.ai.domain.model.Investment
 import com.kisanseva.ai.domain.model.InvestmentBreakdown
 import com.kisanseva.ai.domain.model.Profitability
+import kotlinx.coroutines.flow.collectLatest
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -60,7 +64,14 @@ fun InvestmentBreakdownScreen(
     viewModel: InvestmentBreakdownViewModel = hiltViewModel(),
     onBackClick: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    LaunchedEffect(true) {
+        viewModel.errorChannel.collectLatest { error ->
+            Toast.makeText(context, error.asString(context), Toast.LENGTH_LONG).show()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -80,19 +91,11 @@ fun InvestmentBreakdownScreen(
                 .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.surface)
         ) {
-            when {
-                uiState.isRefreshing && uiState.breakdown == null -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
-                uiState.error != null && uiState.breakdown == null -> {
-                    Text(
-                        text = uiState.error!!,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(Alignment.Center).padding(16.dp)
-                    )
-                }
-                uiState.breakdown != null -> {
-                    InvestmentContent(uiState.breakdown!!)
+            if (uiState.isRefreshing && uiState.breakdown == null) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else {
+                uiState.breakdown?.let {
+                    InvestmentContent(it)
                 }
             }
         }
@@ -203,7 +206,7 @@ fun ProfitabilityCard(profitability: Profitability) {
                 MetricItem(
                     label = stringResource(R.string.roi),
                     value = "${profitability.roiPercentage}%",
-                    icon = Icons.Default.TrendingUp
+                    icon = Icons.AutoMirrored.Filled.TrendingUp
                 )
             }
         }

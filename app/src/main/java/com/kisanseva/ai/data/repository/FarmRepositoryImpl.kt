@@ -3,8 +3,10 @@ package com.kisanseva.ai.data.repository
 import com.kisanseva.ai.data.local.dao.FarmProfileDao
 import com.kisanseva.ai.data.local.entity.FarmProfileEntity
 import com.kisanseva.ai.data.remote.FarmApi
+import com.kisanseva.ai.domain.error.DataError
 import com.kisanseva.ai.domain.model.FarmProfile
 import com.kisanseva.ai.domain.repository.FarmRepository
+import com.kisanseva.ai.domain.state.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -13,10 +15,14 @@ class FarmRepositoryImpl(
     private val farmProfileDao: FarmProfileDao
 ) : FarmRepository {
 
-    override suspend fun createOrUpdateFarmProfile(profile: FarmProfile): FarmProfile {
-        val createdProfile = farmApi.createOrUpdateFarmProfile(profile)
-        farmProfileDao.insertFarmProfile(farmProfileToEntity(createdProfile))
-        return createdProfile
+    override suspend fun createOrUpdateFarmProfile(profile: FarmProfile): Result<FarmProfile, DataError.Network> {
+        return when (val result = farmApi.createOrUpdateFarmProfile(profile)) {
+            is Result.Error -> Result.Error(result.error)
+            is Result.Success -> {
+                farmProfileDao.insertFarmProfile(farmProfileToEntity(result.data))
+                Result.Success(result.data)
+            }
+        }
     }
 
     override fun getProfileById(farmId: String): Flow<FarmProfile?> {
@@ -31,20 +37,34 @@ class FarmRepositoryImpl(
         }
     }
 
-    override suspend fun refreshFarmProfiles() {
-        val remoteProfiles = farmApi.getFarmProfiles()
-        farmProfileDao.deleteAllFarmProfiles()
-        remoteProfiles.forEach { farmProfileDao.insertFarmProfile(farmProfileToEntity(it)) }
+    override suspend fun refreshFarmProfiles(): Result<Unit, DataError.Network> {
+        return when (val result = farmApi.getFarmProfiles()) {
+            is Result.Error -> Result.Error(result.error)
+            is Result.Success -> {
+                result.data.forEach { farmProfileDao.insertFarmProfile(farmProfileToEntity(it)) }
+                Result.Success(Unit)
+            }
+        }
     }
 
-    override suspend fun refreshFarmProfileById(farmId: String) {
-        val remoteProfile = farmApi.getProfileById(farmId)
-        farmProfileDao.insertFarmProfile(farmProfileToEntity(remoteProfile))
+    override suspend fun refreshFarmProfileById(farmId: String): Result<Unit, DataError.Network> {
+        return when (val result = farmApi.getProfileById(farmId)) {
+            is Result.Error -> Result.Error(result.error)
+            is Result.Success -> {
+                farmProfileDao.insertFarmProfile(farmProfileToEntity(result.data))
+                Result.Success(Unit)
+            }
+        }
     }
 
-    override suspend fun deleteProfile(farmId: String) {
-        farmApi.deleteProfile(farmId)
-        farmProfileDao.deleteFarmProfileById(farmId)
+    override suspend fun deleteProfile(farmId: String): Result<Unit, DataError.Network> {
+        return when (val result = farmApi.deleteProfile(farmId)) {
+            is Result.Error -> Result.Error(result.error)
+            is Result.Success -> {
+                farmProfileDao.deleteFarmProfileById(farmId)
+                Result.Success(Unit)
+            }
+        }
     }
 
     private fun farmProfileToEntity(profile: FarmProfile): FarmProfileEntity {

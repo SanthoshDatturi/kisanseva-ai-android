@@ -1,8 +1,10 @@
 package com.kisanseva.ai.domain.repository
 
+import com.kisanseva.ai.domain.error.DataError
 import com.kisanseva.ai.domain.model.CropRecommendationResponse
 import com.kisanseva.ai.domain.model.InterCropRecommendation
 import com.kisanseva.ai.domain.model.MonoCrop
+import com.kisanseva.ai.domain.state.Result
 import kotlinx.coroutines.flow.Flow
 
 interface CropRecommendationRepository {
@@ -25,8 +27,8 @@ interface CropRecommendationRepository {
         cropId: String,
         farmId: String,
         cropRecommendationResponseId: String
-    )
+    ): Result<Unit, DataError.Network>
 
-    suspend fun refreshCropRecommendationByFarmId(farmId: String)
-    suspend fun refreshCropRecommendationById(recommendationId: String)
+    suspend fun refreshCropRecommendationByFarmId(farmId: String): Result<Unit, DataError.Network>
+    suspend fun refreshCropRecommendationById(recommendationId: String): Result<Unit, DataError.Network>
 }

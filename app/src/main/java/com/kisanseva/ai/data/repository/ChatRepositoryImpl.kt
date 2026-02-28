@@ -9,6 +9,7 @@ import com.kisanseva.ai.data.mapper.toEntity
 import com.kisanseva.ai.data.remote.ChatApi
 import com.kisanseva.ai.data.remote.websocket.Actions
 import com.kisanseva.ai.data.remote.websocket.WebSocketController
+import com.kisanseva.ai.domain.error.DataError
 import com.kisanseva.ai.domain.model.ChatSession
 import com.kisanseva.ai.domain.model.ChatType
 import com.kisanseva.ai.domain.model.CreateChatRequest
@@ -18,6 +19,7 @@ import com.kisanseva.ai.domain.model.websocketModels.ChatWebSocketEvent
 import com.kisanseva.ai.domain.model.websocketModels.FarmSurveyAgentResponse
 import com.kisanseva.ai.domain.model.websocketModels.GeneralChatResponse
 import com.kisanseva.ai.domain.repository.ChatRepository
+import com.kisanseva.ai.domain.state.Result
 import com.kisanseva.ai.system.storage.MediaStorageManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -33,11 +35,15 @@ class ChatRepositoryImpl(
     private val chatSessionDao: ChatSessionDao
 ) : ChatRepository {
 
-    override suspend fun createChatSession(chatType: ChatType, dataId: String?): ChatSession {
+    override suspend fun createChatSession(chatType: ChatType, dataId: String?): Result<ChatSession, DataError.Network> {
         val request = CreateChatRequest(chatType, dataId)
-        val session = chatApi.createChatSession(request)
-        chatSessionDao.insertOrUpdateChatSessions(listOf(session.toEntity()))
-        return session
+        return when (val result = chatApi.createChatSession(request)) {
+            is Result.Error -> Result.Error(result.error)
+            is Result.Success -> {
+                chatSessionDao.insertOrUpdateChatSessions(listOf(result.data.toEntity()))
+                Result.Success(result.data)
+            }
+        }
     }
 
     override fun getChatSessions(): Flow<List<ChatSession>> {
@@ -46,16 +52,21 @@ class ChatRepositoryImpl(
         }
     }
 
-    override suspend fun refreshChatSessions() {
+    override suspend fun refreshChatSessions(): Result<Unit, DataError.Network> {
         val localChatSessions = chatSessionDao.getChatSessions().first()
         val latestTimestamp = localChatSessions.maxByOrNull { it.ts }?.ts
-        val remoteChatSessions = chatApi.getChatSessions(latestTimestamp)
-        if (remoteChatSessions.isNotEmpty()) {
-            chatSessionDao.insertOrUpdateChatSessions(remoteChatSessions.map { it.toEntity() })
+        return when (val result = chatApi.getChatSessions(latestTimestamp)) {
+            is Result.Error -> Result.Error<Unit, DataError.Network>(result.error)
+            is Result.Success -> {
+                if (result.data.isNotEmpty()) {
+                    chatSessionDao.insertOrUpdateChatSessions(result.data.map { it.toEntity() })
+                }
+                Result.Success(Unit)
+            }
         }
     }
 
-    override suspend fun getChatSession(chatId: String): ChatSession {
+    override suspend fun getChatSession(chatId: String): Result<ChatSession, DataError.Network> {
         return chatApi.getChatSession(chatId)
     }
 
@@ -65,21 +76,28 @@ class ChatRepositoryImpl(
         }
     }
 
-    override suspend fun refreshChatMessages(chatId: String) {
+    override suspend fun refreshChatMessages(chatId: String): Result<Unit, DataError.Network> {
         val localMessages = messageDao.getMessages(chatId)
         val latestTimestamp = localMessages.maxByOrNull { it.ts }?.ts
-        val remoteMessages = chatApi.getChatMessages(chatId, latestTimestamp, limit = 50)
-        if (remoteMessages.isNotEmpty()) {
-            remoteMessages.forEach { saveMessage(it) }
+        return when (val result = chatApi.getChatMessages(chatId, latestTimestamp, limit = 50)) {
+            is Result.Error -> Result.Error<Unit, DataError.Network>(result.error)
+            is Result.Success -> {
+                if (result.data.isNotEmpty()) {
+                    result.data.forEach { saveMessage(it) }
+                }
+                Result.Success(Unit)
+            }
         }
     }
 
-    override suspend fun deleteChatSession(chatId: String) {
-        try {
-            chatApi.deleteChatSession(chatId)
-        } finally {
-            messageDao.deleteMessages(chatId)
-            chatSessionDao.deleteChatSession(chatId)
+    override suspend fun deleteChatSession(chatId: String): Result<Unit, DataError.Network> {
+        return when (val result = chatApi.deleteChatSession(chatId)) {
+            is Result.Error -> Result.Error<Unit, DataError.Network>(result.error)
+            is Result.Success -> {
+                messageDao.deleteMessages(chatId)
+                chatSessionDao.deleteChatSession(chatId)
+                Result.Success(Unit)
+            }
         }
     }
 
@@ -124,15 +142,21 @@ class ChatRepositoryImpl(
         }
     }
 
-    override suspend fun sendMessage(action: String, data: MessageRequest) {
-        if (webSocketController.isConnected()) {
-            webSocketController.sendMessage(action, data)
+    override suspend fun sendMessage(action: String, data: MessageRequest): Result<Unit, DataError.Network> {
+        return if (webSocketController.isConnected()) {
+            try {
+                webSocketController.sendMessage(action, data)
+                Result.Success(Unit)
+            } catch (_: Exception) {
+                Result.Error(DataError.Network.UNKNOWN)
+            }
         } else {
             val queuedMessage = QueuedMessageEntity(
                 action = action,
                 data = webSocketController.json.encodeToString(data)
             )
             queuedMessageDao.insertMessage(queuedMessage)
+            Result.Error(DataError.Network.NO_INTERNET)
         }
     }
 
