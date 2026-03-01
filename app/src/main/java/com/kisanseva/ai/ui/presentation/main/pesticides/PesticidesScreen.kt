@@ -3,11 +3,13 @@ package com.kisanseva.ai.ui.presentation.main.pesticides
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,7 +25,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -35,13 +36,10 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -58,7 +56,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -70,6 +67,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.kisanseva.ai.R
 import com.kisanseva.ai.domain.model.Part
+import com.kisanseva.ai.ui.components.ActionButton
 import com.kisanseva.ai.ui.components.AudioPlayBar
 import com.kisanseva.ai.ui.components.AudioRecordingBar
 import com.kisanseva.ai.ui.components.PesticideActionItem
@@ -128,21 +126,51 @@ fun PesticidesScreen(
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
-            contentPadding = PaddingValues(bottom = 32.dp),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Upload and Action Area
+            // New Issue Section
             item {
-                Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)) {
-                    ActionArea(
-                        uiState = uiState,
-                        viewModel = viewModel,
+                Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                    Text(
+                        text = stringResource(R.string.upload_crop_issues),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    
+                    PhotoSelectionSection(
+                        imageParts = uiState.imageParts,
                         onUploadClick = {
                             galleryLauncher.launch(
                                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                             )
-                        }
+                        },
+                        onRemoveImage = viewModel::removeImage
                     )
+
+                    CombinedInputSection(
+                        description = viewModel.description,
+                        onDescriptionChange = viewModel::onDescriptionChange,
+                        uiState = uiState,
+                        viewModel = viewModel
+                    )
+
+                    if (uiState.isRequesting) {
+                        Box(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
+                        }
+                    } else {
+                        ActionButton(
+                            text = stringResource(R.string.request_recommendation),
+                            icon = Icons.AutoMirrored.Filled.Send,
+                            onClick = { viewModel.requestRecommendation() },
+                            showChevron = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            color = if (uiState.imageParts.isNotEmpty()) MaterialTheme.colorScheme.primary else Color.Gray.copy(alpha = 0.5f),
+                            surfaceColor = if (uiState.imageParts.isNotEmpty()) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                        )
+                    }
                 }
             }
 
@@ -154,16 +182,14 @@ fun PesticidesScreen(
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 24.dp)
+                        modifier = Modifier.padding(top = 12.dp)
                     )
                 }
                 items(uiState.previousPesticides) { (recId, pesticide) ->
-                    Box(modifier = Modifier.padding(horizontal = 24.dp)) {
-                        PesticideActionItem(
-                            pesticide = pesticide,
-                            onClick = { onNavigateToPesticideRecommendation(recId) }
-                        )
-                    }
+                    PesticideActionItem(
+                        pesticide = pesticide,
+                        onClick = { onNavigateToPesticideRecommendation(recId) }
+                    )
                 }
             } else if (uiState.isRefreshing) {
                 item {
@@ -177,130 +203,71 @@ fun PesticidesScreen(
 }
 
 @Composable
-fun ActionArea(
+fun CombinedInputSection(
+    description: String,
+    onDescriptionChange: (String) -> Unit,
     uiState: PesticideUiState,
-    viewModel: PesticideViewModel,
-    onUploadClick: () -> Unit
+    viewModel: PesticideViewModel
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        val hasMedia = uiState.imageParts.isNotEmpty() || uiState.audioPart != null
-
-        // Big Upload Card - Only show when no media is present
-        AnimatedVisibility(
-            visible = !hasMedia,
-            enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically()
-        ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .clickable(onClick = onUploadClick),
+    AnimatedContent(
+        targetState = uiState.audioPart != null,
+        transitionSpec = {
+            fadeIn() + slideInVertically { it / 2 } togetherWith fadeOut() + slideOutVertically { -it / 2 } using SizeTransform(clip = false)
+        },
+        label = "input_transition"
+    ) { hasAudio ->
+        if (hasAudio) {
+            // Audio Playback Pill
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                ),
-                border = BorderStroke(2.dp, Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary.copy(0.5f), MaterialTheme.colorScheme.secondary.copy(0.5f))))
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                tonalElevation = 2.dp,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Surface(
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                            modifier = Modifier.size(72.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.PhotoCamera,
-                                contentDescription = null,
-                                modifier = Modifier.padding(20.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        Spacer(Modifier.height(16.dp))
-                        Text(
-                            stringResource(R.string.upload_crop_issues),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            stringResource(R.string.upload_crop_issues_desc),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp).fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AudioPlayBar(
+                        audioSource = uiState.audioPart?.fileData?.localUri ?: "",
+                        audioPlayer = viewModel.audioPlayer,
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(onClick = { viewModel.onRecordingCancel() }) {
+                        Icon(
+                            Icons.Default.Close, 
+                            contentDescription = stringResource(R.string.clear_recording), 
+                            tint = MaterialTheme.colorScheme.error, 
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }
             }
-        }
-
-        // Media Previews & Input Area
-        AnimatedVisibility(
-            visible = hasMedia,
-            enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically()
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
-                // Media Previews Row
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+        } else {
+            // Unified Text + Audio Input Pill
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(32.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                tonalElevation = 2.dp,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    items(uiState.imageParts) { part ->
-                        MediaPreviewItem(
-                            part = part,
-                            onRemove = { viewModel.removeImage(part) }
-                        )
-                    }
-
-                    if (uiState.imageParts.size < 5) {
-                        item {
-                            AddMediaButton(onClick = onUploadClick)
-                        }
-                    }
-                }
-
-                // Audio Section
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (uiState.audioPart != null) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            AudioPlayBar(
-                                audioSource = uiState.audioPart.fileData?.localUri ?: "",
-                                audioPlayer = viewModel.audioPlayer,
-                                modifier = Modifier.weight(1f)
-                            )
-                            IconButton(onClick = { viewModel.onRecordingCancel() }) {
-                                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.clear_recording), tint = MaterialTheme.colorScheme.error)
-                            }
-                        }
-                    } else {
-                        AudioRecordingBar(
-                            isRecording = uiState.isRecording,
-                            audioFile = uiState.audioFile,
-                            onStartRecording = viewModel::onStartRecording,
-                            onRecordingComplete = viewModel::onRecordingComplete,
-                            onRecordingCancel = viewModel::onRecordingCancel,
-                            onIsRecordingChange = viewModel::onIsRecordingChange,
-                            onAudioFileChange = viewModel::onAudioFileChange
-                        )
-                    }
-                }
-
-                // Description Input
-                AnimatedVisibility(
-                    visible = uiState.showDescriptionInput,
-                    enter = fadeIn() + expandVertically(),
-                    exit = fadeOut() + shrinkVertically()
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
+                    if (!uiState.isRecording) {
                         TextField(
-                            value = viewModel.description,
-                            onValueChange = viewModel::onDescriptionChange,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(120.dp),
-                            placeholder = { Text(stringResource(R.string.add_description_placeholder)) },
+                            value = description,
+                            onValueChange = onDescriptionChange,
+                            modifier = Modifier.weight(1f),
+                            placeholder = { 
+                                Text(
+                                    text = stringResource(R.string.add_description_placeholder),
+                                    style = MaterialTheme.typography.bodyMedium
+                                ) 
+                            },
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
                                 unfocusedContainerColor = Color.Transparent,
@@ -309,33 +276,85 @@ fun ActionArea(
                             ),
                             textStyle = MaterialTheme.typography.bodyLarge
                         )
-
-                        Button(
-                            onClick = { viewModel.requestRecommendation() },
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            enabled = !uiState.isRequesting && !uiState.isUploading,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary
-                            )
-                        ) {
-                            if (uiState.isRequesting) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null)
-                                Spacer(Modifier.width(12.dp))
-                                Text(
-                                    stringResource(R.string.request_recommendation),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
                     }
+
+                    AudioRecordingBar(
+                        modifier = if (uiState.isRecording) Modifier.fillMaxWidth() else Modifier,
+                        isRecording = uiState.isRecording,
+                        // Always pass null for audioFile when not recording to keep the bar in its starting (mic) state.
+                        // This hides the waveform/delete UI after recording completes and is moved to the pill above.
+                        audioFile = if (uiState.isRecording) uiState.audioFile else null,
+                        onStartRecording = viewModel::onStartRecording,
+                        onIsRecordingChange = viewModel::onIsRecordingChange,
+                        onAudioFileChange = viewModel::onAudioFileChange,
+                        onRecordingComplete = viewModel::onRecordingComplete,
+                        onRecordingCancel = viewModel::onRecordingCancel
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PhotoSelectionSection(
+    imageParts: List<Part>,
+    onUploadClick: () -> Unit,
+    onRemoveImage: (Part) -> Unit
+) {
+    if (imageParts.isEmpty()) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .clickable(onClick = onUploadClick),
+            shape = RoundedCornerShape(32.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            ),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        ) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                        modifier = Modifier.size(72.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.PhotoCamera,
+                            contentDescription = null,
+                            modifier = Modifier.padding(20.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        text = stringResource(R.string.upload_photos_step),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+    } else {
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(vertical = 4.dp)
+        ) {
+            items(imageParts) { part ->
+                MediaPreviewItem(
+                    part = part,
+                    onRemove = { onRemoveImage(part) }
+                )
+            }
+
+            if (imageParts.size < 5) {
+                item {
+                    AddMediaButton(onClick = onUploadClick)
                 }
             }
         }
@@ -344,18 +363,30 @@ fun ActionArea(
 
 @Composable
 fun MediaPreviewItem(part: Part, onRemove: () -> Unit) {
-    Box(modifier = Modifier.size(100.dp)) {
+    Box(modifier = Modifier.size(120.dp)) {
         AsyncImage(
             model = part.fileData?.localUri,
             contentDescription = null,
-            modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp)).border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp)),
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(24.dp))
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(24.dp)),
             contentScale = ContentScale.Crop
         )
         IconButton(
             onClick = onRemove,
-            modifier = Modifier.align(Alignment.TopEnd).padding(4.dp).size(24.dp).background(MaterialTheme.colorScheme.surface.copy(0.7f), CircleShape)
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(8.dp)
+                .size(28.dp)
+                .background(MaterialTheme.colorScheme.surface.copy(0.9f), CircleShape)
         ) {
-            Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
+            Icon(
+                Icons.Default.Close,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.error
+            )
         }
     }
 }
@@ -363,13 +394,15 @@ fun MediaPreviewItem(part: Part, onRemove: () -> Unit) {
 @Composable
 fun AddMediaButton(onClick: () -> Unit) {
     Surface(
-        modifier = Modifier.size(100.dp).clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+        modifier = Modifier
+            .size(120.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
         }
     }
 }

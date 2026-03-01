@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kisanseva.ai.R
+import com.kisanseva.ai.ui.components.ActionButton
 import com.kisanseva.ai.ui.components.ActionItem
 import kotlinx.coroutines.flow.collectLatest
 
@@ -119,33 +120,15 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Button(
+            ActionButton(
+                text = stringResource(R.string.logout),
+                icon = Icons.AutoMirrored.Filled.Logout,
                 onClick = { showLogoutDialog = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
-                    contentColor = MaterialTheme.colorScheme.error
-                ),
-                elevation = ButtonDefaults.buttonElevation(0.dp),
-                contentPadding = PaddingValues(horizontal = 24.dp)
-            ) {
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Logout,
-                        contentDescription = null,
-                        modifier = Modifier.align(Alignment.CenterStart)
-                    )
-                    Text(
-                        text = stringResource(id = R.string.logout),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-            }
+                color = MaterialTheme.colorScheme.error,
+                surfaceColor = MaterialTheme.colorScheme.error.copy(alpha = 0.2f),
+                showChevron = false
+            )
+
             Spacer(modifier = Modifier.height(12.dp))
         }
     }

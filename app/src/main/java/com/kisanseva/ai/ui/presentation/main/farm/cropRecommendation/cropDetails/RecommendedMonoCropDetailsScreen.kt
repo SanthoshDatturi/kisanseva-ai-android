@@ -16,10 +16,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Agriculture
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -42,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kisanseva.ai.R
+import com.kisanseva.ai.ui.components.ActionButton
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -131,9 +134,12 @@ fun RecommendedMonoCropDetailsScreen(
                         .padding(horizontal = 20.dp, vertical = 0.dp)
                         .navigationBarsPadding()
                 ) {
-                    CropSelectionButton {
-                        viewModel.selectCropForCultivation()
-                    }
+                    ActionButton(
+                        text = stringResource(R.string.select_crop_for_cultivation),
+                        icon = Icons.Default.Agriculture,
+                        onClick = { viewModel.selectCropForCultivation() },
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 }
             }
             if (uiState.isSelectingCrop) {

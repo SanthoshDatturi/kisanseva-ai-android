@@ -286,6 +286,14 @@ fun ManagementActions(
         
         Spacer(modifier = Modifier.height(16.dp))
 
+        ActionItem(
+            title = stringResource(R.string.cultivation_calendar),
+            subtitle = stringResource(R.string.cultivation_calendar_desc),
+            icon = Icons.Default.CalendarMonth,
+            color = Color(0xFF2196F3),
+            onClick = { onNavigateToCalendar(cropId) }
+        )
+
         if (intercroppingId != null) {
             ActionItem(
                 title = stringResource(R.string.intercropping_guide),
@@ -302,14 +310,6 @@ fun ManagementActions(
             icon = Icons.Default.PestControl,
             color = Color(0xFFE91E63),
             onClick = { onNavigateToPesticides(cropId, farmId) }
-        )
-
-        ActionItem(
-            title = stringResource(R.string.cultivation_calendar),
-            subtitle = stringResource(R.string.cultivation_calendar_desc),
-            icon = Icons.Default.CalendarMonth,
-            color = Color(0xFF2196F3),
-            onClick = { onNavigateToCalendar(cropId) }
         )
 
         ActionItem(
