@@ -151,16 +151,16 @@
     <string name="sustainability_insight">நிலைத்தன்மை நுண்ணறிவு</string>
     <string name="break_even_message">சமநிலையை அடைய, உங்கள் குறைந்தபட்ச மகசூல் %1$s ஆக இருக்க வேண்டும். இதற்கு மேலான மகசூல் உங்கள் நிகர லாபத்திற்கு நேரடியாக பங்களிக்கும்.</string>
     <string name="estimated_net_profit">மதிப்பிடப்பட்ட நிகர லாபம்</string>
-    <string name="total_cost">மொத்த செலவு</string>
+    <string name="total_cost">மொತ್ತ செலவு</string>
     <string name="roi">ROI</string>
 
     <!-- Pesticides -->
+    <string name="pesticides_desc">பூச்சிகள் மற்றும் நோய்களை நிர்வகிக்கவும்</string>
     <string name="previous_pesticides">முந்தைய பூச்சிக்கொல்லிகள்</string>
     <string name="upload_crop_issues">பயிர் சிக்கல்களைப் பதிவேற்றவும்</string>
     <string name="upload_crop_issues_desc">படங்கள் அல்லது குரல் குறிப்பைச் சேர்க்க தட்டவும்</string>
-    <string name="add_description">விளக்கம் சேர்க்கவும்</string>
-    <string name="description_placeholder">நீங்கள் காணும் பூச்சிகள் அல்லது நோய்களை விவரிக்கவும்...</string>
-    <string name="get_solution">தீர்வு பெறுங்கள்</string>
+    <string name="add_description_placeholder">நீங்கள் காணும் பூச்சிகள் அல்லது நோய்களை விவரிக்கவும்...</string>
+    <string name="request_recommendation">பரிந்துரை கேட்கவும்</string>
     <string name="recommendations">பரிந்துரைகள்</string>
     <string name="detected_problem">கண்டறியப்பட்ட சிக்கல்</string>
     <string name="recommended_pesticides">பரிந்துரைக்கப்பட்ட பூச்சிக்கொல்லிகள்</string>

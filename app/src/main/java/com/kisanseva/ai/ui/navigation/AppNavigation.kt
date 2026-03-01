@@ -18,6 +18,7 @@ import com.kisanseva.ai.ui.presentation.main.farm.cropRecommendation.cropDetails
 import com.kisanseva.ai.ui.presentation.main.farm.cropRecommendation.recommedations.RecommendationsScreen
 import com.kisanseva.ai.ui.presentation.main.farm.farmProfile.FarmProfileScreen
 import com.kisanseva.ai.ui.presentation.main.investment.InvestmentBreakdownScreen
+import com.kisanseva.ai.ui.presentation.main.pesticides.PesticidesScreen
 import com.kisanseva.ai.ui.presentation.main.pesticides.pesticideRecommendation.PesticideRecommendationScreen
 import com.kisanseva.ai.ui.presentation.main.soilHealth.SoilHealthScreen
 
@@ -77,6 +78,9 @@ fun AppNavigation(
                 },
                 onNavigateToIntercroppingDetails = { cropId ->
                     navController.navigate(FarmDest.InterCroppingDetails(cropId))
+                },
+                onNavigateToPesticides = { cropId, farmId ->
+                    navController.navigate(PesticideDest.PesticideList(cropId, farmId))
                 }
             )
         }
@@ -141,6 +145,15 @@ fun AppNavigation(
 
         composable<FarmDest.SoilHealthRecommendations> {
             SoilHealthScreen{ navController.popBackStack() }
+        }
+
+        composable<PesticideDest.PesticideList> {
+            PesticidesScreen(
+                onBackClick = { navController.popBackStack() },
+                onNavigateToPesticideRecommendation = { recommendationId ->
+                    navController.navigate(PesticideDest.PesticideRecommendation(recommendationId))
+                }
+            )
         }
 
         composable<PesticideDest.PesticideRecommendation> {

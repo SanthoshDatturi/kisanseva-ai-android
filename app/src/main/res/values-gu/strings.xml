@@ -100,7 +100,7 @@
     <string name="intercropping_guide">આંતરપાક માર્ગદર્શિકા</string>
     <string name="intercropping_guide_desc">મિશ્ર પાકની વ્યવસ્થા જુઓ</string>
     <string name="cultivation_calendar">ખેતી કેલેન્ડર</string>
-    <string name="cultivation_calendar_desc">વૃદ્ધિ અને કાર્યોને ટ્રૅક કરો</string>
+    <string name="cultivation_calendar_desc">વૃદ્ધి અને કાર્યોને ટ્રૅક કરો</string>
     <string name="investment_analysis">રોકાણ વિશ્લેષણ</string>
     <string name="investment_analysis_desc">ખર્ચ અને નફાના અંદાજ</string>
     <string name="soil_health_advice">જમીન આરોગ્ય સલાહ</string>
@@ -155,12 +155,12 @@
     <string name="roi">ROI</string>
 
     <!-- Pesticides -->
+    <string name="pesticides_desc">જીવાતો અને રોગોનું સંચાલન કરો</string>
     <string name="previous_pesticides">અગાઉના જંતુનાશકો</string>
     <string name="upload_crop_issues">પાકની સમસ્યાઓ અપલોડ કરો</string>
     <string name="upload_crop_issues_desc">છબીઓ અથવા વૉઇસ નોટ ઉમેરવા માટે ટેપ કરો</string>
-    <string name="add_description">વર્ણન ઉમેરો</string>
-    <string name="description_placeholder">તમે જોયેલા જીવાતો અથવા રોગોનું વર્ણન કરો...</string>
-    <string name="get_solution">ઉકેલ મેળવો</string>
+    <string name="add_description_placeholder">તમે જોયેલા જીવાતો અથવા રોગોનું વર્ણન કરો...</string>
+    <string name="request_recommendation">ભલામણ માટે વિનંતી કરો</string>
     <string name="recommendations">ભલામણો</string>
     <string name="detected_problem">શોધાયેલ સમસ્યા</string>
     <string name="recommended_pesticides">ભલામણ કરેલ જંતુનાશકો</string>

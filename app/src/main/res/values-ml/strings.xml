@@ -155,12 +155,12 @@
     <string name="roi">ROI</string>
 
     <!-- Pesticides -->
+    <string name="pesticides_desc">കീടങ്ങളെയും രോഗങ്ങളെയും നിയന്ത്രിക്കുക</string>
     <string name="previous_pesticides">മുമ്പത്തെ കീടനാശിനികൾ</string>
     <string name="upload_crop_issues">വിള പ്രശ്നങ്ങൾ അപ്‌ലോഡ് ചെയ്യുക</string>
     <string name="upload_crop_issues_desc">ചിത്രങ്ങളോ വോയ്‌സ് നോട്ടോ ചേർക്കാൻ ടാപ്പ് ചെയ്യുക</string>
-    <string name="add_description">വിവരണം ചേർക്കുക</string>
-    <string name="description_placeholder">നിങ്ങൾ കാണുന്ന കീടങ്ങളെക്കുറിച്ചോ രോഗങ്ങളെക്കുറിച്ചോ വിവരിക്കുക...</string>
-    <string name="get_solution">പരിഹാരം കണ്ടെത്തുക</string>
+    <string name="add_description_placeholder">നിങ്ങൾ കാണുന്ന കീടങ്ങളെക്കുറിച്ചോ രോഗങ്ങളെക്കുറിച്ചോ വിവരിക്കുക...</string>
+    <string name="request_recommendation">ശുപാർശ അഭ്യർത്ഥിക്കുക</string>
     <string name="recommendations">ശുപാർശകൾ</string>
     <string name="detected_problem">കണ്ടെത്തിയ പ്രശ്നം</string>
     <string name="recommended_pesticides">ശുപാർശ ചെയ്യുന്ന കീടനാശിനികൾ</string>

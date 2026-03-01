@@ -30,10 +30,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.BugReport
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Button
@@ -46,10 +45,13 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -62,26 +64,23 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.kisanseva.ai.R
-import com.kisanseva.ai.domain.model.CultivatingCrop
-import com.kisanseva.ai.domain.model.FarmProfile
-import com.kisanseva.ai.domain.model.PesticideInfo
-import com.kisanseva.ai.domain.model.PesticideStage
+import com.kisanseva.ai.domain.model.Part
 import com.kisanseva.ai.ui.components.AudioPlayBar
 import com.kisanseva.ai.ui.components.AudioRecordingBar
+import com.kisanseva.ai.ui.components.PesticideActionItem
 import com.kisanseva.ai.ui.components.rememberGalleryLauncher
-import com.kisanseva.ai.util.UrlUtils
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PesticidesScreen(
     viewModel: PesticideViewModel = hiltViewModel(),
+    onBackClick: () -> Unit,
     onNavigateToPesticideRecommendation: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -108,70 +107,33 @@ fun PesticidesScreen(
         }
     }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
-        // Farm Selection
-        item {
-            Column(
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Text(
-                    stringResource(R.string.select_farm),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(uiState.farms) { farm ->
-                        FarmChip(
-                            farm = farm,
-                            isSelected = uiState.selectedFarmId == farm.id,
-                            onClick = { viewModel.selectFarm(farm.id) }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.pesticides), fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
-                }
-            }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
+            )
         }
-
-        // Crop Selection
-        if (uiState.selectedFarmId != null) {
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(paddingValues),
+            contentPadding = PaddingValues(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            // Upload and Action Area
             item {
-                Column(
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Text(
-                        stringResource(R.string.select_crop),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(24.dp),
-                        contentPadding = PaddingValues(end = 24.dp)
-                    ) {
-                        items(uiState.cultivatingCrops) { crop ->
-                            CropCircle(
-                                crop = crop,
-                                isSelected = uiState.selectedCropId == crop.id,
-                                onClick = { viewModel.selectCrop(crop.id) }
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        // Upload and Action Area
-        if (uiState.selectedCropId != null) {
-            item {
-                Box(modifier = Modifier.padding(horizontal = 24.dp)) {
+                Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)) {
                     ActionArea(
                         uiState = uiState,
                         viewModel = viewModel,
@@ -183,31 +145,31 @@ fun PesticidesScreen(
                     )
                 }
             }
-        }
 
-        // Previous Pesticides
-        if (uiState.previousPesticides.isNotEmpty()) {
-            item {
-                Text(
-                    stringResource(R.string.previous_pesticides),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                )
-            }
-            items(uiState.previousPesticides) { (recId, pesticide) ->
-                Box(modifier = Modifier.padding(horizontal = 24.dp)) {
-                    PesticideActionItem(
-                        pesticide = pesticide,
-                        onClick = { onNavigateToPesticideRecommendation(recId) }
+            // Previous Pesticides
+            if (uiState.previousPesticides.isNotEmpty()) {
+                item {
+                    Text(
+                        stringResource(R.string.previous_pesticides),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(horizontal = 24.dp)
                     )
                 }
-            }
-        } else if (uiState.isRefreshing && uiState.previousPesticides.isEmpty()) {
-            item {
-                Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                items(uiState.previousPesticides) { (recId, pesticide) ->
+                    Box(modifier = Modifier.padding(horizontal = 24.dp)) {
+                        PesticideActionItem(
+                            pesticide = pesticide,
+                            onClick = { onNavigateToPesticideRecommendation(recId) }
+                        )
+                    }
+                }
+            } else if (uiState.isRefreshing) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
                 }
             }
         }
@@ -284,87 +246,61 @@ fun ActionArea(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     items(uiState.imageParts) { part ->
-                        val uri = part.fileData?.localUri ?: part.fileData?.fileUri?.let { UrlUtils.getFullUrlFromRef(it) }
-                        Box(modifier = Modifier.size(120.dp)) {
-                            AsyncImage(
-                                model = uri,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .border(1.5.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(20.dp)),
-                                contentScale = ContentScale.Crop
-                            )
-                            IconButton(
-                                onClick = { viewModel.removeImage(part) },
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .padding(6.dp)
-                                    .size(28.dp)
-                                    .background(MaterialTheme.colorScheme.error.copy(alpha = 0.9f), CircleShape)
-                            ) {
-                                Icon(Icons.Default.Close, null, tint = Color.White, modifier = Modifier.size(16.dp))
-                            }
-                        }
+                        MediaPreviewItem(
+                            part = part,
+                            onRemove = { viewModel.removeImage(part) }
+                        )
                     }
-                    
+
                     if (uiState.imageParts.size < 5) {
                         item {
-                            Surface(
-                                modifier = Modifier
-                                    .size(120.dp)
-                                    .clickable(onClick = onUploadClick),
-                                shape = RoundedCornerShape(20.dp),
-                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant)
-                            ) {
-                                Icon(
-                                    Icons.Default.Add,
-                                    null,
-                                    modifier = Modifier.padding(44.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
+                            AddMediaButton(onClick = onUploadClick)
                         }
                     }
                 }
 
-                uiState.audioPart?.let { audioPart ->
-                    val uri = audioPart.fileData?.localUri ?: audioPart.fileData?.fileUri?.let { UrlUtils.getFullUrlFromRef(it) } ?: ""
-                    Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(0.2f))
-                    ) {
-                        AudioPlayBar(
-                            audioSource = uri,
-                            audioPlayer = viewModel.audioPlayer,
-                            modifier = Modifier.padding(8.dp).fillMaxWidth()
+                // Audio Section
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    if (uiState.audioPart != null) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            AudioPlayBar(
+                                audioSource = uiState.audioPart.fileData?.localUri ?: "",
+                                audioPlayer = viewModel.audioPlayer,
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(onClick = { viewModel.onRecordingCancel() }) {
+                                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.clear_recording), tint = MaterialTheme.colorScheme.error)
+                            }
+                        }
+                    } else {
+                        AudioRecordingBar(
+                            isRecording = uiState.isRecording,
+                            audioFile = uiState.audioFile,
+                            onStartRecording = viewModel::onStartRecording,
+                            onRecordingComplete = viewModel::onRecordingComplete,
+                            onRecordingCancel = viewModel::onRecordingCancel,
+                            onIsRecordingChange = viewModel::onIsRecordingChange,
+                            onAudioFileChange = viewModel::onAudioFileChange
                         )
                     }
                 }
 
-                // Description Card
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                // Description Input
+                AnimatedVisibility(
+                    visible = uiState.showDescriptionInput,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
                 ) {
-                    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Text(
-                            stringResource(R.string.add_description),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
                         TextField(
                             value = viewModel.description,
                             onValueChange = viewModel::onDescriptionChange,
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text(stringResource(R.string.description_placeholder), style = MaterialTheme.typography.bodyLarge) },
-                            minLines = 4,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(120.dp),
+                            placeholder = { Text(stringResource(R.string.add_description_placeholder)) },
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
                                 unfocusedContainerColor = Color.Transparent,
@@ -374,41 +310,29 @@ fun ActionArea(
                             textStyle = MaterialTheme.typography.bodyLarge
                         )
 
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        Button(
+                            onClick = { viewModel.requestRecommendation() },
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            enabled = !uiState.isRequesting && !uiState.isUploading,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            )
                         ) {
-                            Box(modifier = Modifier.weight(1f)) {
-                                AudioRecordingBar(
-                                    isRecording = uiState.isRecording,
-                                    audioFile = uiState.audioFile,
-                                    onStartRecording = viewModel::onStartRecording,
-                                    onIsRecordingChange = viewModel::onIsRecordingChange,
-                                    onAudioFileChange = viewModel::onAudioFileChange,
-                                    onRecordingComplete = viewModel::onRecordingComplete,
-                                    onRecordingCancel = viewModel::onRecordingCancel
+                            if (uiState.isRequesting) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    strokeWidth = 2.dp
                                 )
-                            }
-
-                            Button(
-                                onClick = viewModel::requestRecommendation,
-                                enabled = !uiState.isRequesting && !uiState.isUploading,
-                                shape = RoundedCornerShape(18.dp),
-                                modifier = Modifier.height(56.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary
-                                ),
-                                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
-                            ) {
-                                if (uiState.isRequesting) {
-                                    CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                                } else {
-                                    Text(stringResource(R.string.get_solution), fontWeight = FontWeight.ExtraBold, style = MaterialTheme.typography.titleMedium)
-                                    Spacer(Modifier.width(12.dp))
-                                    Icon(Icons.AutoMirrored.Filled.Send, null, Modifier.size(20.dp))
-                                }
+                            } else {
+                                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null)
+                                Spacer(Modifier.width(12.dp))
+                                Text(
+                                    stringResource(R.string.request_recommendation),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
                         }
                     }
@@ -419,134 +343,33 @@ fun ActionArea(
 }
 
 @Composable
-fun PesticideActionItem(pesticide: PesticideInfo, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(20.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+fun MediaPreviewItem(part: Part, onRemove: () -> Unit) {
+    Box(modifier = Modifier.size(100.dp)) {
+        AsyncImage(
+            model = part.fileData?.localUri,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp)).border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp)),
+            contentScale = ContentScale.Crop
+        )
+        IconButton(
+            onClick = onRemove,
+            modifier = Modifier.align(Alignment.TopEnd).padding(4.dp).size(24.dp).background(MaterialTheme.colorScheme.surface.copy(0.7f), CircleShape)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(52.dp)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Default.BugReport,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(28.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = pesticide.pesticideName,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = pesticide.pesticideType.name.lowercase().replaceFirstChar { it.uppercase() },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = when (pesticide.stage) {
-                    PesticideStage.SELECTED -> MaterialTheme.colorScheme.primaryContainer
-                    PesticideStage.APPLIED -> Color(0xFF4CAF50).copy(alpha = 0.1f)
-                    else -> MaterialTheme.colorScheme.surfaceVariant
-                }
-            ) {
-                Text(
-                    text = pesticide.stage.name.lowercase().replaceFirstChar { it.uppercase() },
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = when (pesticide.stage) {
-                        PesticideStage.APPLIED -> Color(0xFF2E7D32)
-                        else -> MaterialTheme.colorScheme.onSurfaceVariant
-                    }
-                )
-            }
-            
-            Spacer(modifier = Modifier.width(12.dp))
-            Icon(
-                Icons.Default.ChevronRight,
-                null,
-                tint = MaterialTheme.colorScheme.outlineVariant
-            )
+            Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
         }
     }
 }
 
 @Composable
-fun FarmChip(farm: FarmProfile, isSelected: Boolean, onClick: () -> Unit) {
+fun AddMediaButton(onClick: () -> Unit) {
     Surface(
-        modifier = Modifier.clickable(onClick = onClick),
-        shape = RoundedCornerShape(18.dp),
-        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-        border = if (isSelected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        modifier = Modifier.size(100.dp).clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
-        Text(
-            text = farm.name,
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
-            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-@Composable
-fun CropCircle(crop: CultivatingCrop, isSelected: Boolean, onClick: () -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .width(90.dp)
-            .clickable(onClick = onClick)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(80.dp)
-                .clip(CircleShape)
-                .background(if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
-                .border(
-                    width = if (isSelected) 3.dp else 0.dp,
-                    color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                    shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            val uri = crop.imageUrl.let { UrlUtils.getFullUrlFromRef(it) }
-            AsyncImage(
-                model = uri,
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(if (isSelected) 4.dp else 0.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
+        Box(contentAlignment = Alignment.Center) {
+            Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         }
-        Spacer(Modifier.height(10.dp))
-        Text(
-            text = crop.name,
-            style = MaterialTheme.typography.labelMedium,
-            textAlign = TextAlign.Center,
-            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1
-        )
     }
 }

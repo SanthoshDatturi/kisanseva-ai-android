@@ -21,6 +21,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Grass
 import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.PestControl
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.rounded.Grid4x4
 import androidx.compose.material3.CircularProgressIndicator
@@ -63,7 +64,8 @@ fun CultivatingCropScreen(
     onNavigateToCalendar: (String) -> Unit,
     onNavigateToInvestment: (String) -> Unit,
     onNavigateToSoilHealth: (String) -> Unit,
-    onNavigateToIntercroppingDetails: (String) -> Unit
+    onNavigateToIntercroppingDetails: (String) -> Unit,
+    onNavigateToPesticides: (String, String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -120,11 +122,13 @@ fun CultivatingCropScreen(
                     item {
                         ManagementActions(
                             cropId = crop.id,
+                            farmId = crop.farmId,
                             intercroppingId = crop.intercroppingId,
                             onNavigateToCalendar = onNavigateToCalendar,
                             onNavigateToInvestment = onNavigateToInvestment,
                             onNavigateToSoilHealth = onNavigateToSoilHealth,
-                            onNavigateToIntercroppingDetails = onNavigateToIntercroppingDetails
+                            onNavigateToIntercroppingDetails = onNavigateToIntercroppingDetails,
+                            onNavigateToPesticides = onNavigateToPesticides
                         )
                     }
                     
@@ -260,11 +264,13 @@ fun CropMainInfo(crop: CultivatingCrop) {
 @Composable
 fun ManagementActions(
     cropId: String,
+    farmId: String,
     intercroppingId: String?,
     onNavigateToCalendar: (String) -> Unit,
     onNavigateToInvestment: (String) -> Unit,
     onNavigateToSoilHealth: (String) -> Unit,
-    onNavigateToIntercroppingDetails: (String) -> Unit
+    onNavigateToIntercroppingDetails: (String) -> Unit,
+    onNavigateToPesticides: (String, String) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -289,6 +295,14 @@ fun ManagementActions(
                 onClick = { onNavigateToIntercroppingDetails(intercroppingId) }
             )
         }
+
+        ActionItem(
+            title = stringResource(R.string.pesticides),
+            subtitle = stringResource(R.string.pesticides_desc),
+            icon = Icons.Default.PestControl,
+            color = Color(0xFFE91E63),
+            onClick = { onNavigateToPesticides(cropId, farmId) }
+        )
 
         ActionItem(
             title = stringResource(R.string.cultivation_calendar),

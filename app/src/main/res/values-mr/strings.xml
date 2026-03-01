@@ -148,19 +148,19 @@
     <!-- Financial Analysis -->
     <string name="financial_analysis">आर्थिक विश्लेषण</string>
     <string name="expense_details">खर्च तपशील</string>
-    <string name="sustainability_insight">शाश्वतता अंतर्दृष्टी</string>
+    <string name="sustainability_insight">शाश्वതता अंतर्दृष्टी</string>
     <string name="break_even_message">नफा-तोटा बरोबरीत आणण्यासाठी तुमचे किमान उत्पादन %1$s असावे. यावरील कोणतेही उत्पादन थेट तुमच्या निव्वळ नफ्यात योगदान देईल.</string>
     <string name="estimated_net_profit">अंदाजित निव्वळ नफा</string>
     <string name="total_cost">एकूण खर्च</string>
     <string name="roi">ROI</string>
 
     <!-- Pesticides -->
+    <string name="pesticides_desc">कीटक आणि रोगांचे व्यवस्थापन करा</string>
     <string name="previous_pesticides">मागील कीटकनाशके</string>
     <string name="upload_crop_issues">पीक समस्या अपलोड करा</string>
     <string name="upload_crop_issues_desc">प्रतिमा किंवा व्हॉइस नोट जोडण्यासाठी टॅप करा</string>
-    <string name="add_description">वर्णन जोडा</string>
-    <string name="description_placeholder">तुम्हाला दिसणारे कीटक किंवा रोगांचे वर्णन करा...</string>
-    <string name="get_solution">उपाय मिळवा</string>
+    <string name="add_description_placeholder">तुम्हाला दिसणारे कीटक किंवा रोगांचे वर्णन करा...</string>
+    <string name="request_recommendation">शिफारसीची विनंती करा</string>
     <string name="recommendations">शिफारसी</string>
     <string name="detected_problem">आढळलेली समस्या</string>
     <string name="recommended_pesticides">शिफारस केलेली कीटकनाशके</string>
@@ -210,7 +210,7 @@
     <string name="price_trend">किमतीचा कल</string>
     <string name="potential_revenue">संभाव्य महसूल</string>
     <string name="why_recommended">हे का शिफारसीय आहे</string>
-    <string name="risks_to_watch_for">लक्षात घेण्यासारखे धोके</string>
+    <string name="risks_to_watch_for">लक्षात घेण्यासारखे धोકે</string>
     <string name="low_risk">कमी धोका</string>
     <string name="medium_risk">मध्यम</string>
     <string name="high_danger">उच्च धोका</string>
@@ -218,5 +218,5 @@
     <string name="preparing_farm">तुमचे शेत तयार केले जात आहे</string>
     <string name="setting_up_details">लागवडीचे तपशील सेट केले जात आहेत...</string>
     <string name="max_images_error">तुम्ही ५ पेक्षा जास्त चित्रे जोडू शकत नाही.</string>
-    <string name="limit_images_info">तुम्ही फक्त आणखी %1$d चित्रे जोडू शकता. पहिली %1$d चित्रे जोडली जातील.</string>
+    <string name="limit_images_info">तुम्ही फक्त आणखी %1$d चित্রে जोडू शकता. पहिली %1$d चित्रे जोडली जातील.</string>
 </resources>

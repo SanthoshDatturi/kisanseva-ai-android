@@ -33,13 +33,11 @@ import com.kisanseva.ai.ui.navigation.AppDest
 import com.kisanseva.ai.ui.navigation.ChatDest
 import com.kisanseva.ai.ui.navigation.FarmDest
 import com.kisanseva.ai.ui.navigation.MainDest
-import com.kisanseva.ai.ui.navigation.PesticideDest
 import com.kisanseva.ai.ui.navigation.main.components.BottomNavBar
 import com.kisanseva.ai.ui.presentation.main.alerts.AlertListScreen
 import com.kisanseva.ai.ui.presentation.main.chat.chatList.ChatListScreen
 import com.kisanseva.ai.ui.presentation.main.farm.farmList.FarmListScreen
 import com.kisanseva.ai.ui.presentation.main.home.HomeScreen
-import com.kisanseva.ai.ui.presentation.main.pesticides.PesticidesScreen
 import com.kisanseva.ai.ui.presentation.main.user.settings.SettingsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -119,12 +117,6 @@ fun MainNavigation(
                             chatId = null, chatType = ChatType.FARM_SURVEY
                     )) }
                 )
-            }
-            composable<MainDest.Pesticides> {
-                setTopBarTitle(context.getString(R.string.pesticides))
-                PesticidesScreen { recommendationId ->
-                    appNavController.navigate(PesticideDest.PesticideRecommendation(recommendationId))
-                }
             }
             composable<MainDest.ChatList> {
                 setTopBarTitle(context.getString(R.string.chats))

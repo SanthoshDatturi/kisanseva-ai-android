@@ -155,12 +155,12 @@
     <string name="roi">ROI</string>
 
     <!-- Pesticides -->
+    <string name="pesticides_desc">Manage pests and diseases</string>
     <string name="previous_pesticides">Previous Pesticides</string>
     <string name="upload_crop_issues">Upload Crop Issues</string>
     <string name="upload_crop_issues_desc">Tap to add images or voice note</string>
-    <string name="add_description">Add Description</string>
-    <string name="description_placeholder">Describe the pests or diseases you see...</string>
-    <string name="get_solution">Get Solution</string>
+    <string name="add_description_placeholder">Describe the pests or diseases you see...</string>
+    <string name="request_recommendation">Request Recommendation</string>
     <string name="recommendations">Recommendations</string>
     <string name="detected_problem">Detected Problem</string>
     <string name="recommended_pesticides">Recommended Pesticides</string>

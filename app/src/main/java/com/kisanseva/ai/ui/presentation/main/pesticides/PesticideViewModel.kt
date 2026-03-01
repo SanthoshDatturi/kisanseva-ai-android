@@ -3,22 +3,21 @@ package com.kisanseva.ai.ui.presentation.main.pesticides
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.kisanseva.ai.domain.model.CultivatingCrop
-import com.kisanseva.ai.domain.model.FarmProfile
+import androidx.navigation.toRoute
 import com.kisanseva.ai.domain.model.FileData
 import com.kisanseva.ai.domain.model.FileType
 import com.kisanseva.ai.domain.model.Part
 import com.kisanseva.ai.domain.model.PesticideInfo
 import com.kisanseva.ai.domain.model.PesticideStage
-import com.kisanseva.ai.domain.repository.CultivatingCropRepository
-import com.kisanseva.ai.domain.repository.FarmRepository
 import com.kisanseva.ai.domain.repository.FilesRepository
 import com.kisanseva.ai.domain.repository.PesticideRecommendationRepository
 import com.kisanseva.ai.domain.state.Result
 import com.kisanseva.ai.system.audio.player.AudioPlayer
 import com.kisanseva.ai.system.storage.MediaStorageManager
+import com.kisanseva.ai.ui.navigation.PesticideDest
 import com.kisanseva.ai.ui.presentation.UiText
 import com.kisanseva.ai.ui.presentation.asUiText
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,10 +39,8 @@ import javax.inject.Inject
 
 data class PesticideUiState(
     val isRefreshing: Boolean = false,
-    val farms: List<FarmProfile> = emptyList(),
-    val selectedFarmId: String? = null,
-    val cultivatingCrops: List<CultivatingCrop> = emptyList(),
-    val selectedCropId: String? = null,
+    val cropId: String? = null,
+    val farmId: String? = null,
     val previousPesticides: List<Pair<String, PesticideInfo>> = emptyList(),
     val isUploading: Boolean = false,
     val imageParts: List<Part> = emptyList(),
@@ -56,8 +53,7 @@ data class PesticideUiState(
 
 @HiltViewModel
 class PesticideViewModel @Inject constructor(
-    private val farmRepository: FarmRepository,
-    private val cultivatingCropRepository: CultivatingCropRepository,
+    private val savedStateHandle: SavedStateHandle,
     private val pesticideRepository: PesticideRecommendationRepository,
     private val filesRepository: FilesRepository,
     private val mediaStorageManager: MediaStorageManager,
@@ -76,89 +72,26 @@ class PesticideViewModel @Inject constructor(
     var description by mutableStateOf("")
         private set
 
-    private var cropsJob: Job? = null
     private var pesticidesJob: Job? = null
 
     init {
-        observeFarms()
-        refreshFarms()
-        observeRecommendations()
+        val navArgs = savedStateHandle.toRoute<PesticideDest.PesticideList>()
+        val cropId = navArgs.cropId
+        val farmId = navArgs.farmId
+        _uiState.update { it.copy(cropId = cropId, farmId = farmId) }
+        observeRecommendations(cropId)
+        observePreviousPesticides(cropId)
+        refreshPreviousPesticides(cropId)
     }
 
-    private fun observeFarms() {
-        viewModelScope.launch {
-            farmRepository.getFarmProfiles()
-                .catch { e ->
-                    _errorChannel.emit(UiText.DynamicString(e.localizedMessage ?: "An error occurred"))
-                }
-                .collectLatest { farms ->
-                    _uiState.update { it.copy(farms = farms) }
-                    if (farms.isNotEmpty() && _uiState.value.selectedFarmId == null) {
-                        selectFarm(farms.first().id)
-                    }
-                }
-        }
-    }
-
-    fun refreshFarms() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isRefreshing = true) }
-            when (val result = farmRepository.refreshFarmProfiles()) {
-                is Result.Error -> _errorChannel.emit(result.error.asUiText())
-                is Result.Success -> Unit
-            }
-            _uiState.update { it.copy(isRefreshing = false) }
-        }
-    }
-
-    private fun observeRecommendations() {
+    private fun observeRecommendations(cropId: String) {
         pesticideRepository.listenToPesticideRecommendations()
             .onEach { recommendation ->
-                val cropId = recommendation.cropId
-                if (cropId == _uiState.value.selectedCropId) {
+                if (recommendation.cropId == cropId) {
                     _events.emit(PesticideEvent.RecommendationReceived(recommendation.id))
                 }
             }
             .launchIn(viewModelScope)
-    }
-
-    fun selectFarm(farmId: String) {
-        _uiState.update { it.copy(selectedFarmId = farmId, selectedCropId = null, previousPesticides = emptyList()) }
-        observeCrops(farmId)
-        refreshCrops(farmId)
-    }
-
-    private fun observeCrops(farmId: String) {
-        cropsJob?.cancel()
-        cropsJob = viewModelScope.launch {
-            cultivatingCropRepository.getCultivatingCropsByFarmId(farmId)
-                .catch { e ->
-                    _errorChannel.emit(UiText.DynamicString(e.localizedMessage ?: "An error occurred"))
-                }
-                .collectLatest { crops ->
-                    _uiState.update { it.copy(cultivatingCrops = crops) }
-                    if (crops.isNotEmpty() && _uiState.value.selectedCropId == null) {
-                        selectCrop(crops.first().id)
-                    }
-                }
-        }
-    }
-
-    fun refreshCrops(farmId: String) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isRefreshing = true) }
-            when (val result = cultivatingCropRepository.refreshCultivatingCropsByFarmId(farmId)) {
-                is Result.Error -> _errorChannel.emit(result.error.asUiText())
-                is Result.Success -> Unit
-            }
-            _uiState.update { it.copy(isRefreshing = false) }
-        }
-    }
-
-    fun selectCrop(cropId: String) {
-        _uiState.update { it.copy(selectedCropId = cropId) }
-        observePreviousPesticides(cropId)
-        refreshPreviousPesticides(cropId)
     }
 
     private fun observePreviousPesticides(cropId: String) {
@@ -198,7 +131,7 @@ class PesticideViewModel @Inject constructor(
         _uiState.update { it.copy(isUploading = true) }
         viewModelScope.launch {
             try {
-                val cropId = _uiState.value.selectedCropId
+                val cropId = _uiState.value.cropId
                 if (cropId.isNullOrBlank()) {
                     _errorChannel.emit(UiText.DynamicString("Upload failed: Crop ID not found"))
                     return@launch
@@ -265,7 +198,7 @@ class PesticideViewModel @Inject constructor(
         _uiState.update { it.copy(isUploading = true) }
         viewModelScope.launch {
             try {
-                val cropId = _uiState.value.selectedCropId
+                val cropId = _uiState.value.cropId
                 if (cropId.isNullOrBlank()) {
                     _errorChannel.emit(UiText.DynamicString("Upload failed: Crop ID not found"))
                     return@launch
@@ -321,8 +254,8 @@ class PesticideViewModel @Inject constructor(
 
     fun requestRecommendation() {
         val state = _uiState.value
-        val fId = state.selectedFarmId ?: return
-        val cId = state.selectedCropId ?: return
+        val fId = state.farmId ?: return
+        val cId = state.cropId ?: return
 
         val files = state.imageParts.mapNotNull { it.fileData?.fileUri } +
                 listOfNotNull(state.audioPart?.fileData?.fileUri)

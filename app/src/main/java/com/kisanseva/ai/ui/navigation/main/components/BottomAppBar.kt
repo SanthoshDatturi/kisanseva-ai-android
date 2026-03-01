@@ -6,10 +6,8 @@ import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.filled.Agriculture
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.PestControl
 import androidx.compose.material.icons.outlined.Agriculture
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.PestControl
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
@@ -53,14 +51,6 @@ fun BottomNavBar(navController: NavController, context: Context) {
             hasNews = false,
             badgeCount = null,
             destination = MainDest.FarmList
-        ),
-        BottomNavigationItem(
-            title = context.getString(R.string.pesticides),
-            selectedIcon = Icons.Filled.PestControl,
-            unselectedIcon = Icons.Outlined.PestControl,
-            hasNews = false,
-            badgeCount = null,
-            destination = MainDest.Pesticides
         ),
         BottomNavigationItem(
             title = context.getString(R.string.chats),

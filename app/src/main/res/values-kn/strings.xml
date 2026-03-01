@@ -155,12 +155,12 @@
     <string name="roi">ROI</string>
 
     <!-- Pesticides -->
+    <string name="pesticides_desc">ಕೀಟಗಳು ಮತ್ತು ರೋಗಗಳನ್ನು ನಿರ್ವಹಿಸಿ</string>
     <string name="previous_pesticides">ಹಿಂದಿನ ಕೀಟನಾಶಕಗಳು</string>
     <string name="upload_crop_issues">ಬೆಳೆ ಸಮಸ್ಯೆಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</string>
     <string name="upload_crop_issues_desc">ಚಿತ್ರಗಳು ಅಥವಾ ಧ್ವನಿ ಟಿಪ್ಪಣಿಯನ್ನು ಸೇರಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ</string>
-    <string name="add_description">ವಿವರಣೆ ಸೇರಿಸಿ</string>
-    <string name="description_placeholder">ನೀವು ನೋಡುತ್ತಿರುವ ಕೀಟಗಳು ಅಥವಾ ರೋಗಗಳನ್ನು ವಿವರಿಸಿ...</string>
-    <string name="get_solution">ಪರಿಹಾರ ಪಡೆಯಿರಿ</string>
+    <string name="add_description_placeholder">ನೀವು ನೋಡುತ್ತಿರುವ ಕೀಟಗಳು ಅಥವಾ ರೋಗಗಳನ್ನು ವಿವರಿಸಿ...</string>
+    <string name="request_recommendation">ಶಿಫಾರಸು ಕೇಳಿ</string>
     <string name="recommendations">ಶಿಫಾರಸುಗಳು</string>
     <string name="detected_problem">ಪತ್ತೆಯಾದ ಸಮಸ್ಯೆ</string>
     <string name="recommended_pesticides">ಶಿಫಾರಸು ಮಾಡಿದ ಕೀಟನಾಶಕಗಳು</string>

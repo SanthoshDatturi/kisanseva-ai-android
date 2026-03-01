@@ -155,12 +155,12 @@
     <string name="roi">ROI</string>
 
     <!-- Pesticides -->
+    <string name="pesticides_desc">কীটপতঙ্গ এবং রোগ পরিচালনা করুন</string>
     <string name="previous_pesticides">আগের কীটনাশক</string>
     <string name="upload_crop_issues">ফসলের সমস্যা আপলোড করুন</string>
     <string name="upload_crop_issues_desc">ছবি বা ভয়েস নোট যোগ করতে ট্যাপ করুন</string>
-    <string name="add_description">বর্ণনা যোগ করুন</string>
-    <string name="description_placeholder">আপনি যে পোকা বা রোগগুলি দেখছেন তার বর্ণনা দিন...</string>
-    <string name="get_solution">সমাধান পান</string>
+    <string name="add_description_placeholder">আপনি যে পোকা বা রোগগুলি দেখছেন তার বর্ণনা দিন...</string>
+    <string name="request_recommendation">সুপারিশের জন্য অনুরোধ করুন</string>
     <string name="recommendations">সুপারিশ</string>
     <string name="detected_problem">সনাক্ত করা সমস্যা</string>
     <string name="recommended_pesticides">সুপারিশকৃত কীটনাশক</string>

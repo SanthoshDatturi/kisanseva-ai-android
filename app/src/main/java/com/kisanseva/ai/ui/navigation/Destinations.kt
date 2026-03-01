@@ -23,7 +23,6 @@ sealed interface AppDest {
 sealed interface MainDest {
     @Serializable object Home : MainDest
     @Serializable object FarmList : MainDest
-    @Serializable object Pesticides : MainDest
     @Serializable object ChatList : MainDest
     @Serializable object Settings : MainDest
     @Serializable object AlertList : MainDest
@@ -56,6 +55,7 @@ sealed interface FarmDest {
 
 @Serializable
 sealed interface PesticideDest {
+    @Serializable data class PesticideList(val cropId: String, val farmId: String) : PesticideDest
     @Serializable data class PesticideRecommendation(val recommendationId: String) : PesticideDest
 }
 

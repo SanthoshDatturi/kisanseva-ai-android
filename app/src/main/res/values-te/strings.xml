@@ -155,12 +155,12 @@
     <string name="roi">ROI</string>
 
     <!-- Pesticides -->
+    <string name="pesticides_desc">కీటకాలు మరియు వ్యాధులను నిర్వహించండి</string>
     <string name="previous_pesticides">మునుపటి పురుగుమందులు</string>
     <string name="upload_crop_issues">పంట సమస్యలను అప్‌లోడ్ చేయండి</string>
     <string name="upload_crop_issues_desc">చిత్రాలు లేదా వాయిస్ నోట్ జోడించడానికి నొక్కండి</string>
-    <string name="add_description">వివరణను జోడించండి</string>
-    <string name="description_placeholder">మీరు చూస్తున్న కీటకాలు లేదా వ్యాధులను వివరించండి...</string>
-    <string name="get_solution">పరిష్కారం పొందండి</string>
+    <string name="add_description_placeholder">మీరు చూస్తున్న కీటకాలు లేదా వ్యాధులను వివరించండి...</string>
+    <string name="request_recommendation">సిఫార్సును అభ్యర్థించండి</string>
     <string name="recommendations">సిఫార్సులు</string>
     <string name="detected_problem">గుర్తించిన సమస్య</string>
     <string name="recommended_pesticides">సిఫార్సు చేయబడిన పురుగుమందులు</string>

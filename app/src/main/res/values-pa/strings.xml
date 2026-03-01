@@ -155,12 +155,12 @@
     <string name="roi">ROI</string>
 
     <!-- Pesticides -->
+    <string name="pesticides_desc">ਕੀੜਿਆਂ ਅਤੇ ਬਿਮਾਰੀਆਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ</string>
     <string name="previous_pesticides">ਪਿਛਲੇ ਕੀਟਨਾਸ਼ਕ</string>
     <string name="upload_crop_issues">ਫਸਲ ਦੀਆਂ ਸਮੱਸਿਆਵਾਂ ਅੱਪਲੋਡ ਕਰੋ</string>
     <string name="upload_crop_issues_desc">ਤਸਵੀਰਾਂ ਜਾਂ ਵੌਇਸ ਨੋਟ ਜੋੜਨ ਲਈ ਟੈਪ ਕਰੋ</string>
-    <string name="add_description">ਵਰਣਨ ਜੋੜੋ</string>
-    <string name="description_placeholder">ਤੁਹਾਨੂੰ ਦਿਖਾਈ ਦੇਣ ਵਾਲੇ ਕੀੜਿਆਂ ਜਾਂ ਬਿਮਾਰੀਆਂ ਦਾ ਵਰਣਨ ਕਰੋ...</string>
-    <string name="get_solution">ਹੱਲ ਪ੍ਰਾਪਤ ਕਰੋ</string>
+    <string name="add_description_placeholder">ਤੁਹਾਨੂੰ ਦਿਖਾਈ ਦੇਣ ਵਾਲੇ ਕੀੜਿਆਂ ਜਾਂ ਬਿਮਾਰੀਆਂ ਦਾ ਵਰਣਨ ਕਰੋ...</string>
+    <string name="request_recommendation">ਸਿਫਾਰਸ਼ ਲਈ ਬੇਨਤੀ ਕਰੋ</string>
     <string name="recommendations">ਸਿਫਾਰਸ਼ਾਂ</string>
     <string name="detected_problem">ਪਤਾ ਲੱਗੀ ਸਮੱਸਿਆ</string>
     <string name="recommended_pesticides">ਸਿਫਾਰਸ਼ੀ ਕੀਟਨਾਸ਼ਕ</string>
