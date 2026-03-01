@@ -216,7 +216,10 @@ fun ChatScreen(
                         TypingIndicator()
                     }
                 }
-                items(uiState.messages.reversed()) { message ->
+                items(
+                    items = uiState.messages.reversed(),
+                    key = { "${it.requestId}_${it.content.role}" } // Composite key to ensure uniqueness between user/model messages
+                ) { message ->
                     MessageItem(message = message, audioPlayer = viewModel.audioPlayer)
                 }
             }

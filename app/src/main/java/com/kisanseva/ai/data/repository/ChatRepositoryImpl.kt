@@ -2,6 +2,7 @@ package com.kisanseva.ai.data.repository
 
 import com.kisanseva.ai.data.local.dao.ChatSessionDao
 import com.kisanseva.ai.data.local.dao.MessageDao
+import com.kisanseva.ai.data.local.entity.MessageEntity
 import com.kisanseva.ai.data.mapper.toDomain
 import com.kisanseva.ai.data.mapper.toEntity
 import com.kisanseva.ai.data.remote.ChatApi
@@ -23,7 +24,6 @@ import com.kisanseva.ai.domain.state.Result
 import com.kisanseva.ai.system.storage.MediaStorageManager
 import com.kisanseva.ai.util.UrlUtils
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 
@@ -181,21 +181,34 @@ class ChatRepositoryImpl(
 
     override suspend fun saveMessage(message: Message): Message {
         val entity = message.toEntity()
-        val id = entity.id
-
-        // Resolve user message ID: if we have a server ID and a requestId, delete the optimistic one
-        if (message.id != null && message.id != message.requestId && message.content.role == Role.USER.name.lowercase()) {
-            messageDao.deleteMessageById(message.requestId)
+        
+        // Identify IDs that might be replaced (optimistic IDs)
+        val oldIds = mutableListOf<String>()
+        if (message.id != null) {
+            if (message.content.role == Role.USER.name.lowercase()) {
+                if (message.id != message.requestId) oldIds.add(message.requestId)
+            } else if (message.content.role == Role.MODEL.name.lowercase()) {
+                if (message.id != "${message.requestId}_model") oldIds.add("${message.requestId}_model")
+            }
         }
 
-        val existingEntity = messageDao.getMessageById(id)
+        // Try to find an existing entity to preserve local metadata (like localUri)
+        var existingEntity: MessageEntity? = messageDao.getMessageById(entity.id)
+        if (existingEntity == null) {
+            for (oldId in oldIds) {
+                existingEntity = messageDao.getMessageById(oldId)
+                if (existingEntity != null) break
+            }
+        }
 
         val updatedParts = entity.parts.map { part ->
             if (part.fileUri != null && part.localUri == null) {
+                // Recover localUri from existing entity if possible
                 val existingPart = existingEntity?.parts?.find { it.fileUri == part.fileUri }
                 if (existingPart?.localUri != null) {
                     part.copy(localUri = existingPart.localUri)
                 } else {
+                    // Download if not found locally
                     val localFile = mediaStorageManager.downloadToExternalStorage(
                         part.fileUri.let { UrlUtils.getFullUrlFromRef(it) },
                         part.mimeType
@@ -212,7 +225,18 @@ class ChatRepositoryImpl(
         }
 
         val updatedEntity = entity.copy(parts = updatedParts)
+        
+        // Insert new entity FIRST to ensure it's in the DB before deleting the old one
+        // This prevents the message from vanishing during the process
         messageDao.insertMessage(updatedEntity)
+        
+        // Now it's safe to delete the old optimistic IDs
+        for (oldId in oldIds) {
+            if (oldId != updatedEntity.id) {
+                messageDao.deleteMessageById(oldId)
+            }
+        }
+
         return updatedEntity.toDomain()
     }
 

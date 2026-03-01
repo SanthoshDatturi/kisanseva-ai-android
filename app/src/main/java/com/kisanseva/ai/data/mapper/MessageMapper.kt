@@ -6,10 +6,11 @@ import com.kisanseva.ai.domain.model.Content
 import com.kisanseva.ai.domain.model.FileData
 import com.kisanseva.ai.domain.model.Message
 import com.kisanseva.ai.domain.model.Part
+import com.kisanseva.ai.domain.model.Role
 
 fun Message.toEntity(): MessageEntity {
     return MessageEntity(
-        id = id ?: requestId,
+        id = id ?: if (content.role == Role.MODEL.name.lowercase()) "${requestId}_model" else requestId,
         chatId = chatId,
         ts = ts,
         role = content.role,
