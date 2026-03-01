@@ -2,18 +2,21 @@ package com.kisanseva.ai.domain.model.websocketModels
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.util.UUID
 
 @Serializable
 data class BaseWebSocketRequest<T>(
     val action: String,
-    val data: T
+    val data: T,
+    val id: String = UUID.randomUUID().toString()
 )
 
 @Serializable
 data class BaseWebSocketResponse<T>(
     val action: String,
     val data: T? = null,
-    val error: WebSocketError? = null
+    val error: WebSocketError? = null,
+    @SerialName("request_id") val requestId: String? = null
 )
 
 @Serializable

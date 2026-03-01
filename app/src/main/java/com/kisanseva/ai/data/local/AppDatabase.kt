@@ -55,7 +55,7 @@ import com.kisanseva.ai.data.local.entity.UserEntity
         InvestmentBreakdownEntity::class,
         PesticideRecommendationEntity::class,
         UserEntity::class
-    ], version = 14,
+    ], version = 15,
     exportSchema = true
 )
 @TypeConverters(Converters::class)

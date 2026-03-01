@@ -3,6 +3,7 @@ package com.kisanseva.ai.di
 import android.content.Context
 import android.util.Log
 import androidx.room.Room
+import androidx.work.WorkManager
 import com.kisanseva.ai.BuildConfig
 import com.kisanseva.ai.data.local.AppDatabase
 import com.kisanseva.ai.data.local.DataStoreManager
@@ -73,6 +74,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module
@@ -105,6 +107,12 @@ object AppModule {
                 AppDatabase::class.java,
                 "kisan_mithra_db"
             ).fallbackToDestructiveMigration(true).build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideWorkManager(@ApplicationContext context: Context): WorkManager {
+        return WorkManager.getInstance(context)
     }
 
     @Provides
@@ -243,6 +251,7 @@ object AppModule {
         return OkHttpClient.Builder()
             .addInterceptor(logging)
             .addInterceptor(AuthInterceptor(dataStoreManager))
+            .pingInterval(30, TimeUnit.SECONDS)
             .build()
     }
 

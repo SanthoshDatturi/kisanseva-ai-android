@@ -1,9 +1,17 @@
 package com.kisanseva.ai.data.remote.websocket
 
 import android.util.Log
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.kisanseva.ai.BuildConfig
 import com.kisanseva.ai.data.local.DataStoreManager
+import com.kisanseva.ai.data.local.dao.QueuedMessageDao
+import com.kisanseva.ai.data.local.entity.QueuedMessageEntity
 import com.kisanseva.ai.data.remote.toNetworkError
+import com.kisanseva.ai.di.AuthenticatedClient
 import com.kisanseva.ai.domain.error.DataError
 import com.kisanseva.ai.domain.model.CropRecommendationResponse
 import com.kisanseva.ai.domain.model.PesticideRecommendationResponse
@@ -15,15 +23,20 @@ import com.kisanseva.ai.domain.model.websocketModels.GeneralChatResponse
 import com.kisanseva.ai.domain.model.websocketModels.TextToSpeechUrlResponseData
 import com.kisanseva.ai.domain.model.websocketModels.WebSocketError
 import com.kisanseva.ai.util.ConnectivityObserver
+import com.kisanseva.ai.workers.MessageQueueWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -34,6 +47,8 @@ import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.min
+import kotlin.math.pow
 
 
 object Actions {
@@ -52,23 +67,32 @@ data class RawBaseWebSocketResponse(
     val error: WebSocketError? = null
 )
 
+enum class ConnectionState {
+    CONNECTED, CONNECTING, DISCONNECTED, ERROR
+}
 
 @Singleton
 class WebSocketController @Inject constructor(
-    private val okHttpClient: OkHttpClient,
+    @AuthenticatedClient private val okHttpClient: OkHttpClient,
     private val dataStoreManager: DataStoreManager,
     private val connectivityObserver: ConnectivityObserver,
+    private val queuedMessageDao: QueuedMessageDao,
+    private val workManager: WorkManager,
     val json: Json
 ) {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var webSocket: WebSocket? = null
-    private var isConnecting = false
+    
+    private val _connectionState = MutableStateFlow(ConnectionState.DISCONNECTED)
+    val connectionState: StateFlow<ConnectionState> = _connectionState.asStateFlow()
 
-    private val _messages = MutableSharedFlow<BaseWebSocketResponse<*>>(replay = 1)
+    private val _messages = MutableSharedFlow<BaseWebSocketResponse<*>>(extraBufferCapacity = 100)
     val messages: Flow<BaseWebSocketResponse<*>> = _messages
 
-    private val _errors = MutableSharedFlow<DataError.Network>()
+    private val _errors = MutableSharedFlow<DataError.Network>(extraBufferCapacity = 10)
     val errors: Flow<DataError.Network> = _errors
+
+    private var reconnectAttempt = 0
 
     init {
         scope.launch {
@@ -76,6 +100,7 @@ class WebSocketController @Inject constructor(
                 when (status) {
                     ConnectivityObserver.Status.Available -> {
                         Log.d(TAG, "Network available, connecting...")
+                        resetReconnect()
                         connect()
                     }
                     else -> {
@@ -87,14 +112,16 @@ class WebSocketController @Inject constructor(
         }
     }
     
-    fun isConnected(): Boolean = webSocket != null
+    fun isConnected(): Boolean = _connectionState.value == ConnectionState.CONNECTED
 
     private fun getListener(): WebSocketListener {
         return object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 this@WebSocketController.webSocket = webSocket
-                isConnecting = false
+                _connectionState.value = ConnectionState.CONNECTED
+                reconnectAttempt = 0
                 Log.d(TAG, "WebSocket Connected")
+                scope.launch { flushQueue() }
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {
@@ -151,13 +178,13 @@ class WebSocketController @Inject constructor(
             }
 
             override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
-                webSocket.close(1000, null)
                 Log.d(TAG, "Closing: $code / $reason")
+                _connectionState.value = ConnectionState.DISCONNECTED
             }
 
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
                 this@WebSocketController.webSocket = null
-                isConnecting = false
+                _connectionState.value = ConnectionState.DISCONNECTED
                 Log.d(TAG, "Closed: $code / $reason")
                 if (code != NORMAL_CLOSURE_STATUS) {
                     reconnect()
@@ -166,7 +193,7 @@ class WebSocketController @Inject constructor(
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                 this@WebSocketController.webSocket = null
-                isConnecting = false
+                _connectionState.value = ConnectionState.ERROR
                 Log.e(TAG, "Error: ${t.message}", t)
                 scope.launch {
                     _errors.emit(response?.code?.toNetworkError() ?: DataError.Network.UNKNOWN)
@@ -177,12 +204,13 @@ class WebSocketController @Inject constructor(
     }
 
     fun connect() {
-        if (webSocket != null || isConnecting) return
-        isConnecting = true
+        if (_connectionState.value == ConnectionState.CONNECTED || _connectionState.value == ConnectionState.CONNECTING) return
+        
+        _connectionState.value = ConnectionState.CONNECTING
         scope.launch {
             val token = dataStoreManager.token.first()
             if (token == null) {
-                isConnecting = false
+                _connectionState.value = ConnectionState.ERROR
                 _errors.emit(DataError.Network.UNAUTHORIZED)
                 return@launch
             }
@@ -194,41 +222,96 @@ class WebSocketController @Inject constructor(
     }
 
     private fun reconnect() {
+        if (_connectionState.value == ConnectionState.CONNECTING) return
+        
         scope.launch {
-            delay(RECONNECT_DELAY)
-            Log.d(TAG, "Reconnecting...")
+            val delayMs = calculateReconnectDelay()
+            Log.d(TAG, "Reconnecting in $delayMs ms (Attempt ${reconnectAttempt + 1})")
+            delay(delayMs)
+            reconnectAttempt++
             connect()
         }
     }
 
-
-    inline fun <reified T> sendMessage(action: String, data: T) {
-        val request = BaseWebSocketRequest(action, data)
-        val jsonMessage = json.encodeToString(request)
-        sendJsonMessage(jsonMessage)
+    private fun calculateReconnectDelay(): Long {
+        val baseDelay = 1000L
+        val maxDelay = 30000L
+        val delay = baseDelay * (2.0.pow(reconnectAttempt.toDouble())).toLong()
+        return min(delay, maxDelay)
     }
 
-    fun sendJsonMessage(jsonMessage: String) {
-        if (webSocket == null) {
-            scope.launch {
-                _errors.emit(DataError.Network.NO_INTERNET)
-            }
-            return
+    private fun resetReconnect() {
+        reconnectAttempt = 0
+    }
+
+
+    inline fun <reified T : Any> sendMessage(action: String, data: T, queueIfOffline: Boolean = true) {
+        val request = BaseWebSocketRequest(action, data)
+        val jsonMessage = json.encodeToString(request)
+        if (!sendJsonMessage(jsonMessage) && queueIfOffline) {
+            enqueueMessage(action, jsonMessage)
         }
-        Log.d(TAG, "Sending: $jsonMessage")
-        webSocket?.send(jsonMessage)
+    }
+
+    fun enqueueMessage(action: String, jsonMessage: String) {
+        scope.launch {
+            queuedMessageDao.insertMessage(QueuedMessageEntity(action = action, messageJson = jsonMessage))
+            triggerWorker()
+        }
+    }
+
+    private fun triggerWorker() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+        val workRequest = OneTimeWorkRequestBuilder<MessageQueueWorker>()
+            .setConstraints(constraints)
+            .build()
+        workManager.enqueueUniqueWork(
+            "MessageQueueWorker_OneTime",
+            ExistingWorkPolicy.REPLACE,
+            workRequest
+        )
+    }
+
+    fun sendJsonMessage(jsonMessage: String): Boolean {
+        val ws = webSocket
+        return if (ws != null && _connectionState.value == ConnectionState.CONNECTED) {
+            Log.d(TAG, "Sending: $jsonMessage")
+            ws.send(jsonMessage)
+        } else {
+            Log.w(TAG, "Failed to send message: WebSocket not connected")
+            false
+        }
+    }
+
+    suspend fun flushQueue(): Boolean {
+        val queuedMessages = queuedMessageDao.getQueuedMessages().first()
+        if (queuedMessages.isEmpty()) return true
+        
+        Log.d(TAG, "Flushing ${queuedMessages.size} messages")
+        var allSuccess = true
+        for (message in queuedMessages) {
+            if (sendJsonMessage(message.messageJson)) {
+                queuedMessageDao.deleteMessage(message.id)
+            } else {
+                Log.w(TAG, "Failed to send queued message ${message.id}, stopping flush")
+                allSuccess = false
+                break
+            }
+        }
+        return allSuccess
     }
 
     fun disconnect() {
         webSocket?.close(NORMAL_CLOSURE_STATUS, "User disconnected")
         webSocket = null
-        isConnecting = false
+        _connectionState.value = ConnectionState.DISCONNECTED
     }
 
     companion object {
         const val TAG = "WebSocketController"
         private const val WEB_SOCKET_URL = "wss://${BuildConfig.BASE_URL}/ws"
         private const val NORMAL_CLOSURE_STATUS = 1000
-        private const val RECONNECT_DELAY = 5000L
     }
 }

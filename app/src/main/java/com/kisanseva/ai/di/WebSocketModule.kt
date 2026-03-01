@@ -1,8 +1,9 @@
-package com.kisanmithra.app.di
+package com.kisanseva.ai.di
 
+import androidx.work.WorkManager
 import com.kisanseva.ai.data.local.DataStoreManager
+import com.kisanseva.ai.data.local.dao.QueuedMessageDao
 import com.kisanseva.ai.data.remote.websocket.WebSocketController
-import com.kisanseva.ai.di.AuthenticatedClient
 import com.kisanseva.ai.util.ConnectivityObserver
 import dagger.Module
 import dagger.Provides
@@ -29,8 +30,17 @@ object WebSocketModule {
         @AuthenticatedClient okHttpClient: OkHttpClient,
         dataStoreManager: DataStoreManager,
         connectivityObserver: ConnectivityObserver,
+        queuedMessageDao: QueuedMessageDao,
+        workManager: WorkManager,
         json: Json
     ): WebSocketController {
-        return WebSocketController(okHttpClient, dataStoreManager, connectivityObserver, json)
+        return WebSocketController(
+            okHttpClient,
+            dataStoreManager,
+            connectivityObserver,
+            queuedMessageDao,
+            workManager,
+            json
+        )
     }
 }

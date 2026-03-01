@@ -3,7 +3,6 @@ package com.kisanseva.ai.data.repository
 import com.kisanseva.ai.data.local.dao.ChatSessionDao
 import com.kisanseva.ai.data.local.dao.MessageDao
 import com.kisanseva.ai.data.local.dao.QueuedMessageDao
-import com.kisanseva.ai.data.local.entity.QueuedMessageEntity
 import com.kisanseva.ai.data.mapper.toDomain
 import com.kisanseva.ai.data.mapper.toEntity
 import com.kisanseva.ai.data.remote.ChatApi
@@ -143,19 +142,10 @@ class ChatRepositoryImpl(
     }
 
     override suspend fun sendMessage(action: String, data: MessageRequest): Result<Unit, DataError.Network> {
+        webSocketController.sendMessage(action, data)
         return if (webSocketController.isConnected()) {
-            try {
-                webSocketController.sendMessage(action, data)
-                Result.Success(Unit)
-            } catch (_: Exception) {
-                Result.Error(DataError.Network.UNKNOWN)
-            }
+            Result.Success(Unit)
         } else {
-            val queuedMessage = QueuedMessageEntity(
-                action = action,
-                data = webSocketController.json.encodeToString(data)
-            )
-            queuedMessageDao.insertMessage(queuedMessage)
             Result.Error(DataError.Network.NO_INTERNET)
         }
     }
@@ -195,11 +185,6 @@ class ChatRepositoryImpl(
     }
 
     override suspend fun sendQueuedMessages() {
-        val queuedMessages = queuedMessageDao.getQueuedMessages().first()
-        for (message in queuedMessages) {
-            val data = webSocketController.json.decodeFromString<MessageRequest>(message.data)
-            webSocketController.sendMessage(message.action, data)
-            queuedMessageDao.deleteMessage(message.id)
-        }
+        webSocketController.flushQueue()
     }
 }

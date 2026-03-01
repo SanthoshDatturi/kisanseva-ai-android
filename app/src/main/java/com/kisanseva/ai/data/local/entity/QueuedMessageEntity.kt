@@ -7,6 +7,6 @@ import androidx.room.PrimaryKey
 data class QueuedMessageEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val action: String,
-    val data: String, // Storing data as JSON string
+    val messageJson: String, // Storing the full BaseWebSocketRequest as JSON string
     val timestamp: Long = System.currentTimeMillis()
 )
