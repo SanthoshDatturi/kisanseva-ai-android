@@ -2,6 +2,7 @@ package com.kisanseva.ai.data.mapper
 
 import com.kisanseva.ai.data.local.entity.ChatSessionEntity
 import com.kisanseva.ai.domain.model.ChatSession
+import com.kisanseva.ai.domain.model.LastUserMessageState
 
 fun ChatSessionEntity.toDomain(): ChatSession {
     return ChatSession(
@@ -9,7 +10,11 @@ fun ChatSessionEntity.toDomain(): ChatSession {
         userId = userId,
         chatType = chatType,
         dataId = dataId,
-        ts = ts
+        title = title,
+        ts = ts,
+        lastUserMessageState = if (lastUserMessageRequestId != null && lastUserMessageState != null) {
+            LastUserMessageState(lastUserMessageRequestId, lastUserMessageState)
+        } else null
     )
 }
 
@@ -19,6 +24,9 @@ fun ChatSession.toEntity(): ChatSessionEntity {
         userId = userId,
         chatType = chatType,
         dataId = dataId,
-        ts = ts
+        title = title,
+        ts = ts,
+        lastUserMessageRequestId = lastUserMessageState?.requestId,
+        lastUserMessageState = lastUserMessageState?.state
     )
 }

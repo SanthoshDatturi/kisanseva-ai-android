@@ -76,6 +76,7 @@ import com.kisanseva.ai.R
 import com.kisanseva.ai.domain.model.ChatType
 import com.kisanseva.ai.domain.model.FarmProfile
 import com.kisanseva.ai.domain.model.Message
+import com.kisanseva.ai.domain.model.MessageState
 import com.kisanseva.ai.domain.model.Part
 import com.kisanseva.ai.domain.model.Role
 import com.kisanseva.ai.domain.model.websocketModels.Command
@@ -166,16 +167,18 @@ fun ChatScreen(
         }
     }
 
+    val isSending = uiState.chatSession?.lastUserMessageState?.state == MessageState.SENT
+
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.chats)) })
+            TopAppBar(title = { Text(uiState.chatSession?.title ?: stringResource(R.string.chats)) })
         },
         bottomBar = {
             MessageInput(
                 message = viewModel.message,
                 onMessageChange = viewModel::onMessageChange,
                 onSendMessage = viewModel::sendMessage,
-                isSendingMessage = uiState.isSendingMessage,
+                isSendingMessage = isSending,
                 imageParts = uiState.imageParts,
                 onRemoveImage = viewModel::removeImage,
                 onAttachmentClick = { galleryLauncher.launch(
@@ -208,6 +211,11 @@ fun ChatScreen(
                 reverseLayout = true,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                if (isSending) {
+                    item {
+                        TypingIndicator()
+                    }
+                }
                 items(uiState.messages.reversed()) { message ->
                     MessageItem(message = message, audioPlayer = viewModel.audioPlayer)
                 }
@@ -286,6 +294,51 @@ fun ChatScreen(
                     }
 
                     else -> {}
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TypingIndicator() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Surface(
+            shape = RoundedCornerShape(20.dp, 20.dp, 20.dp, 4.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            modifier = Modifier.widthIn(max = 320.dp),
+            shadowElevation = 1.dp
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val infiniteTransition = rememberInfiniteTransition(label = "typing")
+                repeat(3) { index ->
+                    val delay = index * 200
+                    val alpha by infiniteTransition.animateFloat(
+                        initialValue = 0.2f,
+                        targetValue = 1f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(600, delayMillis = delay),
+                            repeatMode = RepeatMode.Reverse
+                        ),
+                        label = "dot"
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha),
+                                shape = CircleShape
+                            )
+                    )
                 }
             }
         }
@@ -434,7 +487,7 @@ fun MessageInput(
             color = MaterialTheme.colorScheme.surfaceVariant,
             tonalElevation = 2.dp
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column {
                 if (imageParts.isNotEmpty()) {
                     LazyRow(
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),

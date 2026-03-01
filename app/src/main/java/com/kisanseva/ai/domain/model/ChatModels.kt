@@ -31,6 +31,17 @@ enum class Role {
     SYSTEM
 }
 
+enum class MessageState {
+    NOT_SENT,
+    SENT,
+    RESOLVED
+}
+
+data class LastUserMessageState(
+    val requestId: String,
+    val state: MessageState
+)
+
 @Serializable
 data class ChatSession(
     @SerialName("_id")
@@ -41,7 +52,9 @@ data class ChatSession(
     val chatType: ChatType,
     @SerialName("data_id")
     val dataId: String? = null,
-    val ts: Double = System.currentTimeMillis() / 1000.0
+    val title: String? = null,
+    val ts: Double = System.currentTimeMillis() / 1000.0,
+    @Transient val lastUserMessageState: LastUserMessageState? = null
 )
 
 @Serializable
@@ -55,22 +68,26 @@ data class CreateChatRequest(
 @Serializable
 data class Message(
     @SerialName("_id")
-    val id: String,
+    val id: String? = null,
     @SerialName("chat_id")
     var chatId: String,
     val content: Content,
+    @SerialName("request_id")
+    val requestId: String,
     val ts: Double = System.currentTimeMillis() / 1000.0
 )
 
 @Serializable
 data class MessageRequest(
     @SerialName("chat_id")
-    val chatId: String? = null,
+    val chatId: String,
     val content: Content,
     @SerialName("audio_response")
     val audioResponse: Boolean = false,
     @SerialName("data_id")
-    val dataId: String? = null
+    val dataId: String? = null,
+    @SerialName("request_id")
+    val requestId: String
 )
 
 @Serializable

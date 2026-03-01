@@ -288,7 +288,6 @@ object AppModule {
         chatApi,
         webSocketController,
         messageDao,
-        queuedMessageDao,
         mediaStorageManager,
         chatSessionDao
     )

@@ -2,7 +2,6 @@ package com.kisanseva.ai.data.repository
 
 import com.kisanseva.ai.data.local.dao.ChatSessionDao
 import com.kisanseva.ai.data.local.dao.MessageDao
-import com.kisanseva.ai.data.local.dao.QueuedMessageDao
 import com.kisanseva.ai.data.mapper.toDomain
 import com.kisanseva.ai.data.mapper.toEntity
 import com.kisanseva.ai.data.remote.ChatApi
@@ -14,12 +13,15 @@ import com.kisanseva.ai.domain.model.ChatType
 import com.kisanseva.ai.domain.model.CreateChatRequest
 import com.kisanseva.ai.domain.model.Message
 import com.kisanseva.ai.domain.model.MessageRequest
+import com.kisanseva.ai.domain.model.MessageState
+import com.kisanseva.ai.domain.model.Role
 import com.kisanseva.ai.domain.model.websocketModels.ChatWebSocketEvent
 import com.kisanseva.ai.domain.model.websocketModels.FarmSurveyAgentResponse
 import com.kisanseva.ai.domain.model.websocketModels.GeneralChatResponse
 import com.kisanseva.ai.domain.repository.ChatRepository
 import com.kisanseva.ai.domain.state.Result
 import com.kisanseva.ai.system.storage.MediaStorageManager
+import com.kisanseva.ai.util.UrlUtils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -29,7 +31,6 @@ class ChatRepositoryImpl(
     private val chatApi: ChatApi,
     private val webSocketController: WebSocketController,
     private val messageDao: MessageDao,
-    private val queuedMessageDao: QueuedMessageDao,
     private val mediaStorageManager: MediaStorageManager,
     private val chatSessionDao: ChatSessionDao
 ) : ChatRepository {
@@ -52,9 +53,7 @@ class ChatRepositoryImpl(
     }
 
     override suspend fun refreshChatSessions(): Result<Unit, DataError.Network> {
-        val localChatSessions = chatSessionDao.getChatSessions().first()
-        val latestTimestamp = localChatSessions.maxByOrNull { it.ts }?.ts
-        return when (val result = chatApi.getChatSessions(latestTimestamp)) {
+        return when (val result = chatApi.getChatSessions()) {
             is Result.Error -> Result.Error<Unit, DataError.Network>(result.error)
             is Result.Success -> {
                 if (result.data.isNotEmpty()) {
@@ -65,8 +64,18 @@ class ChatRepositoryImpl(
         }
     }
 
-    override suspend fun getChatSession(chatId: String): Result<ChatSession, DataError.Network> {
-        return chatApi.getChatSession(chatId)
+    override suspend fun refreshChatSession(chatId: String): Result<Unit, DataError.Network> {
+        return when (val result = chatApi.getChatSession(chatId)) {
+            is Result.Error -> Result.Error<Unit, DataError.Network>(result.error)
+            is Result.Success -> {
+                chatSessionDao.insertOrUpdateChatSessions(listOf(result.data.toEntity()))
+                Result.Success(Unit)
+            }
+        }
+    }
+
+    override fun getChatSession(chatId: String): Flow<ChatSession?> {
+        return chatSessionDao.getChatSession(chatId).map { it?.toDomain() }
     }
 
     override fun getChatMessages(chatId: String): Flow<List<Message>> {
@@ -101,27 +110,28 @@ class ChatRepositoryImpl(
     }
 
     override fun observeWebSocketEvents(): Flow<ChatWebSocketEvent> {
-        return webSocketController.messages.mapNotNull {
-            when (it.action) {
+        return webSocketController.messages.mapNotNull { response ->
+            val requestId = response.requestId
+            when (response.action) {
                 Actions.FARM_SURVEY_AGENT -> {
-                    val data = it.data as? FarmSurveyAgentResponse
-                    data?.let { response ->
+                    val data = response.data as? FarmSurveyAgentResponse
+                    data?.let { res ->
                         ChatWebSocketEvent.FarmSurveyEventChat(
-                            command = response.command,
-                            farmProfile = response.farmProfile,
-                            userMessage = response.userMessage,
-                            modelMessage = response.modelMessage
+                            command = res.command,
+                            farmProfile = res.farmProfile,
+                            userMessage = res.userMessage?.copy(requestId = requestId ?: res.userMessage.requestId),
+                            modelMessage = res.modelMessage.copy(requestId = requestId ?: res.modelMessage.requestId)
                         )
                     }
                 }
 
                 Actions.GENERAL_CHAT -> {
-                    val data = it.data as? GeneralChatResponse
-                    data?.let { response ->
+                    val data = response.data as? GeneralChatResponse
+                    data?.let { res ->
                         ChatWebSocketEvent.GeneralChatEventChat(
-                            command = response.command,
-                            userMessage = response.userMessage,
-                            modelMessage = response.modelMessage
+                            command = res.command,
+                            userMessage = res.userMessage?.copy(requestId = requestId ?: res.userMessage.requestId),
+                            modelMessage = res.modelMessage.copy(requestId = requestId ?: res.modelMessage.requestId)
                         )
                     }
                 }
@@ -129,7 +139,18 @@ class ChatRepositoryImpl(
                 else -> null
             }
         }.map { event ->
+            event.userMessage?.let { saveMessage(it) }
             val savedModelMessage = saveMessage(event.modelMessage)
+            
+            // Update session state to RESOLVED if request IDs match
+            event.modelMessage.requestId.let { reqId ->
+                chatSessionDao.updateSessionState(
+                    chatId = event.modelMessage.chatId,
+                    requestId = reqId,
+                    state = MessageState.RESOLVED
+                )
+            }
+
             when (event) {
                 is ChatWebSocketEvent.FarmSurveyEventChat -> {
                     event.copy(modelMessage = savedModelMessage)
@@ -143,6 +164,14 @@ class ChatRepositoryImpl(
 
     override suspend fun sendMessage(action: String, data: MessageRequest): Result<Unit, DataError.Network> {
         webSocketController.sendMessage(action, data)
+        
+        // Update session state to SENT
+        data.chatId.let { chatId ->
+            data.requestId.let { requestId ->
+                chatSessionDao.updateSessionState(chatId, requestId, MessageState.SENT)
+            }
+        }
+
         return if (webSocketController.isConnected()) {
             Result.Success(Unit)
         } else {
@@ -152,7 +181,14 @@ class ChatRepositoryImpl(
 
     override suspend fun saveMessage(message: Message): Message {
         val entity = message.toEntity()
-        val existingEntity = messageDao.getMessageById(message.id)
+        val id = entity.id
+
+        // Resolve user message ID: if we have a server ID and a requestId, delete the optimistic one
+        if (message.id != null && message.id != message.requestId && message.content.role == Role.USER.name.lowercase()) {
+            messageDao.deleteMessageById(message.requestId)
+        }
+
+        val existingEntity = messageDao.getMessageById(id)
 
         val updatedParts = entity.parts.map { part ->
             if (part.fileUri != null && part.localUri == null) {
@@ -161,7 +197,7 @@ class ChatRepositoryImpl(
                     part.copy(localUri = existingPart.localUri)
                 } else {
                     val localFile = mediaStorageManager.downloadToExternalStorage(
-                        part.fileUri,
+                        part.fileUri.let { UrlUtils.getFullUrlFromRef(it) },
                         part.mimeType
                     )
                     if (localFile != null) {

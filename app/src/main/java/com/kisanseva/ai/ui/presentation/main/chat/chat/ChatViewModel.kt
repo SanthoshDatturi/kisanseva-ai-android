@@ -6,14 +6,15 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.kisanseva.ai.data.local.DataStoreManager
 import com.kisanseva.ai.data.remote.websocket.Actions
+import com.kisanseva.ai.domain.model.ChatSession
 import com.kisanseva.ai.domain.model.ChatType
 import com.kisanseva.ai.domain.model.Content
 import com.kisanseva.ai.domain.model.FileData
 import com.kisanseva.ai.domain.model.FileType
 import com.kisanseva.ai.domain.model.Message
 import com.kisanseva.ai.domain.model.MessageRequest
+import com.kisanseva.ai.domain.model.MessageState
 import com.kisanseva.ai.domain.model.Part
 import com.kisanseva.ai.domain.model.Role
 import com.kisanseva.ai.domain.model.websocketModels.ChatWebSocketEvent
@@ -45,8 +46,8 @@ import javax.inject.Inject
 
 data class ChatUiState(
     val messages: List<Message> = emptyList(),
+    val chatSession: ChatSession? = null,
     val isRefreshing: Boolean = false,
-    val isSendingMessage: Boolean = false,
     val chatType: ChatType = ChatType.GENERAL,
     val imageParts: List<Part> = emptyList(),
     val isRecording: Boolean = false,
@@ -57,14 +58,11 @@ data class ChatUiState(
     val showBottomSheet: Boolean = false
 )
 
-const val TEMP_ID_PREFIX = "temp-"
-
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
     private val filesRepository: FilesRepository,
     private val mediaStorageManager: MediaStorageManager,
-    private val dataStoreManager: DataStoreManager,
     val audioPlayer: AudioPlayer,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -93,6 +91,7 @@ class ChatViewModel @Inject constructor(
             if (chatId == null) {
                 createNewChat()
             } else {
+                observeChatSession(chatId!!)
                 observeMessages(chatId!!)
                 refreshMessages(chatId!!)
             }
@@ -110,6 +109,7 @@ class ChatViewModel @Inject constructor(
             is Result.Success -> {
                 chatId = result.data.id
                 _uiState.update { it.copy(isRefreshing = false) }
+                observeChatSession(chatId!!)
                 observeMessages(chatId!!)
                 refreshMessages(chatId!!)
 
@@ -124,6 +124,14 @@ class ChatViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         audioPlayer.release()
+    }
+
+    private fun observeChatSession(chatId: String) {
+        viewModelScope.launch {
+            chatRepository.getChatSession(chatId).collectLatest { session ->
+                _uiState.update { it.copy(chatSession = session) }
+            }
+        }
     }
 
     fun bottomSheetState(showBottomSheet: Boolean) {
@@ -310,9 +318,8 @@ class ChatViewModel @Inject constructor(
             .onEach { event ->
                 if (chatId == null || event.modelMessage.chatId != chatId) return@onEach
 
-                _uiState.update { it.copy(isSendingMessage = false) }
                 event.modelMessage.let { modelMessage ->
-                    if (_uiState.value.messages.none { it.id == modelMessage.id }) {
+                    if (_uiState.value.messages.none { it.id == modelMessage.id || (it.requestId != null && it.requestId == modelMessage.requestId && it.content.role == Role.MODEL.name.lowercase()) }) {
                         modelMessage.content.parts?.find {
                             it.fileData?.mimeType?.contains("audio") == true
                         }?.let { part ->
@@ -338,8 +345,14 @@ class ChatViewModel @Inject constructor(
 
     fun sendMessage() {
         val currentChatId = chatId ?: return
-        val messageParts = mutableListOf<Part>()
+        
+        // Check if last message is resolved
+        val lastState = uiState.value.chatSession?.lastUserMessageState?.state
+        if (lastState != null && lastState != MessageState.RESOLVED) {
+            return
+        }
 
+        val messageParts = mutableListOf<Part>()
 
         if (uiState.value.imageParts.isNotEmpty()) {
             messageParts.addAll(uiState.value.imageParts)
@@ -356,21 +369,23 @@ class ChatViewModel @Inject constructor(
             role = Role.USER.name.lowercase()
         )
 
+        val requestId = UUID.randomUUID().toString()
+
         val request = MessageRequest(
             chatId = currentChatId,
             content = userMessageContent,
-            audioResponse = uiState.value.audioPart != null
+            audioResponse = uiState.value.audioPart != null,
+            requestId = requestId
         )
 
         val optimisticMessage = Message(
-            id = "${TEMP_ID_PREFIX}${UUID.randomUUID()}",
             chatId = currentChatId,
             content = userMessageContent,
+            requestId = requestId
         )
 
         viewModelScope.launch {
             chatRepository.saveMessage(optimisticMessage)
-            _uiState.update { it.copy(isSendingMessage = true) }
             
             val action = when (chatType) {
                 ChatType.FARM_SURVEY -> Actions.FARM_SURVEY_AGENT
@@ -381,7 +396,6 @@ class ChatViewModel @Inject constructor(
             when (val result = chatRepository.sendMessage(action = action, data = request)) {
                 is Result.Error -> {
                     _errorChannel.emit(result.error.asUiText())
-                    _uiState.update { it.copy(isSendingMessage = false) }
                 }
                 is Result.Success -> {
                     message = ""

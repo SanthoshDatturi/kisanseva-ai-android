@@ -13,7 +13,8 @@ interface ChatRepository {
     suspend fun createChatSession(chatType: ChatType, dataId: String? = null): Result<ChatSession, DataError.Network>
     fun getChatSessions(): Flow<List<ChatSession>>
     fun getChatMessages(chatId: String): Flow<List<Message>>
-    suspend fun getChatSession(chatId: String): Result<ChatSession, DataError.Network>
+    suspend fun refreshChatSession(chatId: String): Result<Unit, DataError.Network>
+    fun getChatSession(chatId: String): Flow<ChatSession?>
     suspend fun deleteChatSession(chatId: String): Result<Unit, DataError.Network>
 
     fun observeWebSocketEvents(): Flow<ChatWebSocketEvent>

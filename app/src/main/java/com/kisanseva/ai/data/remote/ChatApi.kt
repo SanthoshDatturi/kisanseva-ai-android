@@ -44,11 +44,10 @@ class ChatApi(
             }
         }
 
-    suspend fun getChatSessions(timestamp: Double? = null): Result<List<ChatSession>, DataError.Network> =
+    suspend fun getChatSessions(): Result<List<ChatSession>, DataError.Network> =
         withContext(Dispatchers.IO) {
             try {
                 val urlBuilder = "$chatUrl/".toHttpUrl().newBuilder()
-                timestamp?.let { urlBuilder.addQueryParameter("timestamp", it.toString()) }
                 val httpRequest = Request.Builder()
                     .url(urlBuilder.build())
                     .get()

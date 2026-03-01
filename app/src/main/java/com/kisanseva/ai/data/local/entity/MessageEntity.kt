@@ -10,7 +10,8 @@ data class MessageEntity(
     val chatId: String,
     val ts: Double,
     val role: String?,
-    val parts: List<PartEntity>
+    val parts: List<PartEntity>,
+    val requestId: String
 )
 
 @Serializable

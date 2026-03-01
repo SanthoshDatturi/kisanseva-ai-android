@@ -9,11 +9,12 @@ import com.kisanseva.ai.domain.model.Part
 
 fun Message.toEntity(): MessageEntity {
     return MessageEntity(
-        id = id,
+        id = id ?: requestId,
         chatId = chatId,
         ts = ts,
         role = content.role,
-        parts = content.parts?.map { it.toEntity() } ?: emptyList()
+        parts = content.parts?.map { it.toEntity() } ?: emptyList(),
+        requestId = requestId
     )
 }
 
@@ -34,7 +35,8 @@ fun MessageEntity.toDomain(): Message {
             role = role,
             parts = parts.map { it.toDomain() }
         ),
-        ts = ts
+        ts = ts,
+        requestId = requestId
     )
 }
 

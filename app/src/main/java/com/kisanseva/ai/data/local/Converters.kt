@@ -10,6 +10,7 @@ import com.kisanseva.ai.domain.model.GeocodingResponse
 import com.kisanseva.ai.domain.model.ImmediateAction
 import com.kisanseva.ai.domain.model.Investment
 import com.kisanseva.ai.domain.model.IrrigationSystem
+import com.kisanseva.ai.domain.model.MessageState
 import com.kisanseva.ai.domain.model.PesticideInfo
 import com.kisanseva.ai.domain.model.PesticideStage
 import com.kisanseva.ai.domain.model.PesticideType
@@ -135,6 +136,16 @@ class Converters {
     @TypeConverter
     fun toCropState(value: String): CropState {
         return CropState.valueOf(value)
+    }
+
+    @TypeConverter
+    fun fromMessageState(value: MessageState?): String? {
+        return value?.name
+    }
+
+    @TypeConverter
+    fun toMessageState(value: String?): MessageState? {
+        return value?.let { MessageState.valueOf(it) }
     }
 
     @TypeConverter
