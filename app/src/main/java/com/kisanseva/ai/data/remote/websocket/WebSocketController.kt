@@ -14,6 +14,7 @@ import com.kisanseva.ai.data.remote.toNetworkError
 import com.kisanseva.ai.di.AuthenticatedClient
 import com.kisanseva.ai.domain.error.DataError
 import com.kisanseva.ai.domain.model.CropRecommendationResponse
+import com.kisanseva.ai.domain.model.PesticideRecommendationError
 import com.kisanseva.ai.domain.model.PesticideRecommendationResponse
 import com.kisanseva.ai.domain.model.websocketModels.BaseWebSocketRequest
 import com.kisanseva.ai.domain.model.websocketModels.BaseWebSocketResponse
@@ -22,6 +23,8 @@ import com.kisanseva.ai.domain.model.websocketModels.FarmSurveyAgentResponse
 import com.kisanseva.ai.domain.model.websocketModels.GeneralChatResponse
 import com.kisanseva.ai.domain.model.websocketModels.TextToSpeechUrlResponseData
 import com.kisanseva.ai.domain.model.websocketModels.WebSocketError
+import com.kisanseva.ai.domain.model.websocketModels.WorkflowEvents
+import com.kisanseva.ai.domain.model.websocketModels.WorkflowWebSocketEvent
 import com.kisanseva.ai.util.ConnectivityObserver
 import com.kisanseva.ai.workers.MessageQueueWorker
 import kotlinx.coroutines.CoroutineScope
@@ -35,11 +38,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonObject
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -64,7 +69,12 @@ object Actions {
 data class RawBaseWebSocketResponse(
     val action: String,
     val data: JsonElement? = null,
-    val error: WebSocketError? = null
+    val error: WebSocketError? = null,
+    val event: String? = null,
+    @SerialName("workflow_id") val workflowId: String? = null,
+    @SerialName("workflow_status") val workflowStatus: String? = null,
+    val step: String? = null,
+    val ts: String? = null
 )
 
 enum class ConnectionState {
@@ -88,6 +98,9 @@ class WebSocketController @Inject constructor(
 
     private val _messages = MutableSharedFlow<BaseWebSocketResponse<*>>(extraBufferCapacity = 100)
     val messages: Flow<BaseWebSocketResponse<*>> = _messages
+
+    private val _workflowEvents = MutableSharedFlow<WorkflowWebSocketEvent>(extraBufferCapacity = 200)
+    val workflowEvents: Flow<WorkflowWebSocketEvent> = _workflowEvents
 
     private val _errors = MutableSharedFlow<DataError.Network>(extraBufferCapacity = 10)
     val errors: Flow<DataError.Network> = _errors
@@ -135,40 +148,113 @@ class WebSocketController @Inject constructor(
                             return@launch
                         }
 
+                        if (!rawResponse.event.isNullOrBlank()) {
+                            _workflowEvents.emit(
+                                WorkflowWebSocketEvent(
+                                    action = rawResponse.action,
+                                    event = rawResponse.event,
+                                    workflowId = rawResponse.workflowId,
+                                    workflowStatus = rawResponse.workflowStatus,
+                                    step = rawResponse.step,
+                                    data = rawResponse.data,
+                                    ts = rawResponse.ts
+                                )
+                            )
+
+                            if (rawResponse.event != WorkflowEvents.RESULT) {
+                                return@launch
+                            }
+                        }
+
                         val finalResponse = rawResponse.data?.let {
                             when (rawResponse.action) {
                                 Actions.FARM_SURVEY_AGENT -> BaseWebSocketResponse(
                                     rawResponse.action,
-                                    json.decodeFromJsonElement<FarmSurveyAgentResponse>(it)
+                                    json.decodeFromJsonElement<FarmSurveyAgentResponse>(it),
+                                    event = rawResponse.event,
+                                    workflowId = rawResponse.workflowId,
+                                    workflowStatus = rawResponse.workflowStatus,
+                                    step = rawResponse.step,
+                                    ts = rawResponse.ts
                                 )
                                 Actions.CROP_RECOMMENDATION -> BaseWebSocketResponse(
                                     rawResponse.action,
-                                    json.decodeFromJsonElement<CropRecommendationResponse>(it)
+                                    json.decodeFromJsonElement<CropRecommendationResponse>(it),
+                                    event = rawResponse.event,
+                                    workflowId = rawResponse.workflowId,
+                                    workflowStatus = rawResponse.workflowStatus,
+                                    step = rawResponse.step,
+                                    ts = rawResponse.ts
                                 )
                                 Actions.SELECT_CROP_FROM_RECOMMENDATION -> BaseWebSocketResponse(
                                     rawResponse.action,
                                     json.decodeFromJsonElement<CropSelectionResponse>(
                                         it
-                                    )
+                                    ),
+                                    event = rawResponse.event,
+                                    workflowId = rawResponse.workflowId,
+                                    workflowStatus = rawResponse.workflowStatus,
+                                    step = rawResponse.step,
+                                    ts = rawResponse.ts
                                 )
                                 Actions.PESTICIDE_RECOMMENDATION -> BaseWebSocketResponse(
-                                    rawResponse.action,
-                                    json.decodeFromJsonElement<PesticideRecommendationResponse>(
-                                        it
-                                    )
+                                    action = rawResponse.action,
+                                    data = runCatching {
+                                        val jsonObject = it.jsonObject
+                                        if ("recommendations" in jsonObject) {
+                                            json.decodeFromJsonElement<PesticideRecommendationResponse>(it)
+                                        } else {
+                                            val errorPayload = json.decodeFromJsonElement<PesticideRecommendationError>(it)
+                                            Log.w(TAG, "Pesticide recommendation failed: ${errorPayload.reason}")
+                                            null
+                                        }
+                                    }.getOrNull(),
+                                    event = rawResponse.event,
+                                    workflowId = rawResponse.workflowId,
+                                    workflowStatus = rawResponse.workflowStatus,
+                                    step = rawResponse.step,
+                                    ts = rawResponse.ts
                                 )
                                 Actions.TEXT_TO_SPEECH_URL -> BaseWebSocketResponse(
                                     rawResponse.action,
-                                    json.decodeFromJsonElement<TextToSpeechUrlResponseData>(it)
+                                    json.decodeFromJsonElement<TextToSpeechUrlResponseData>(it),
+                                    event = rawResponse.event,
+                                    workflowId = rawResponse.workflowId,
+                                    workflowStatus = rawResponse.workflowStatus,
+                                    step = rawResponse.step,
+                                    ts = rawResponse.ts
                                 )
                                 Actions.GENERAL_CHAT -> BaseWebSocketResponse(
                                     rawResponse.action,
-                                    json.decodeFromJsonElement<GeneralChatResponse>(it)
+                                    json.decodeFromJsonElement<GeneralChatResponse>(it),
+                                    event = rawResponse.event,
+                                    workflowId = rawResponse.workflowId,
+                                    workflowStatus = rawResponse.workflowStatus,
+                                    step = rawResponse.step,
+                                    ts = rawResponse.ts
                                 )
-                                else -> BaseWebSocketResponse(rawResponse.action, Unit)
+                                else -> BaseWebSocketResponse(
+                                    action = rawResponse.action,
+                                    data = Unit,
+                                    event = rawResponse.event,
+                                    workflowId = rawResponse.workflowId,
+                                    workflowStatus = rawResponse.workflowStatus,
+                                    step = rawResponse.step,
+                                    ts = rawResponse.ts
+                                )
                             }
-                        } ?: BaseWebSocketResponse(rawResponse.action, Unit)
-                        _messages.emit(finalResponse)
+                        } ?: BaseWebSocketResponse(
+                            action = rawResponse.action,
+                            data = Unit,
+                            event = rawResponse.event,
+                            workflowId = rawResponse.workflowId,
+                            workflowStatus = rawResponse.workflowStatus,
+                            step = rawResponse.step,
+                            ts = rawResponse.ts
+                        )
+                        if (finalResponse.data != null || rawResponse.action == Actions.TEXT_TO_SPEECH_URL) {
+                            _messages.emit(finalResponse)
+                        }
 
                     } catch (e: Exception) {
                         Log.e(TAG, "Error parsing message", e)

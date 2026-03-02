@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.kisanseva.ai.R
 
 @Composable
-fun SelectingCropLoadingIndicator() {
+fun SelectingCropLoadingIndicator(progressMessages: List<String> = emptyList()) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -87,7 +88,22 @@ fun SelectingCropLoadingIndicator() {
                     color = MaterialTheme.colorScheme.outline,
                     fontWeight = FontWeight.Medium
                 )
+
+                if (progressMessages.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        progressMessages.takeLast(6).forEach { progress ->
+                            Text(
+                                text = "- $progress",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
             }
         }
     }
 }
+
+

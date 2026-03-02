@@ -11,6 +11,10 @@ data class FarmSurveyAgentResponse(
     val command: Command,
     @SerialName("farm_profile")
     val farmProfile: FarmProfile? = null,
+    @SerialName("collected_fields")
+    val collectedFields: List<String>? = null,
+    @SerialName("missing_fields")
+    val missingFields: List<String>? = null,
     @SerialName("user_message")
     val userMessage: Message? = null,
     @SerialName("model_message")

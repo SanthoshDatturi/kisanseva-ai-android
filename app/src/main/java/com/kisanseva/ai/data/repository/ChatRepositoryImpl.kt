@@ -19,13 +19,22 @@ import com.kisanseva.ai.domain.model.Role
 import com.kisanseva.ai.domain.model.websocketModels.ChatWebSocketEvent
 import com.kisanseva.ai.domain.model.websocketModels.FarmSurveyAgentResponse
 import com.kisanseva.ai.domain.model.websocketModels.GeneralChatResponse
+import com.kisanseva.ai.domain.model.websocketModels.WorkflowChunkEnvelope
+import com.kisanseva.ai.domain.model.websocketModels.WorkflowEvents
 import com.kisanseva.ai.domain.repository.ChatRepository
 import com.kisanseva.ai.domain.state.Result
 import com.kisanseva.ai.system.storage.MediaStorageManager
 import com.kisanseva.ai.util.UrlUtils
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonPrimitive
 
 class ChatRepositoryImpl(
     private val chatApi: ChatApi,
@@ -162,6 +171,32 @@ class ChatRepositoryImpl(
         }
     }
 
+    override fun listenToFarmSurveyProgress(): Flow<String> {
+        return webSocketController.workflowEvents
+            .filter { it.action == Actions.FARM_SURVEY_AGENT }
+            .mapNotNull { event ->
+                when (event.event) {
+                    WorkflowEvents.STEP_STARTED -> event.step?.let { "Running ${it.readableStep()}..." }
+                    WorkflowEvents.WORKFLOW_FAILED -> event.data.extractErrorMessage()?.let { "Failed: $it" }
+                    WorkflowEvents.CHUNK -> event.data.toFarmSurveyChunkMessage()
+                    else -> null
+                }
+            }
+    }
+
+    override fun listenToGeneralChatProgress(): Flow<String> {
+        return webSocketController.workflowEvents
+            .filter { it.action == Actions.GENERAL_CHAT }
+            .mapNotNull { event ->
+                when (event.event) {
+                    WorkflowEvents.STEP_STARTED -> event.step?.let { "Running ${it.readableStep()}..." }
+                    WorkflowEvents.WORKFLOW_FAILED -> event.data.extractErrorMessage()?.let { "Failed: $it" }
+                    WorkflowEvents.CHUNK -> event.data.toGeneralChatChunkMessage()
+                    else -> null
+                }
+            }
+    }
+
     override suspend fun sendMessage(action: String, data: MessageRequest): Result<Unit, DataError.Network> {
         webSocketController.sendMessage(action, data)
         
@@ -247,4 +282,66 @@ class ChatRepositoryImpl(
     override suspend fun sendQueuedMessages() {
         webSocketController.flushQueue()
     }
+
+    private fun String.readableStep(): String = replace("_", " ")
+
+    private fun JsonElement?.toFarmSurveyChunkMessage(): String? {
+        if (this == null) return null
+        val envelope = runCatching {
+            webSocketController.json.decodeFromJsonElement<WorkflowChunkEnvelope>(this)
+        }.getOrNull() ?: return null
+        val payload = envelope.data as? JsonObject
+
+        return when (envelope.chunkType) {
+            "survey_progress" -> {
+                val collectedCount = payload?.get("collected_fields")
+                    ?.jsonArrayOrNull()
+                    ?.size ?: 0
+                val missingCount = payload?.get("missing_fields")
+                    ?.jsonArrayOrNull()
+                    ?.size ?: 0
+                when {
+                    missingCount > 0 -> "Survey progress: $collectedCount collected, $missingCount pending."
+                    else -> "Survey details complete. Finalizing profile."
+                }
+            }
+
+            "farm_profile_saved" -> {
+                val farmId = payload?.get("farm_id")?.jsonPrimitive?.contentOrNull
+                if (farmId.isNullOrBlank()) "Farm profile saved." else "Farm profile saved: $farmId"
+            }
+
+            else -> null
+        }
+    }
+
+    private fun JsonElement?.toGeneralChatChunkMessage(): String? {
+        if (this == null) return null
+        val envelope = runCatching {
+            webSocketController.json.decodeFromJsonElement<WorkflowChunkEnvelope>(this)
+        }.getOrNull() ?: return null
+        val payload = envelope.data as? JsonObject
+
+        return when (envelope.chunkType) {
+            "chat_reasoning" -> {
+                val intent = payload?.get("user_intent")?.jsonPrimitive?.contentOrNull
+                val planSteps = payload?.get("response_plan")?.jsonArrayOrNull()?.size ?: 0
+                when {
+                    !intent.isNullOrBlank() && planSteps > 0 -> "Intent recognized: $intent ($planSteps plan steps)."
+                    !intent.isNullOrBlank() -> "Intent recognized: $intent."
+                    planSteps > 0 -> "Response plan prepared with $planSteps steps."
+                    else -> "Reasoning completed for this response."
+                }
+            }
+
+            else -> null
+        }
+    }
+
+    private fun JsonElement?.extractErrorMessage(): String? {
+        val obj = this as? JsonObject ?: return null
+        return obj["error"]?.jsonPrimitive?.contentOrNull
+    }
+
+    private fun JsonElement.jsonArrayOrNull() = runCatching { this.jsonArray }.getOrNull()
 }

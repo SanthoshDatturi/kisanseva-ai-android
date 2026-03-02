@@ -213,7 +213,7 @@ fun ChatScreen(
             ) {
                 if (isSending) {
                     item {
-                        TypingIndicator()
+                        TypingIndicator(progressMessages = uiState.progressMessages)
                     }
                 }
                 items(
@@ -304,7 +304,7 @@ fun ChatScreen(
 }
 
 @Composable
-fun TypingIndicator() {
+fun TypingIndicator(progressMessages: List<String> = emptyList()) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -317,31 +317,47 @@ fun TypingIndicator() {
             modifier = Modifier.widthIn(max = 320.dp),
             shadowElevation = 1.dp
         ) {
-            Row(
+            Column(
                 modifier = Modifier.padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                val infiniteTransition = rememberInfiniteTransition(label = "typing")
-                repeat(3) { index ->
-                    val delay = index * 200
-                    val alpha by infiniteTransition.animateFloat(
-                        initialValue = 0.2f,
-                        targetValue = 1f,
-                        animationSpec = infiniteRepeatable(
-                            animation = tween(600, delayMillis = delay),
-                            repeatMode = RepeatMode.Reverse
-                        ),
-                        label = "dot"
-                    )
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha),
-                                shape = CircleShape
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val infiniteTransition = rememberInfiniteTransition(label = "typing")
+                    repeat(3) { index ->
+                        val delay = index * 200
+                        val alpha by infiniteTransition.animateFloat(
+                            initialValue = 0.2f,
+                            targetValue = 1f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(600, delayMillis = delay),
+                                repeatMode = RepeatMode.Reverse
+                            ),
+                            label = "dot"
+                        )
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha),
+                                    shape = CircleShape
+                                )
+                        )
+                    }
+                }
+
+                if (progressMessages.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        progressMessages.takeLast(4).forEach { progress ->
+                            Text(
+                                text = "- $progress",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                    )
+                        }
+                    }
                 }
             }
         }

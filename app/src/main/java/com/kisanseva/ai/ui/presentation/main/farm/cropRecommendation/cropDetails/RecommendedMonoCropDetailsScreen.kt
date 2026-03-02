@@ -143,7 +143,7 @@ fun RecommendedMonoCropDetailsScreen(
                 }
             }
             if (uiState.isSelectingCrop) {
-                SelectingCropLoadingIndicator()
+                SelectingCropLoadingIndicator(progressMessages = uiState.progressMessages)
             }
         }
     }

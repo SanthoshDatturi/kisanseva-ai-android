@@ -18,6 +18,8 @@ interface ChatRepository {
     suspend fun deleteChatSession(chatId: String): Result<Unit, DataError.Network>
 
     fun observeWebSocketEvents(): Flow<ChatWebSocketEvent>
+    fun listenToFarmSurveyProgress(): Flow<String>
+    fun listenToGeneralChatProgress(): Flow<String>
     suspend fun sendMessage(action: String, data: MessageRequest): Result<Unit, DataError.Network>
     
     suspend fun saveMessage(message: Message): Message

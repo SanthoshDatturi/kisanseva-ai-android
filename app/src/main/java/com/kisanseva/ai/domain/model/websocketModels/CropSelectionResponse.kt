@@ -1,6 +1,7 @@
 package com.kisanseva.ai.domain.model.websocketModels
 
 import com.kisanseva.ai.domain.model.CultivationCalendar
+import com.kisanseva.ai.domain.model.CropSelectionReasoningReport
 import com.kisanseva.ai.domain.model.InvestmentBreakdown
 import com.kisanseva.ai.domain.model.SoilHealthRecommendations
 import kotlinx.serialization.SerialName
@@ -13,5 +14,7 @@ data class CropSelectionResponse(
     @SerialName("investment_breakdown")
     val investmentBreakdown: List<InvestmentBreakdown>,
     @SerialName("soil_health_recommendations")
-    val soilHealthRecommendations: SoilHealthRecommendations
+    val soilHealthRecommendations: SoilHealthRecommendations,
+    @SerialName("reasoning_report")
+    val reasoningReport: CropSelectionReasoningReport? = null
 )

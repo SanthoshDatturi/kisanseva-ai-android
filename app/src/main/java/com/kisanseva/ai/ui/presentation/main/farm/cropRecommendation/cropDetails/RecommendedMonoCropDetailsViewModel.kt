@@ -17,14 +17,20 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 data class RecommendedMonoCropDetailsState(
     val monoCrop: MonoCrop? = null,
     val isRefreshing: Boolean = false,
-    val isSelectingCrop: Boolean = false
+    val isSelectingCrop: Boolean = false,
+    val progressMessages: List<String> = emptyList()
 )
 
 sealed class Event {
@@ -52,8 +58,27 @@ class RecommendedMonoCropDetailsViewModel @Inject constructor(
     private val cropRecommendationResponseId: String = checkNotNull(savedStateHandle.get<String>("cropRecommendationResponseId"))
 
     init {
+        observeSelectionProgress()
         observeMonoCropDetails()
         refreshMonoCropDetails()
+    }
+
+    private fun observeSelectionProgress() {
+        cropRecommendationRepository.listenToCropSelectionProgress()
+            .onEach { message ->
+                if (message.startsWith("Failed:", ignoreCase = true)) {
+                    _errorChannel.emit(UiText.DynamicString(message.removePrefix("Failed:").trim()))
+                    _state.update { it.copy(isSelectingCrop = false, progressMessages = emptyList()) }
+                } else {
+                    _state.update { current ->
+                        if (!current.isSelectingCrop) return@update current
+                        current.copy(
+                            progressMessages = (current.progressMessages + message).distinct().takeLast(8)
+                        )
+                    }
+                }
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun observeMonoCropDetails() {
@@ -83,12 +108,28 @@ class RecommendedMonoCropDetailsViewModel @Inject constructor(
 
     fun selectCropForCultivation() {
         viewModelScope.launch {
-            _state.update { it.copy(isSelectingCrop = true) }
+            _state.update { it.copy(isSelectingCrop = true, progressMessages = emptyList()) }
             val monoCrop = state.value.monoCrop
             if (monoCrop == null) {
                 _errorChannel.emit(UiText.DynamicString("Crop details not available to select."))
-                _state.update { it.copy(isSelectingCrop = false) }
+                _state.update { it.copy(isSelectingCrop = false, progressMessages = emptyList()) }
                 return@launch
+            }
+
+            val cachedCultivatingCrop = cultivatingCropRepository.getCultivatingCropById(monoCropId).first()
+            if (cachedCultivatingCrop != null) {
+                _state.update { it.copy(isSelectingCrop = false, progressMessages = emptyList()) }
+                _event.emit(Event.NavigateToCultivatingCrop(monoCropId))
+                return@launch
+            }
+
+            val selectionAwaiter = async {
+                withTimeoutOrNull(120_000L) {
+                    cropRecommendationRepository.listenToCropSelectionResponses()
+                        .first { response ->
+                            response.soilHealthRecommendations.cropId == monoCropId
+                        }
+                }
             }
 
             when (val result = cropRecommendationRepository.selectCropForCultivation(
@@ -97,13 +138,28 @@ class RecommendedMonoCropDetailsViewModel @Inject constructor(
                 cropRecommendationResponseId = cropRecommendationResponseId
             )) {
                 is Result.Error -> {
+                    selectionAwaiter.cancel()
                     _errorChannel.emit(result.error.asUiText())
-                    _state.update { it.copy(isSelectingCrop = false) }
+                    _state.update { it.copy(isSelectingCrop = false, progressMessages = emptyList()) }
                 }
                 is Result.Success -> {
-                    saveCultivatingCrop(monoCrop)
-                    _state.update { it.copy(isSelectingCrop = false) }
-                    _event.emit(Event.NavigateToCultivatingCrop(monoCrop.id))
+                    val selectionResult = selectionAwaiter.await()
+                    if (selectionResult == null) {
+                        val updatedCache = cultivatingCropRepository.getCultivatingCropById(monoCropId).first()
+                        if (updatedCache != null) {
+                            _state.update { it.copy(isSelectingCrop = false, progressMessages = emptyList()) }
+                            _event.emit(Event.NavigateToCultivatingCrop(monoCrop.id))
+                        } else {
+                            _errorChannel.emit(
+                                UiText.DynamicString("Selection is taking longer than expected. Please try again.")
+                            )
+                            _state.update { it.copy(isSelectingCrop = false, progressMessages = emptyList()) }
+                        }
+                    } else {
+                        saveCultivatingCrop(monoCrop)
+                        _state.update { it.copy(isSelectingCrop = false, progressMessages = emptyList()) }
+                        _event.emit(Event.NavigateToCultivatingCrop(monoCrop.id))
+                    }
                 }
             }
         }

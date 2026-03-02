@@ -45,6 +45,52 @@ data class RiskFactor(
 )
 
 @Serializable
+enum class CheckResult {
+    @SerialName("pass")
+    PASS,
+    @SerialName("caution")
+    CAUTION,
+    @SerialName("fail")
+    FAIL
+}
+
+@Serializable
+data class CrossVerificationCheck(
+    @SerialName("check_name")
+    val checkName: String,
+    val result: CheckResult,
+    val summary: String
+)
+
+@Serializable
+data class CropRecommendationReasoningReport(
+    @SerialName("weather_report")
+    val weatherReport: String,
+    @SerialName("water_report")
+    val waterReport: String,
+    @SerialName("soil_report")
+    val soilReport: String,
+    @SerialName("farm_resource_report")
+    val farmResourceReport: String,
+    @SerialName("cross_verification_checks")
+    val crossVerificationChecks: List<CrossVerificationCheck>,
+    @SerialName("date_validity_report")
+    val dateValidityReport: String
+)
+
+@Serializable
+data class CropSelectionReasoningReport(
+    @SerialName("weather_alignment_report")
+    val weatherAlignmentReport: String,
+    @SerialName("investment_grounding_report")
+    val investmentGroundingReport: String,
+    @SerialName("soil_health_need_report")
+    val soilHealthNeedReport: String,
+    @SerialName("date_validity_report")
+    val dateValidityReport: String
+)
+
+@Serializable
 data class MonoCrop(
     @SerialName("_id")
     val id: String,
@@ -111,7 +157,9 @@ data class CropRecommendationResponse(
     @SerialName("mono_crops")
     val monoCrops: List<MonoCrop>,
     @SerialName("inter_crops")
-    val interCrops: List<InterCropRecommendation>
+    val interCrops: List<InterCropRecommendation>,
+    @SerialName("reasoning_report")
+    val reasoningReport: CropRecommendationReasoningReport? = null
 )
 
 @Serializable

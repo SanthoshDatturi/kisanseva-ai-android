@@ -54,6 +54,17 @@ data class PesticideInfo(
 )
 
 @Serializable
+data class PesticideDiagnosticReport(
+    @SerialName("likely_issue")
+    val likelyIssue: String,
+    val confidence: Double,
+    @SerialName("key_observations")
+    val keyObservations: List<String>,
+    @SerialName("alternatives_considered")
+    val alternativesConsidered: List<String> = emptyList()
+)
+
+@Serializable
 data class PesticideRecommendationResponse(
     @SerialName("_id")
     val id: String,
@@ -64,6 +75,8 @@ data class PesticideRecommendationResponse(
     val timestamp: Double,
     @SerialName("disease_details")
     val diseaseDetails: String,
+    @SerialName("diagnostic_report")
+    val diagnosticReport: PesticideDiagnosticReport? = null,
     val recommendations: List<PesticideInfo>,
     @SerialName("general_advice")
     val generalAdvice: String

@@ -55,7 +55,8 @@ data class ChatUiState(
     val audioPart: Part? = null,
     val isUploading: Boolean = false,
     val command: Command? = null,
-    val showBottomSheet: Boolean = false
+    val showBottomSheet: Boolean = false,
+    val progressMessages: List<String> = emptyList()
 )
 
 @HiltViewModel
@@ -86,6 +87,7 @@ class ChatViewModel @Inject constructor(
 
     init {
         _uiState.update { it.copy(chatType = chatType) }
+        observeWorkflowProgress()
         
         viewModelScope.launch {
             if (chatId == null) {
@@ -97,6 +99,32 @@ class ChatViewModel @Inject constructor(
             }
         }
         observeEvents()
+    }
+
+    private fun observeWorkflowProgress() {
+        val progressFlow = when (chatType) {
+            ChatType.FARM_SURVEY -> chatRepository.listenToFarmSurveyProgress()
+            ChatType.GENERAL -> chatRepository.listenToGeneralChatProgress()
+            else -> chatRepository.listenToGeneralChatProgress()
+        }
+
+        progressFlow
+            .onEach { message ->
+                if (message.startsWith("Failed:", ignoreCase = true)) {
+                    _errorChannel.emit(UiText.DynamicString(message.removePrefix("Failed:").trim()))
+                    _uiState.update { it.copy(progressMessages = emptyList()) }
+                    return@onEach
+                }
+                _uiState.update { current ->
+                    val isAwaitingResponse =
+                        current.chatSession?.lastUserMessageState?.state == MessageState.SENT
+                    if (!isAwaitingResponse) return@update current
+                    current.copy(
+                        progressMessages = (current.progressMessages + message).distinct().takeLast(8)
+                    )
+                }
+            }
+            .launchIn(viewModelScope)
     }
 
     private suspend fun createNewChat() {
@@ -332,10 +360,12 @@ class ChatViewModel @Inject constructor(
                 }
                 when (event) {
                     is ChatWebSocketEvent.FarmSurveyEventChat -> {
+                        _uiState.update { it.copy(progressMessages = emptyList()) }
                         _chatEvent.emit(HandleCommand(event.command, event.farmProfile))
                     }
 
                     is ChatWebSocketEvent.GeneralChatEventChat -> {
+                        _uiState.update { it.copy(progressMessages = emptyList()) }
                         _chatEvent.emit(HandleCommand<Unit>(event.command))
                     }
                 }
@@ -386,6 +416,7 @@ class ChatViewModel @Inject constructor(
 
         viewModelScope.launch {
             chatRepository.saveMessage(optimisticMessage)
+            _uiState.update { it.copy(progressMessages = emptyList()) }
             
             val action = when (chatType) {
                 ChatType.FARM_SURVEY -> Actions.FARM_SURVEY_AGENT
@@ -396,6 +427,7 @@ class ChatViewModel @Inject constructor(
             when (val result = chatRepository.sendMessage(action = action, data = request)) {
                 is Result.Error -> {
                     _errorChannel.emit(result.error.asUiText())
+                    _uiState.update { it.copy(progressMessages = emptyList()) }
                 }
                 is Result.Success -> {
                     message = ""

@@ -48,7 +48,8 @@ data class PesticideUiState(
     val audioFile: File? = null,
     val audioPart: Part? = null,
     val showDescriptionInput: Boolean = false,
-    val isRequesting: Boolean = false
+    val isRequesting: Boolean = false,
+    val progressMessages: List<String> = emptyList()
 )
 
 @HiltViewModel
@@ -79,6 +80,7 @@ class PesticideViewModel @Inject constructor(
         val cropId = navArgs.cropId
         val farmId = navArgs.farmId
         _uiState.update { it.copy(cropId = cropId, farmId = farmId) }
+        observeRecommendationProgress()
         observeRecommendations(cropId)
         observePreviousPesticides(cropId)
         refreshPreviousPesticides(cropId)
@@ -88,7 +90,26 @@ class PesticideViewModel @Inject constructor(
         pesticideRepository.listenToPesticideRecommendations()
             .onEach { recommendation ->
                 if (recommendation.cropId == cropId) {
+                    _uiState.update { it.copy(isRequesting = false, progressMessages = emptyList()) }
                     _events.emit(PesticideEvent.RecommendationReceived(recommendation.id))
+                }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    private fun observeRecommendationProgress() {
+        pesticideRepository.listenToPesticideRecommendationProgress()
+            .onEach { message ->
+                if (message.startsWith("Failed:", ignoreCase = true)) {
+                    _errorChannel.emit(UiText.DynamicString(message.removePrefix("Failed:").trim()))
+                    _uiState.update { it.copy(isRequesting = false, progressMessages = emptyList()) }
+                } else {
+                    _uiState.update { current ->
+                        if (!current.isRequesting) return@update current
+                        current.copy(
+                            progressMessages = (current.progressMessages + message).distinct().takeLast(8)
+                        )
+                    }
                 }
             }
             .launchIn(viewModelScope)
@@ -261,7 +282,7 @@ class PesticideViewModel @Inject constructor(
                 listOfNotNull(state.audioPart?.fileData?.fileUri)
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isRequesting = true) }
+            _uiState.update { it.copy(isRequesting = true, progressMessages = emptyList()) }
             try {
                 pesticideRepository.requestPesticideRecommendation(
                     cropId = cId,
@@ -273,8 +294,7 @@ class PesticideViewModel @Inject constructor(
                 description = ""
             } catch (e: Exception) {
                 _errorChannel.emit(UiText.DynamicString(e.localizedMessage ?: "Failed to request recommendation"))
-            } finally {
-                _uiState.update { it.copy(isRequesting = false) }
+                _uiState.update { it.copy(isRequesting = false, progressMessages = emptyList()) }
             }
         }
     }

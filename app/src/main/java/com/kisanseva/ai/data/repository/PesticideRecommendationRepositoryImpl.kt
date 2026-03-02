@@ -10,6 +10,8 @@ import com.kisanseva.ai.domain.model.PesticideRecommendationRequestData
 import com.kisanseva.ai.domain.model.PesticideRecommendationResponse
 import com.kisanseva.ai.domain.model.PesticideStage
 import com.kisanseva.ai.domain.model.PesticideStageUpdateRequest
+import com.kisanseva.ai.domain.model.websocketModels.WorkflowChunkEnvelope
+import com.kisanseva.ai.domain.model.websocketModels.WorkflowEvents
 import com.kisanseva.ai.domain.repository.PesticideRecommendationRepository
 import com.kisanseva.ai.domain.state.Result
 import kotlinx.coroutines.flow.Flow
@@ -18,6 +20,11 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonPrimitive
 
 class PesticideRecommendationRepositoryImpl(
     private val api: PesticideRecommendationApi,
@@ -89,6 +96,19 @@ class PesticideRecommendationRepositoryImpl(
             }
     }
 
+    override fun listenToPesticideRecommendationProgress(): Flow<String> {
+        return webSocketController.workflowEvents
+            .filter { it.action == Actions.PESTICIDE_RECOMMENDATION }
+            .mapNotNull { event ->
+                when (event.event) {
+                    WorkflowEvents.STEP_STARTED -> event.step?.let { "Running ${it.replace("_", " ")}..." }
+                    WorkflowEvents.WORKFLOW_FAILED -> event.data.extractErrorMessage()?.let { "Failed: $it" }
+                    WorkflowEvents.CHUNK -> event.data.toChunkMessage()
+                    else -> null
+                }
+            }
+    }
+
     override suspend fun updatePesticideStage(
         recommendationId: String,
         pesticideId: String,
@@ -140,5 +160,43 @@ class PesticideRecommendationRepositoryImpl(
             recommendations = entity.recommendations,
             generalAdvice = entity.generalAdvice
         )
+    }
+
+    private fun JsonElement?.toChunkMessage(): String? {
+        if (this == null) return null
+        val envelope = runCatching {
+            webSocketController.json.decodeFromJsonElement<WorkflowChunkEnvelope>(this)
+        }.getOrNull() ?: return null
+        val payload = envelope.data as? JsonObject
+
+        return when (envelope.chunkType) {
+            "media_ready" -> {
+                val count = payload?.get("file_count")?.jsonPrimitive?.contentOrNull
+                if (count != null) "Processed $count input files." else "Processed input files."
+            }
+            "diagnostic_ready" -> {
+                val likelyIssue = payload?.get("likely_issue")?.jsonPrimitive?.contentOrNull
+                if (!likelyIssue.isNullOrBlank()) {
+                    "Diagnosis ready: $likelyIssue"
+                } else {
+                    "Diagnosis prepared."
+                }
+            }
+            "pesticide_item_ready" -> {
+                val name = payload?.get("pesticide_name")?.jsonPrimitive?.contentOrNull
+                val type = payload?.get("pesticide_type")?.jsonPrimitive?.contentOrNull
+                when {
+                    !name.isNullOrBlank() && !type.isNullOrBlank() -> "Recommendation ready: $name ($type)"
+                    !name.isNullOrBlank() -> "Recommendation ready: $name"
+                    else -> "Pesticide recommendation item prepared."
+                }
+            }
+            else -> null
+        }
+    }
+
+    private fun JsonElement?.extractErrorMessage(): String? {
+        val obj = this as? JsonObject ?: return null
+        return obj["error"]?.jsonPrimitive?.contentOrNull
     }
 }

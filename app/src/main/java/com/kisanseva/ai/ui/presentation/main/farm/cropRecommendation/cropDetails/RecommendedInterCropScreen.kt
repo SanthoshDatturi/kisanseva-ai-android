@@ -138,7 +138,7 @@ fun RecommendedInterCropScreen(
             }
 
             if (uiState.isSelectingCrop) {
-                SelectingCropLoadingIndicator()
+                SelectingCropLoadingIndicator(progressMessages = uiState.progressMessages)
             }
         }
     }

@@ -26,7 +26,8 @@ data class RecommendationUiState(
     val interCrops: List<InterCropRecommendation> = emptyList(),
     val isRefreshing: Boolean = false,
     val farmId: String,
-    val cropRecommendationResponseId: String? = null
+    val cropRecommendationResponseId: String? = null,
+    val progressMessages: List<String> = emptyList()
 )
 
 @HiltViewModel
@@ -44,6 +45,7 @@ class RecommendationViewModel @Inject constructor(
     val errorChannel = _errorChannel.asSharedFlow()
 
     init {
+        observeRecommendationProgress()
         observeRecommendations()
         refreshRecommendations()
     }
@@ -70,16 +72,37 @@ class RecommendationViewModel @Inject constructor(
 
     fun refreshRecommendations() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isRefreshing = true) }
+            _uiState.update { it.copy(isRefreshing = true, progressMessages = emptyList()) }
             when (cropRecommendationRepository.refreshCropRecommendationByFarmId(farmId)) {
                 is Result.Error -> {
                     requestAndListenForRecommendations()
                 }
                 is Result.Success -> {
-                    _uiState.update { it.copy(isRefreshing = false) }
+                    _uiState.update { it.copy(isRefreshing = false, progressMessages = emptyList()) }
                 }
             }
         }
+    }
+
+    private fun observeRecommendationProgress() {
+        cropRecommendationRepository.listenToCropRecommendationProgress()
+            .onEach { message ->
+                if (message.startsWith("Failed:", ignoreCase = true)) {
+                    _errorChannel.emit(UiText.DynamicString(message.removePrefix("Failed:").trim()))
+                    _uiState.update { it.copy(isRefreshing = false, progressMessages = emptyList()) }
+                } else {
+                    _uiState.update { current ->
+                        val updated = (current.progressMessages + message).distinct().takeLast(8)
+                        current.copy(progressMessages = updated)
+                    }
+                }
+            }
+            .catch { e ->
+                _errorChannel.emit(
+                    UiText.DynamicString(e.localizedMessage ?: "Failed to read recommendation progress")
+                )
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun requestAndListenForRecommendations() {
@@ -94,6 +117,7 @@ class RecommendationViewModel @Inject constructor(
                                     cropRecommendationResponseId = recommendation.id,
                                     farmId = recommendation.farmId,
                                     isRefreshing = false,
+                                    progressMessages = emptyList(),
                                     monoCrops = recommendation.monoCrops,
                                     interCrops = recommendation.interCrops
                                 )

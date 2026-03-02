@@ -16,6 +16,9 @@ import com.kisanseva.ai.domain.model.CropRecommendationResponse
 import com.kisanseva.ai.domain.model.InterCropRecommendation
 import com.kisanseva.ai.domain.model.MonoCrop
 import com.kisanseva.ai.domain.model.SelectCropRequestData
+import com.kisanseva.ai.domain.model.websocketModels.CropSelectionResponse
+import com.kisanseva.ai.domain.model.websocketModels.WorkflowChunkEnvelope
+import com.kisanseva.ai.domain.model.websocketModels.WorkflowEvents
 import com.kisanseva.ai.domain.repository.CropRecommendationRepository
 import com.kisanseva.ai.domain.repository.CultivatingCropRepository
 import com.kisanseva.ai.domain.state.Result
@@ -27,6 +30,13 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 class CropRecommendationRepositoryImpl(
     private val cropRecommendationApi: CropRecommendationApi,
@@ -108,6 +118,38 @@ class CropRecommendationRepositoryImpl(
                     emit(recommendation)
                 }
             }
+    }
+
+    override fun listenToCropRecommendationProgress(): Flow<String> {
+        return webSocketController.workflowEvents
+            .filter { it.action == Actions.CROP_RECOMMENDATION }
+            .mapNotNull { event ->
+                when (event.event) {
+                    WorkflowEvents.STEP_STARTED -> event.step?.let { "Running ${it.readableStep()}..." }
+                    WorkflowEvents.WORKFLOW_FAILED -> event.data.extractErrorMessage()?.let { "Failed: $it" }
+                    WorkflowEvents.CHUNK -> event.data.toChunkMessage()
+                    else -> null
+                }
+            }
+    }
+
+    override fun listenToCropSelectionProgress(): Flow<String> {
+        return webSocketController.workflowEvents
+            .filter { it.action == Actions.SELECT_CROP_FROM_RECOMMENDATION }
+            .mapNotNull { event ->
+                when (event.event) {
+                    WorkflowEvents.STEP_STARTED -> event.step?.let { "Running ${it.readableStep()}..." }
+                    WorkflowEvents.WORKFLOW_FAILED -> event.data.extractErrorMessage()?.let { "Failed: $it" }
+                    WorkflowEvents.CHUNK -> event.data.toChunkMessage()
+                    else -> null
+                }
+            }
+    }
+
+    override fun listenToCropSelectionResponses(): Flow<CropSelectionResponse> {
+        return webSocketController.messages
+            .filter { it.action == Actions.SELECT_CROP_FROM_RECOMMENDATION }
+            .mapNotNull { it.data as? CropSelectionResponse }
     }
 
     override fun getLatestCropRecommendation(farmId: String): Flow<CropRecommendationResponse?> {
@@ -259,4 +301,72 @@ class CropRecommendationRepositoryImpl(
             description = entity.description
         )
     }
+
+    private fun String.readableStep(): String = replace("_", " ")
+
+    private fun JsonElement?.toChunkMessage(): String? {
+        if (this == null) return null
+        val envelope = runCatching {
+            webSocketController.json.decodeFromJsonElement<WorkflowChunkEnvelope>(this)
+        }.getOrNull() ?: return null
+        val payload = envelope.data as? JsonObject
+
+        return when (envelope.chunkType) {
+            "weather_report" -> "Weather conditions reviewed."
+            "reasoning_report" -> "Cross-checking farm resources and seasonality."
+            "validation_retry" -> "Re-validating dates and crop suitability."
+            "mono_crop_ready" -> {
+                val cropName = payload?.get("crop_name")?.jsonPrimitive?.contentOrNull
+                val variety = payload?.get("variety")?.jsonPrimitive?.contentOrNull
+                when {
+                    !cropName.isNullOrBlank() && !variety.isNullOrBlank() -> "Mono crop ready: $cropName ($variety)"
+                    !cropName.isNullOrBlank() -> "Mono crop ready: $cropName"
+                    else -> "Mono crop recommendation prepared."
+                }
+            }
+            "inter_crop_ready" -> {
+                val intercropType = payload?.get("intercrop_type")?.jsonPrimitive?.contentOrNull
+                val crops = payload?.get("crops")
+                    ?.jsonArrayOrNull()
+                    ?.mapNotNull { item ->
+                        (item as? JsonObject)?.get("crop_name")?.jsonPrimitive?.contentOrNull
+                    }
+                    ?: emptyList()
+                when {
+                    !intercropType.isNullOrBlank() && crops.isNotEmpty() -> "Intercrop ready: $intercropType (${crops.joinToString(" + ")})"
+                    !intercropType.isNullOrBlank() -> "Intercrop ready: $intercropType"
+                    else -> "Intercrop recommendation prepared."
+                }
+            }
+            "selected_crop_context" -> "Preparing selected crop plan."
+            "crop_selected" -> {
+                val cropName = payload?.get("crop_name")?.jsonPrimitive?.contentOrNull
+                val variety = payload?.get("variety")?.jsonPrimitive?.contentOrNull
+                when {
+                    !cropName.isNullOrBlank() && !variety.isNullOrBlank() -> "Selected: $cropName ($variety)"
+                    !cropName.isNullOrBlank() -> "Selected: $cropName"
+                    else -> "Crop selected for cultivation."
+                }
+            }
+            "intercrop_crop_selected" -> {
+                val cropName = payload?.get("crop_name")?.jsonPrimitive?.contentOrNull
+                val variety = payload?.get("variety")?.jsonPrimitive?.contentOrNull
+                when {
+                    !cropName.isNullOrBlank() && !variety.isNullOrBlank() -> "Intercrop member selected: $cropName ($variety)"
+                    !cropName.isNullOrBlank() -> "Intercrop member selected: $cropName"
+                    else -> "Intercrop member selected."
+                }
+            }
+            "soil_health_ready" -> "Soil health actions prepared."
+            "recommendation_summary" -> "Using latest recommendation available."
+            else -> null
+        }
+    }
+
+    private fun JsonElement?.extractErrorMessage(): String? {
+        val obj = this as? JsonObject ?: return null
+        return obj["error"]?.jsonPrimitive?.contentOrNull
+    }
+
+    private fun JsonElement.jsonArrayOrNull() = runCatching { this.jsonArray }.getOrNull()
 }

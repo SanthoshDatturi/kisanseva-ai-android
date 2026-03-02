@@ -4,6 +4,7 @@ import com.kisanseva.ai.domain.error.DataError
 import com.kisanseva.ai.domain.model.CropRecommendationResponse
 import com.kisanseva.ai.domain.model.InterCropRecommendation
 import com.kisanseva.ai.domain.model.MonoCrop
+import com.kisanseva.ai.domain.model.websocketModels.CropSelectionResponse
 import com.kisanseva.ai.domain.state.Result
 import kotlinx.coroutines.flow.Flow
 
@@ -20,6 +21,9 @@ interface CropRecommendationRepository {
     suspend fun requestCropRecommendation(farmId: String)
 
     fun listenToCropRecommendations(): Flow<CropRecommendationResponse>
+    fun listenToCropRecommendationProgress(): Flow<String>
+    fun listenToCropSelectionProgress(): Flow<String>
+    fun listenToCropSelectionResponses(): Flow<CropSelectionResponse>
 
     fun getLatestCropRecommendation(farmId: String): Flow<CropRecommendationResponse?>
 

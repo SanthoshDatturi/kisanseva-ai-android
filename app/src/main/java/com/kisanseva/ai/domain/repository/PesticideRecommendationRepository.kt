@@ -12,6 +12,7 @@ interface PesticideRecommendationRepository {
     suspend fun deleteRecommendation(recommendationId: String): Result<Unit, DataError.Network>
     suspend fun requestPesticideRecommendation(cropId: String, farmId: String, description: String, files: List<String>)
     fun listenToPesticideRecommendations(): Flow<PesticideRecommendationResponse>
+    fun listenToPesticideRecommendationProgress(): Flow<String>
     suspend fun updatePesticideStage(recommendationId: String, pesticideId: String, stage: PesticideStage, appliedDate: String? = null): Result<Unit, DataError.Network>
     suspend fun refreshRecommendationsByCropId(cropId: String): Result<Unit, DataError.Network>
     suspend fun refreshRecommendationById(recommendationId: String): Result<Unit, DataError.Network>
