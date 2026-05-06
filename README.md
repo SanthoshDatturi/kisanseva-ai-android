@@ -1,13 +1,12 @@
-
 # Kisan Seva AI
 
-### 🏡 Farms Overview
+## 🏡 Farms Overview
 
 Shows all registered farms with area, soil type, and location.
 
-<img src="images/farms_list.jpeg" width="300" />
+<img src="images/farms_list.jpg" width="300" />
 
-**Key UI Highlights**
+### Key UI Highlights
 - Multiple farm profiles
 - Soil type tags (Clay, Black soil, etc.)
 - Area displayed in acres
@@ -15,13 +14,13 @@ Shows all registered farms with area, soil type, and location.
 
 ---
 
-### 🌦️ Farm Dashboard (Weather + Details)
+## 🌦️ Farm Dashboard (Weather + Details)
 
 Real-time weather and farm-specific information.
 
-<img src="images/farm_dashboard_weather.jpeg" width="300" />
+<img src="images/farm_dashboard_weather.jpg" width="300" />
 
-**Includes**
+### Includes
 - Live weather (temperature, humidity, wind, pressure)
 - Crop recommendation entry point
 - Total vs cultivated area
@@ -29,13 +28,13 @@ Real-time weather and farm-specific information.
 
 ---
 
-### 🌱 Crops Under a Farm
+## 🌱 Crops Under a Farm
 
 Displays crops selected for a particular farm.
 
-<img src="images/farm_crops_tab.jpeg" width="300" />
+<img src="images/farm_crops_tab.jpg" width="300" />
 
-**Features**
+### Features
 - Selected crop status
 - Crop image banner
 - Variety name and short description
@@ -43,13 +42,13 @@ Displays crops selected for a particular farm.
 
 ---
 
-### 🌾 Crop Recommendation – Mono Crop
+## 🌾 Crop Recommendation – Mono Crop
 
 AI-ranked mono crop suggestions based on soil, weather, and land data.
 
-<img src="images/mono_crop_recommendation.jpeg" width="300" />
+<img src="images/mono_crop_recommendation.jpg" width="300" />
 
-**Highlights**
+### Highlights
 - Rank-based recommendation
 - Crop image preview
 - Variety information
@@ -57,26 +56,26 @@ AI-ranked mono crop suggestions based on soil, weather, and land data.
 
 ---
 
-### 🌾 Crop Recommendation – Intercropping
+## 🌾 Crop Recommendation – Intercropping
 
 Mixed crop recommendations with intercropping logic.
 
-<img src="images/intercrop_recommendation.jpeg" width="300" />
+<img src="images/intercrop_recommendation.jpg" width="300" />
 
-**Highlights**
+### Highlights
 - Intercropped badge
 - Multiple crops in one recommendation
 - Optimized combinations for yield and soil health
 
 ---
 
-### 📋 Crop Detail Page
+## 📋 Crop Detail Page
 
 Detailed view of a selected crop.
 
-<img src="images/crop_detail.jpeg" width="300" />
+<img src="images/crop_detail.jpg" width="300" />
 
-**Includes**
+### Includes
 - Crop name and variety
 - Local-language description
 - Selection status
@@ -84,13 +83,13 @@ Detailed view of a selected crop.
 
 ---
 
-### 🧩 Intercropping Detail & Guide
+## 🧩 Intercropping Detail & Guide
 
 Explains crop pairing and arrangement.
 
-<img src="images/intercropping_guide.jpeg" width="300" />
+<img src="images/intercropping_guide.jpg" width="300" />
 
-**Tools Available**
+### Tools Available
 - Intercropping guide
 - Cultivation calendar
 - Investment analysis
@@ -98,31 +97,40 @@ Explains crop pairing and arrangement.
 
 ---
 
-### 📅 Cultivation & Management Tools
+## 📅 Cultivation & Management Tools
 
 Centralized tools for crop lifecycle management.
 
-<img src="images/management_tools.jpeg" width="300" />
+<img src="images/management_tools.jpg" width="300" />
 
+### Features
 - Cultivation calendar
 - Investment analysis
 - Soil health advisory
 
-### 🌾 pesticides guide 
+---
 
-AI-ranked pesticides suggestions based on Farm and crop data.
+## 🌾 Pesticides Guide
 
-<img src="images/pesticides_guide.jpeg" width="300" />
+AI-ranked pesticide suggestions based on farm and crop data.
 
-**Highlights**
+<img src="images/pesticides_guide.jpg" width="300" />
+
+### Highlights
 - Rank-based recommendation
-- pesticides image preview
+- Pesticide image preview
 - Variety information
 - Simple comparison for farmers
 
-### 🌾 pesticides Recommendation 
+---
 
-Three types of pesticides recommendation Chemical, Organic, Biological.
+## 🌾 Pesticides Recommendation
 
-<img src="images/pesticides_recommendation.jpeg" width="300" />
+Three types of pesticide recommendations:
+- Chemical
+- Organic
+- Biological
 
+<img src="images/pesticides_recommendation.jpg" width="300" />
+
+---
